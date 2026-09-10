@@ -13,8 +13,11 @@ import type { AgentvilleWorldInjected } from './AgentvilleWorld.js'
 import { AgentvilleBrandMark, AgentvilleBrandName, AgentvilleHeroMark } from './Brand.js'
 import { WORLD_STYLES } from './styles.js'
 import type { ResidentId } from './world-bridge.js'
+import type {} from '@deepseek-ai/dsh-api-remotes/client'
+import { prepareResidentModel, readModelSettings, saveModelSettings } from './model-settings.js'
+import { TownModelOnboarding } from './ModelSettings.js'
 
-export const inject = ['slots', 'sessions', 'workspaces']
+export const inject = ['slots', 'sessions', 'workspaces', 'remote', 'remote.settings', 'remote.credentials', 'remote.llm', 'remote.session']
 
 const RESIDENT_SESSION_KEY = 'agentville.resident-sessions.v1'
 const RESIDENT_NAMES: Readonly<Record<ResidentId, string>> = {
@@ -86,11 +89,16 @@ export function apply(ctx: ClientContext): void {
     const sessionId = await selectResident(residentId, workspaceId)
     const binding = ctx.sessions.binding(sessionId as SessionId)
     if (binding === undefined) throw new Error('居民会话已断开，请重新打开')
+    await prepareResidentModel(ctx.remote, sessionId as SessionId)
     const result = await binding.session.prompt([{ type: 'text', text: prompt }], 'queue')
     if (!result.ok) throw new Error(result.error.message)
   }
 
   if (workbench) return
+
+  ctx.slots.inject('settings.onboarding', () => ctx.slots.register({
+    name: 'settings.onboarding', id: 'deepseek-official', priority: -100, order: 0,
+  }, TownModelOnboarding))
 
   ctx.effect(() => {
     const style = document.createElement('style')
@@ -110,6 +118,23 @@ export function apply(ctx: ClientContext): void {
       name: 'shell.overlay',
       id: 'agentville-world',
       order: -100,
-      inject: (): AgentvilleWorldInjected => ({ residentForSession, selectResident, sendResidentPrompt }),
+      inject: (): AgentvilleWorldInjected => ({
+        models: {
+          load: () => readModelSettings(ctx.remote),
+          save: (...args) => saveModelSettings(ctx.remote, ...args),
+          remove: async ref => {
+            const result = await ctx.remote.credentials.unset(ref)
+            if (!result.ok) throw new Error('密钥删除失败，可能由启动环境或只读配置管理')
+          },
+          test: async () => {
+            const response = await fetch('/agentville/model-test', {
+              method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}', signal: AbortSignal.timeout(35_000),
+            })
+            const result = await response.json() as { ok: boolean; message?: string }
+            if (!response.ok || !result.ok) throw new Error(result.message ?? '连接测试失败')
+          },
+        },
+        residentForSession, selectResident, sendResidentPrompt,
+      }),
     }, AgentvilleWorld))
 }

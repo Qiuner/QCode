@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 import type {} from '@deepseek-ai/dsh-client-ui-session/client'
 import type {} from '@deepseek-ai/dsh-client-ui-workspace/client'
+import { ModelSettings } from './ModelSettings.js'
+import { ModelConfigurationRequired, type ModelSettingsActions } from './model-settings.js'
 import {
   WORLD_BRIDGE_VERSION,
   isWorldToHostMessage,
@@ -11,6 +13,7 @@ import {
 } from './world-bridge.js'
 
 export interface AgentvilleWorldInjected {
+  models: ModelSettingsActions
   residentForSession(workspaceId: string, sessionId: string): ResidentId | undefined
   selectResident(residentId: ResidentId, workspaceId: string): Promise<string>
   sendResidentPrompt(residentId: ResidentId, workspaceId: string, prompt: string): Promise<void>
@@ -69,6 +72,15 @@ export function AgentvilleWorld(props: Props) {
   const workbench = new URLSearchParams(window.location.search).get('agentville') === 'workbench'
     || window.location.pathname === '/workbench'
   const iframe = useRef<HTMLIFrameElement | null>(null)
+  const [showModels, setShowModels] = useState(false)
+  useEffect(() => {
+    let active = true
+    void props.models.load().then(snapshot => {
+      const provider = snapshot.providers.find(item => item.id === snapshot.selection.provider)
+      if (active && (!snapshot.routable || (provider && !provider.credential.configured))) setShowModels(true)
+    }).catch(() => { /* The settings panel exposes connection errors on demand. */ })
+    return () => { active = false }
+  }, [])
   const [worldReady, setWorldReady] = useState(false)
   const [selectedResident, setSelectedResident] = useState<ResidentId | undefined>()
   const [pendingResident, setPendingResident] = useState<ResidentId | undefined>()
@@ -142,6 +154,7 @@ export function AgentvilleWorld(props: Props) {
       setPrompt('')
       setConnectionMessage('居民已开始工作')
     }, (error: unknown) => {
+      if (error instanceof ModelConfigurationRequired) setShowModels(true)
       setConnectionMessage(error instanceof Error ? error.message : '想法发送失败')
     }).finally(() => { setSending(false) })
   }
@@ -224,6 +237,7 @@ export function AgentvilleWorld(props: Props) {
 
   return (
     <div className={css.overlay} data-chat-open={chatOpen}>
+      {showModels && <ModelSettings actions={props.models} close={() => setShowModels(false)} />}
       <button
         className="agentville-chat-toggle"
         type="button"
@@ -266,6 +280,7 @@ export function AgentvilleWorld(props: Props) {
               ×
             </button>
           </div>
+          <button type="button" onClick={() => setShowModels(true)}>模型设置</button>
           {residents.map(resident => (
             <button
               key={resident.id}

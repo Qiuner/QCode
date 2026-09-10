@@ -3,8 +3,9 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 import { extname, relative, resolve, sep } from 'node:path'
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-host-webserver'
+import { createModelTestHandler, type ModelTestServices } from './model-test.js'
 
-export const inject = ['webServer']
+export const inject = ['webServer', 'llm', 'agentDefaultModel']
 
 const WORLD_ROUTE = '/world'
 const MIME: Readonly<Record<string, string>> = {
@@ -60,7 +61,10 @@ async function serveWorld(req: IncomingMessage, res: ServerResponse, worldRoot: 
 }
 
 /** Host half: mount the Godot export beside the existing Harness API and SPA. */
-export function apply(ctx: Context): void {
+export function apply(ctx: Context & ModelTestServices): void {
+  ctx.effect(() => ctx.webServer.register({
+    kind: 'exact', path: '/agentville/model-test', handler: createModelTestHandler(ctx),
+  }), 'agentville-web: model connection test')
   const configuredRoot = process.env.AGENTVILLE_WORLD_ROOT
   const worldRoot = resolve(process.cwd(), configuredRoot ?? 'games/mosslight/build/web')
   ctx.effect(() => ctx.webServer.register({
