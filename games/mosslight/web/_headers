@@ -1,0 +1,8 @@
+# Static hosting headers (Netlify / Cloudflare Pages compatible).
+# Single-thread Godot Web requires no COOP/COEP headers.
+/*.wasm
+  Content-Type: application/wasm
+/*.pck
+  Content-Type: application/octet-stream
+/*
+  X-Content-Type-Options: nosniff

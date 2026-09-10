@@ -1,0 +1,25 @@
+; Mosslight Isle — original Blender + Godot art prototype.
+config_version=5
+
+[application]
+config/name="Mosslight Isle · 苔光之屿"
+run/main_scene="res://scenes/island.tscn"
+config/features=PackedStringArray("4.7", "GL Compatibility")
+config/description="A tiny handcrafted-feeling island about gathering light and echoing objects."
+
+[display]
+window/size/viewport_width=1600
+window/size/viewport_height=1000
+window/size/window_width_override=1440
+window/size/window_height_override=900
+window/stretch/mode="canvas_items"
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+renderer/rendering_method.web="gl_compatibility"
+textures/default_filters/use_nearest_mipmap_filter=false
+anti_aliasing/quality/msaa_3d=2
+lights_and_shadows/directional_shadow/size=4096
+lights_and_shadows/directional_shadow/soft_shadow_filter_quality=3
+environment/defaults/default_clear_color=Color(0.13, 0.24, 0.27, 1)

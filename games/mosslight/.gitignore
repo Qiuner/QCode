@@ -1,0 +1,7 @@
+.godot/
+build/
+art/*.blend1
+art/*.blend2
+captures/*
+!captures/.gdignore
+art/*.log

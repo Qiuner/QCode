@@ -1,0 +1,180 @@
+# Mosslight Isle · 苔光之屿
+
+一个以场景和角色美术为优先的 3D 微缩岛屿原型。Blender 制作模型，Godot 驱动探索和「回响」玩法。苔光岛、晴沙绿洲、角色与合成音频在本项目内生成；第三地块「溪间庭院」改编自 AC 的 MIT 项目 xi4u，保留原作者署名与许可证。未使用《塞尔达传说》的角色、模型或音乐。
+
+## 直接试玩
+
+Windows 双击 **Play.cmd**。启动器优先使用本机已有的 Godot 4.7.2，也支持 PATH 中的 `godot.exe` / `godot4.exe`。首次运行会导入资产，然后打开游戏。
+
+也可以用 Godot 4.7.2 打开 `project.godot`，按 **F5**。无需 Node、Yarn 或运行 Agentville。游玩不需要联网。
+
+## 网页试玩与部署
+
+本机双击 **Play-Web.cmd**，会启动本地 HTTP 服务并打开 `http://127.0.0.1:8068/`。点击“进入世界”后可使用同一套键鼠操作。入口使用 Agentville 标题和三岛实景全景，加载进度与重试信息按需显示。启动器需要 Python；有现成导出文件时不需要再运行 Godot。
+
+网页版本使用 WebGL 2 Compatibility 渲染和单线程 WebAssembly，直接复用 GDScript 的移动、跳跃、碰撞、复制和拾取逻辑。Esc 释放鼠标并暂停 / 继续；切换到其他页面自动暂停，点击游戏画面或按 Esc 恢复。中文字体子集随游戏分发，不要求玩家安装字体或 Godot。
+
+在游戏目录中重新导出：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/build_web.ps1
+```
+
+若换电脑，先在 Godot 中安装 **4.7.2** 导出模板，或运行 `python tools/fetch_web_template.py`（仅下载官方归档中的两个 Web 单线程模板）。自定义引擎路径可通过 `-Godot '完整路径'` 传入构建脚本。
+
+将 **build/web/** 内全部文件部署到任意支持 HTTPS 的静态网站，保留文件之间的相对路径。构建脚本还会生成 **build/mosslight-web.zip**，可用于上传部署。可在现有网页中通过 iframe 嵌入：
+
+```html
+<iframe src="/mosslight/index.html" title="苔光之屿"
+  style="width:100%;height:90vh;border:0" allow="autoplay; fullscreen"></iframe>
+```
+
+正式网站需要 HTTPS；本机 localhost HTTP 可测试。`.wasm` 应以 `application/wasm` 返回；`web/_headers` 为 Netlify / Cloudflare Pages 提供对应配置。单线程构建无需 COOP/COEP 跨域隔离头。不能直接双击导出的 HTML 用 `file://` 游玩。当前未发布到公网。
+
+当前未压缩网页资源约 55 MB（其中引擎 WASM 约 40 MB），部署压缩包约 25 MB。静态服务器启用 Brotli / gzip 可减少传输量。网页仍以电脑键盘为目标，尚未实现手机触控摇杆。
+
+| 按键 | 操作 |
+| --- | --- |
+| WASD / 方向键 | 相对镜头移动 |
+| 空格 | 跳跃 |
+| Shift | 按住奔跑 |
+| 1 / 2 / 3 | 俯视角 / 第三人称 / 第一人称 |
+| V | 循环切换三种视角，保留位置与关卡进度 |
+| 鼠标 | 第一、第三人称点击画面锁定鼠标观察；也可按住左键或右键拖动 |
+| E | 靠近原始木箱学习回响；与附近居民交谈；园艺互动 |
+| F | 在前方预览位置复制木箱，最多 3 个；第 4 个替换最早的造物 |
+| Q | 撤回最后一个复制木箱 |
+| 滚轮 | 俯视角缩放；第三人称调整跟随距离；第一人称不变焦 |
+| Tab | 隐藏 / 显示界面 |
+| M | 静音 / 恢复声音 |
+| N | 开启 / 关闭环境动态；网页默认遵循系统的减少动态设置 |
+| B | 开启 / 关闭第一人称镜头与持灯手部动态，脚步声仍保留 |
+| I | 打开 / 关闭背包；打开时暂停，Esc 也可关闭 |
+| G | 将水壶拿在手上 / 收回背包 |
+| R | 重置整个关卡 |
+| Esc | 释放鼠标并暂停 / 继续；桌面版关闭窗口退出 |
+
+第一、第三人称的 WASD 相对镜头移动，A / D 横移；木箱始终放在镜头朝向前方的地面，不跟随横移动作转向。第三人称镜头遇到屋顶、树冠或墙壁会收近。第一人称显示持灯手部，按实际步行距离产生轻微起伏和脚步声；奔跑时视野从 70° 平滑增加至最多 73°，落地有短暂下沉缓冲。停止或撞墙时反馈停止，跳跃腾空不播放步行音。B 关闭镜头和手部动态，网页初始遵循系统的减少动态设置；M 可静音。持灯模型目前是 Godot 网格组成的表现模型，没有抓取、挥动或骨骼动画。
+
+网页鼠标锁定需要点击游戏画面；Esc 或切走页面会释放鼠标并暂停，点击画面可继续。若浏览器不允许锁定，页面会显示提示，仍可按住左键或右键拖动观察。视角切换不会自动申请锁定。桌面版使用相同操作。
+
+## 自由探索
+
+三岛直接开放探索，没有收集萤光或唤醒月井的剧情、任务面板与完成条件。月井保留为场景装饰。居民提供日常对话，也可以种花、散步或搭建木箱。
+
+靠近出生点左前方石座上的木箱，按 E 学习回响。用 F 放置木箱，可以搭出登上北侧石台的落脚点。
+
+薄荷色预览代表可放置，珊瑚色代表空间被占用。可以叠放木箱，Q 撤回；没有生命损失或时间压力。
+
+## 晴沙绿洲 · 第二地块
+
+原岛东侧新增同尺寸的沙漠岛，中心位于 Godot `(30, 0, 0)`。从池塘南侧往东走，绕过桥头的针叶树，经短石桥即可抵达；不用切换场景或重新加载角色。岛上有可步行攀登的沙丘、棕榈绿洲、仙人掌、条纹遮阳棚、砂岩门与风蚀岩群。石桥可以双向通行，两侧有实体护栏。
+
+三种视角继续共用玩家、背包与任务进度。俯视镜头会随过桥平滑转向沙漠，滚轮拉远可看相邻两岛，继续拉到最大可看三岛。进入沙漠会显示「晴沙绿洲」标题；沙地和桥面均支持木箱回响放置，水面禁止放置。掉入海中仍返回原岛出生点。绿洲目前是景观，没有新增居民、沙漠任务、游泳或接水互动。
+
+沙漠使用较低亮度的赭沙、陶土与灰绿色配色，以后方的土坯驿站、通风塔与圆顶建立主景。客栈拱门可实际穿行，内部有地毯、长凳和储物箱；屋顶棚架、木格窗、马赛克门槛、陶罐和摊位围绕建筑组织。绕绿洲的小径通向遗迹，岸边增加取水凉亭、休息木台、密集草丛和花；这些生活物件目前只作景观。沙丘提高起伏并加入宽色带，棕榈改为弯曲树干和羽状细叶。水纹与营地小旗使用游戏统一的环境时钟，暂停时停止，N 或系统减少动态设置关闭时保持静止。
+
+- `art/generate_desert.py`、`art/desert.blend`：独立沙漠生成脚本和可编辑源场景，不重建原岛。
+- `art/desert_settlement.py`：由沙漠生成器调用，制作土坯驿站、真拱门、通风塔、院内陈设、绿洲休息区与遗迹细节。屋顶不是可达的游玩区域，客栈内外可步行往返。
+- `assets/desert_sand.gdshader`：按真实沙丘高度连续混合沙色，消除离散色带的锯齿边缘；运行时保持同一套世界光照。
+- `assets/desert.glb`、`scenes/desert.tscn`、`scripts/desert.gd`：地块模型与整体偏移的碰撞。导出对象分成 `Terrain`、`Walkable`、`Obstacles`、`Details` 四组，前三组生成行走和相机碰撞，最后一组仅生成相机碰撞。沙丘接收景物阴影但不投射自身阴影，避免 WebGL 下的条纹。手动编辑后按相同分组重新导出，地面形状与碰撞自动保持一致。
+- `tests/desert.gd`：真实输入检查过桥往返、状态保留、回响放置、沙丘行走、边界、客栈拱门通行与镜头。
+- `tools/capture_desert.gd`：使用游戏实际渲染器生成沙漠总览、驿站近景和双岛总览，输出到 `captures/`。
+
+在游戏目录重新生成并验证：
+
+```powershell
+& 'D:\Blender\blender.exe' --background --factory-startup --python art/generate_desert.py
+& 'D:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe' --headless --path . --editor --import
+& 'D:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe' --headless --path . --fixed-fps 60 --script res://tests/desert.gd
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/build_web.ps1
+```
+
+网页使用同一套场景。更改模型或 GDScript 后必须重新导出；`Play-Web.cmd` 检测到已有导出时只启动预览服务，不自动构建。
+
+## 溪间庭院 · 第三地块
+
+从苔光岛西侧 `(x=-12, z=3)` 的木桥进入，庭院中心是 `(-30, 0, 0)`。这是 xi4u「溪间四时」的夏季场景改编：保留古树、榻榻米与茶具、花圃和溪中锦鲤，廊下躺卧人物、自行车、农具架、团扇和盘香已移除。茶屋替换为层叠四坡青瓦顶，东侧增加白墙月洞门，南侧旧木桥替换为带石栏的弧形石桥；沿桥到左岸，可走曲径穿过西南空地，或沿坡道上主屋露台。西南小凉亭及桌椅已移除。花境、石灯和白墙围绕这些空间组织，保留青绿夏日配色。原岛与沙漠继续共用玩家和背包。俯视滚轮拉到 50 可看相邻两岛，拉到 80 可看三岛。
+
+源项目并非 Blender 模型，而是 Three.js 程序生成几何。`art/convert_streamside.mjs` 从未修改的 TypeScript 快照提取夏季几何，展开实例并合并网格、烘焙颜色，输出 GLB；`art/import_streamside.py` 保存可编辑的 `art/streamside.blend` 并安装最终 GLB。Godot 用 `scenes/streamside.tscn` 与 `scripts/streamside.gd` 装配碰撞、溪水流纹、锦鲤和风铃。顶点颜色通过 `assets/streamside_vertex.gdshader` 适配 Compatibility 的色彩空间。装饰动画遵守 N、减少动态设置和暂停。
+
+当前为可探索的夏季庭院；未移植四季切换、天气、昼夜、原版像素后处理或音效，也未增加新居民与园艺交互。模型约 30 MB，首次网页加载比双岛版更大。原作者 AC / annac777，MIT © 2026 AC；源码版本与改编说明见 `art/xi4u-source/PROVENANCE.md`，许可证随网页导出分发为 `xi4u-LICENSE.txt`。
+
+在仓库根目录重建第三地块（Node 24、Blender 5.2）：
+
+```powershell
+npm install --prefix games/mosslight/build/xi4u-converter --no-audit --no-fund @napi-rs/canvas@1.0.8 esbuild@0.28.2 three@0.180.0
+node games/mosslight/art/convert_streamside.mjs
+& 'D:\Blender\blender.exe' --background --factory-startup --python games/mosslight/art/import_streamside.py
+& 'D:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe' --headless --path games/mosslight --editor --import
+& 'D:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe' --headless --path games/mosslight --fixed-fps 60 --script res://tests/streamside.gd
+powershell -NoProfile -ExecutionPolicy Bypass -File games/mosslight/tools/build_web.ps1
+```
+
+`art/streamside_garden.mjs` 是本项目新增的园林建筑源代码，由转换器调用并按行走、屋顶相机碰撞、装饰分组合并；不修改 xi4u 源码快照。月洞门可通行，茶具、石灯与花境只作景观，没有新增交互。`tools/capture_streamside.gd` 使用真实 Godot 渲染生成庭院近景、月洞门角度与三岛总览，输出到 `captures/`。无须运行原 xi4u 网站，也不依赖网络或网页嵌套。
+
+## 水壶与背包
+
+小屋右边的青绿色水壶现在可以拾取：靠近按 E，水壶从场景移入背包并自动装备。到池塘岸边或南侧码头附近按 E 接水，一壶有三格水。回到菜畦南侧新增的三格花圃，靠近花苗按 E 浇水，每次扣一格；约五秒后开花，再按 E 收获小雏菊。花根保留，可以继续接水、浇灌和收获。
+
+I 打开六格背包，点击物品查看说明、选择拿出或收纳水壶；G 快速收起 / 拿出。小雏菊自动叠放，最多 99 朵。已湿润的花苗不重复扣水，空壶不能浇水，满叠放时花朵保留在花圃。手持工具时优先进行附近园艺互动，收起后可照常与居民交谈。背包打开时暂停人物、环境和作物生长，关闭时释放按住的移动键。三种视角共用同一份物品和水量；第一人称有持壶和浇水表现。
+
+目前物品与种植状态仅保留在当前这一局，刷新网页或按 R 重开会重置。尚无存档、丢弃、交易、赠礼、制作或更多可收纳物品。
+
+岛上有三位居民：小屋菜畦旁的园丁「芽芽」、池塘南侧码头旁的钓鱼人「阿澜」、月井西侧的守井人「苔伯」。靠近显示名字和 E 交谈提示，再按 E 聊下一句；走远或等待十秒会收起对话。对白会随木箱学习、收集进度和月井复苏变化。居民会转向附近玩家并轻微呼吸，有实体碰撞，隔墙不能交谈；N 可停止动作，暂停时对话计时也停止。目前没有巡逻寻路、语音、交易或独立支线任务。
+
+## 美术与工程
+
+- `art/mosslight.blend`：可编辑的完整 Blender 场景，按环境、旅人 Lumi、回响木箱分集合，保留独立物件与命名材质。
+- `art/generate_assets.py`：可复现模型生成脚本。使用独立 Blender 后台进程，不会覆盖已打开的场景。
+- `art/detail_pass.py`：花箱、菜畦、园艺工具、灌木、草丛、芦苇与原创兔子、小鸭的细节模型。导出副本按材质合并，Blender 源文件保留独立物件。
+- `art/sanctuary_details.py`：月井高台的环形铺石、石灯、墙面徽记、断柱、常春藤、供花与蜡烛；保留正面跳跃落脚区，随模型生成脚本一起导出。
+- `art/generate_npcs.py`、`art/npcs.blend`：三位原创居民的独立生成脚本与可编辑 Blender 场景，复用小岛配色；单独运行脚本导出 `assets/npc_*.glb`，不重建岛屿。
+- `art/bake_ground_shadows.py`：从 Blender 场景烘焙地面接触阴影，输出 `assets/ground_shade.glb`。模型生成脚本会自动调用；手动移动静态模型并保存 `.blend` 后，需单独运行此脚本更新阴影。角色和动物不参与烘焙。
+- `assets/island.glb`、`lumi.glb`、`echo_crate.glb`：Godot 直接加载的模型。
+- `assets/rabbit.glb`、`duck.glb` 和 `scripts/environment_details.gd`：庭院兔子、池塘小鸭、蝴蝶、炊烟与水面涟漪；暂停时同步停止，N 可关闭动态。动物目前仅作环境装饰。
+- `assets/colliders.json`：和场景对应的独立碰撞布局。
+- `art/generate_audio.py`：标准库合成的原创轻音乐。
+- `scripts/island.gd`：场景装配、运动、复制、拾取、界面、镜头与音频。
+- `scripts/first_person_feedback.gd`：第一人称持灯手部、按实际距离驱动的步态与缓存脚步音，以及落地和奔跑反馈。
+- `scripts/island_residents.gd`：居民位置、碰撞、朝向、附近名字、交谈距离与遮挡检查，以及进度相关对白。
+- `scripts/garden_inventory.gd`：物品格、唯一水壶、数量叠放、装备、接水、浇花、成熟收获和暂停背包界面。
+- `assets/watering_can.glb`、`art/extract_watering_can.py`：从静态场景拆出的原始水壶及拆分导出脚本。重新生成小岛时保留独立工具资产，由 Godot 放置可拾取实例。
+- `tests/playthrough.gd`：运行真实场景和 3D 物理的集成检查。
+- `tests/camera_modes.gd`：镜头避障、第一人称移动和跳跃、放置方向、视角切换及鼠标释放的集成检查。
+- `tests/first_person_feel.gd`：实际行走、撞墙、腾空、落地、暂停和减少动态设置下的第一人称反馈检查。
+- `tests/residents.gd`：居民出生位置、对话循环、遮挡、碰撞、进度对白、暂停与减少动态集成检查。
+- `tests/garden_inventory.gd`：拾取、接水、装备、三格浇灌、重复使用、成熟收获、叠放上限与背包暂停检查。
+- `export_presets.cfg`：单线程网页导出配置。
+- `web/shell.html`：网页入口、加载进度、全屏及操作指南。
+- `tools/build_web.ps1`、`tools/serve_web.py`：网页构建与本地预览。
+- `assets/fonts/`：OFL 授权的 Noto Sans SC 衍生字体子集与许可证。增加中文文案后需运行 `tools/subset_font.py` 更新字库。两个 Web 导出入口都会先运行 `tools/check_ui_font.gd`；关闭系统字体回退后仍有缺字时会阻止导出。
+
+Blender 原文件被 `art/.gdignore` 排除在 Godot 导入之外，避免依赖本机 Blender 自动转换设置。模型修改后需要重新导出相应 GLB；碰撞修改需同步 JSON。游戏启动时动态装配场景，Godot 编辑器中按 F5 查看完整世界。
+
+PowerShell（将程序路径替换为本机安装路径）：
+
+```powershell
+# 重新制作全部模型；覆盖本项目的生成资产与 Blender 源文件。
+& 'D:\Blender\blender.exe' --background --factory-startup --python art/generate_assets.py
+
+# 只重烘焙地面接触阴影（手动编辑并保存 Blender 场景后）
+& 'D:\Blender\blender.exe' --background --factory-startup --python art/bake_ground_shadows.py
+
+# 类型 / 资源导入检查
+& 'D:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe' --headless --path . --editor --import
+
+# 真实场景集成检查（无窗口、无音频）
+& 'D:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe' --headless --path . --fixed-fps 60 --script res://tests/playthrough.gd
+& 'D:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe' --headless --path . --fixed-fps 60 --script res://tests/camera_modes.gd
+
+# 游戏内实机截图，输出到 captures/，截图后退出
+& 'D:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe' --path . -- --capture
+& 'D:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe' --path . -- --portrait
+```
+
+## 当前范围
+
+已实现一个可游玩的美术原型：岛屿、小屋、池塘、遗迹、原创旅人、简单运动动画、环境粒子与环境音、木箱复制和自由探索。桌面预览与网页统一采用 Compatibility 渲染器、同一套暖光和环境补光、MSAA 与 4096 阴影贴图。地面接触暗部由 Blender 烘焙为轻量透明层，不依赖 SSAO；已在本机 RTX 4060 Laptop 上运行并截图。
+
+尚无战斗、敌人 AI、骨骼动画、存档、大地图或独立导出的 EXE。当前支持 Windows 原生和网页键鼠体验；浏览器缩放、显卡和驱动仍可能影响边缘清晰度。烘焙仅补充静态物件与地面的接触阴影，移动物件继续使用实时阴影。集成测试用真实输入检查移动与跳跃，部分拾取和完成条件通过设定玩家初始位置验证，并非全程人工游玩录像。
