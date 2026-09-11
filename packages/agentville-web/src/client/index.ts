@@ -17,6 +17,7 @@ import { residentPrompt } from './resident-model.js'
 import type {} from '@deepseek-ai/dsh-api-remotes/client'
 import { prepareResidentModel, readModelSettings, saveModelSettings } from './model-settings.js'
 import { TownModelOnboarding } from './ModelSettings.js'
+import { applyDocumentBranding } from './document-branding.js'
 
 export const inject = ['slots', 'sessions', 'workspaces', 'uiWorkspace', 'remote', 'remote.settings', 'remote.credentials', 'remote.llm', 'remote.session']
 
@@ -94,6 +95,8 @@ export function apply(ctx: ClientContext): void {
     const result = await binding.session.prompt([{ type: 'text', text }], 'queue', undefined, submission.requestId)
     if (!result.ok) throw new Error(result.error.message)
   }
+
+  ctx.effect(() => applyDocumentBranding(document), 'agentville-web: document branding')
 
   if (workbench) return
 
