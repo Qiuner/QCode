@@ -13,11 +13,13 @@ import type { AgentvilleWorldInjected } from './AgentvilleWorld.js'
 import { AgentvilleBrandMark, AgentvilleBrandName, AgentvilleHeroMark } from './Brand.js'
 import { WORLD_STYLES } from './styles.js'
 import type { ResidentId } from './world-bridge.js'
-import { residentPrompt } from './resident-model.js'
+import { residentPrompt, projectResidentEvents } from './resident-model.js'
+import type { SessionEventLikeEntry } from '@deepseek-ai/dsh-api-session-controller/client'
 import type {} from '@deepseek-ai/dsh-api-remotes/client'
 import { prepareResidentModel, readModelSettings, saveModelSettings } from './model-settings.js'
 import { TownModelOnboarding } from './ModelSettings.js'
 import { applyDocumentBranding } from './document-branding.js'
+import type { ResidentState } from '../resident-state.js'
 
 export const inject = ['slots', 'sessions', 'workspaces', 'uiWorkspace', 'remote', 'remote.settings', 'remote.credentials', 'remote.llm', 'remote.session', 'remote.directoryPicker']
 
@@ -45,7 +47,7 @@ function readResidentSessions(): ResidentSessions {
 function writeResidentSession(workspaceId: string, residentId: ResidentId, sessionId: string): void {
   const mappings = readResidentSessions()
   mappings[workspaceId] = { ...mappings[workspaceId], [residentId]: sessionId }
-  localStorage.setItem(RESIDENT_SESSION_KEY, JSON.stringify(mappings))
+  try { localStorage.setItem(RESIDENT_SESSION_KEY, JSON.stringify(mappings)) } catch { /* Host owns recovery. */ }
 }
 
 /** Replace the generic Web profile branding while retaining its layout and conversation UI. */
@@ -53,10 +55,26 @@ export function apply(ctx: ClientContext): void {
   const workbench = new URLSearchParams(window.location.search).get('agentville') === 'workbench'
     || window.location.pathname === '/workbench'
   const selecting = new Map<string, Promise<string>>()
+  let saved: ResidentState = { sessions: {} }
+  const stateRequest = async (update?: { projectId: string; residentId?: ResidentId; sessionId?: string }): Promise<ResidentState> => {
+    const response = await fetch('/agentville/resident-state', {
+      method: update ? 'POST' : 'GET', headers: { 'x-agentville-state': '1', 'content-type': 'application/json' },
+      ...(update ? { body: JSON.stringify(update) } : {}), signal: AbortSignal.timeout(10_000),
+    })
+    if (!response.ok) throw new Error('工作记录暂时无法恢复或保存，请重试')
+    return await response.json() as ResidentState
+  }
+  const sessionForResident = (workspaceId: string, residentId: ResidentId): string | undefined => {
+    const workspace = ctx.workspaces.list.getSnapshot().items.find(item => item.workspaceId === workspaceId)
+    const catalog = ctx.sessions.list.getSnapshot().byId
+    const mapped = saved.sessions[workspaceId]?.[residentId] ?? readResidentSessions()[workspaceId]?.[residentId]
+    if (mapped) return workspace?.sessionIds.includes(mapped as SessionId) && catalog[mapped as SessionId] ? mapped : undefined
+    // Migrate only an unambiguous legacy resident title, within its owning workspace.
+    const candidates = workspace?.sessionIds.filter(id => catalog[id]?.title?.startsWith(`${RESIDENT_NAMES[residentId]} · `)) ?? []
+    return candidates.length === 1 ? candidates[0] : undefined
+  }
   const residentForSession = (workspaceId: string, sessionId: string): ResidentId | undefined => {
-    const mapping = readResidentSessions()[workspaceId]
-    return (Object.entries(mapping ?? {}) as [ResidentId, string][])
-      .find(([, candidate]) => candidate === sessionId)?.[0]
+    return (Object.keys(RESIDENT_NAMES) as ResidentId[]).find(id => sessionForResident(workspaceId, id) === sessionId)
   }
   const selectResident = (residentId: ResidentId, workspaceId: string): Promise<string> => {
     const key = `${workspaceId}:${residentId}`
@@ -70,11 +88,18 @@ export function apply(ctx: ClientContext): void {
       const workspace = ctx.workspaces.list.getSnapshot().items
         .find(candidate => candidate.workspaceId === workspaceId)
       if (workspace === undefined) throw new Error('工作区已不可用，请重新选择')
-      const mapped = readResidentSessions()[workspaceId]?.[residentId]
+      const mapped = sessionForResident(workspaceId, residentId)
+      if (!mapped && (saved.sessions[workspaceId]?.[residentId] || readResidentSessions()[workspaceId]?.[residentId])) {
+        throw new Error('原居民会话已不在当前项目中，请到高级工作台检查历史记录；未创建替代会话。')
+      }
+      if (!mapped && workspace.sessionIds.filter(id => ctx.sessions.list.getSnapshot().byId[id]?.title?.startsWith(`${RESIDENT_NAMES[residentId]} · `)).length > 1) {
+        throw new Error('找到多个旧居民会话，请在高级工作台确认要继续哪一个；未创建替代会话。')
+      }
       const mappedSessionId = mapped as SessionId | undefined
       if (mappedSessionId !== undefined
         && workspace.sessionIds.includes(mappedSessionId)
         && ctx.sessions.list.getSnapshot().byId[mappedSessionId] !== undefined) {
+        saved = await stateRequest({ projectId: workspaceId, residentId, sessionId: mappedSessionId })
         return mappedSessionId
       }
       const sessionId = await ctx.sessions.create({ workspaceId: workspace.workspaceId, sessionId: crypto.randomUUID() as SessionId })
@@ -84,6 +109,8 @@ export function apply(ctx: ClientContext): void {
         console.warn(`agentville: resident session rename failed: ${renamed.error.message}`)
       }
       writeResidentSession(workspaceId, residentId, sessionId)
+      saved.sessions[workspaceId] = { ...saved.sessions[workspaceId], [residentId]: sessionId }
+      saved = await stateRequest({ projectId: workspaceId, residentId, sessionId })
       return sessionId
     })().finally(() => { selecting.delete(key) })
     selecting.set(key, operation)
@@ -143,9 +170,22 @@ export function apply(ctx: ClientContext): void {
           },
         },
         residentForSession, selectResident, sendResidentPrompt,
+        restoreProject: async () => {
+          saved = await stateRequest()
+          await ctx.sessions.refresh()
+          if (ctx.sessions.list.getSnapshot().phase !== 'ready') throw new Error('会话记录尚未加载，请重试')
+          return saved.projectId
+        },
+        saveProject: async projectId => { saved = await stateRequest({ projectId }) },
+        readRecentSession: async (id, signal) => {
+          for await (const frame of ctx.remote.session.follow({ address: { kind: 'session', sessionId: id as SessionId }, maxMessages: 8 }, signal)) {
+            if (frame.type === 'snapshot') return projectResidentEvents(frame.records as readonly SessionEventLikeEntry[])
+          }
+          throw new Error('工作记录暂时无法读取')
+        },
         getBinding: id => ctx.sessions.binding(id as SessionId),
         focusSession: id => ctx.sessions.open(id as SessionId),
-        sessionForResident: (workspaceId, residentId) => readResidentSessions()[workspaceId]?.[residentId],
+        sessionForResident,
         pickDirectory: async signal => {
           const result = await ctx.remote.directoryPicker.pick(signal)
           if (!result.ok) throw new Error(result.error.message)

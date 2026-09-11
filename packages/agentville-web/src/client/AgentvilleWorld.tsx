@@ -20,11 +20,35 @@ export interface AgentvilleWorldInjected {
   focusSession(id: string): void
   pickDirectory(signal?: AbortSignal): Promise<string | null>
   bindWorkspace(path: string): Promise<string>
+  restoreProject(): Promise<string | undefined>
+  saveProject(projectId: string): Promise<void>
+  readRecentSession(id: string, signal: AbortSignal): Promise<ReturnType<typeof projectResidentEvents>>
 }
 
 type Props = PropsRuntime<'shell.overlay'> & AgentvilleWorldInjected
 const PROJECT_KEY = 'agentville.active-workspace.v1'
 const DRAFTS_KEY = 'agentville.resident-drafts.v1'
+
+function RecentWork({ id, updatedAt, running, read }: { id: string; updatedAt: number; running: boolean; read: AgentvilleWorldInjected['readRecentSession'] }) {
+  const [recent, setRecent] = useState<Awaited<ReturnType<typeof read>>>()
+  const [error, setError] = useState('')
+  useEffect(() => {
+    const controller = new AbortController()
+    let active = true
+    const timer = setTimeout(() => controller.abort(), 10_000)
+    setRecent(undefined); setError('')
+    void read(id, controller.signal).then(value => { if (active) setRecent(value) })
+      .catch(() => { if (active) setError('摘要暂不可用，请打开会话查看或重试。') })
+      .finally(() => { clearTimeout(timer); controller.abort() })
+    return () => { active = false; clearTimeout(timer); controller.abort() }
+  }, [id, updatedAt, running])
+  if (error) return <small>{error}</small>
+  if (!recent) return <small>正在读取最近任务…</small>
+  const messages = [...recent.history, ...recent.messages]
+  const request = messages.filter(item => item.role === 'user').at(-1)?.text
+  const reply = messages.filter(item => item.role === 'assistant').at(-1)?.text
+  return <>{request && <small>上次需求：{request.slice(0, 140)}</small>}{reply && <small>最近回复：{reply.slice(0, 140)}</small>}{!running && <small>{recent.status === 'working' ? '上次执行未记录结束，请检查后继续。' : recent.outcome || '打开会话查看完整记录'}{recent.status === 'completed' ? '，请检查成果与验证。' : ''}</small>}</>
+}
 
 function SessionResult({ binding }: { binding: SessionBinding }) {
   const [stopError, setStopError] = useState('')
@@ -64,9 +88,10 @@ export function AgentvilleWorld(props: Props) {
     return () => { active = false }
   }, [showModels])
   const [regions, setRegions] = useState<RegionLoadState>({ stage: 'waiting', detail: '等待主岛就绪' })
-  const [selected, setSelected] = useState<ResidentId | null>(() => {
-    try { return localStorage.getItem(PROJECT_KEY) ? null : 'coordinator' } catch { return 'coordinator' }
-  })
+  const [selected, setSelected] = useState<ResidentId | null>('coordinator')
+  const [restoring, setRestoring] = useState(true)
+  const [restoreError, setRestoreError] = useState('')
+  const [restoreAttempt, setRestoreAttempt] = useState(0)
   const [guideView, setGuideView] = useState<'welcome' | 'projects' | 'path' | 'residents' | 'options'>('welcome')
   const conversation = useRef<HTMLElement>(null)
   const [projectId, setProjectId] = useState<string | null>(() => { try { return localStorage.getItem(PROJECT_KEY) } catch { return null } })
@@ -86,10 +111,35 @@ export function AgentvilleWorld(props: Props) {
   const [bindingId, setBindingId] = useState<string>()
   const operation = useRef(0)
   const [, refreshEvents] = useState(0)
-  const workspaces = props.useWorkspaces(state => state.items)
+  const workspaceState = props.useWorkspaces(state => state)
+  const workspaces = workspaceState.items
   const sessionState = props.useSessions(state => state)
   const pending = props.useSessionPendingInteraction(state => state)
   const workspace = workspaces.find(item => item.workspaceId === projectId)
+  useEffect(() => {
+    let active = true
+    setRestoring(true); setRestoreError('')
+    void props.restoreProject().then(id => {
+      if (active && id) setProjectId(id)
+    }).catch(reason => { if (active) setRestoreError(String(reason.message ?? reason)) })
+      .finally(() => { if (active) setRestoring(false) })
+    return () => { active = false }
+  }, [restoreAttempt])
+  const loadingProjects = restoring || workspaceState.phase !== 'ready' || sessionState.phase !== 'ready'
+  const recoveryFailed = restoreError || (workspaceState.state === 'error' ? '项目列表暂时无法读取，请重试。' : '')
+  useEffect(() => {
+    if (!loadingProjects) return
+    const timer = setTimeout(() => setRestoreError('恢复超时，服务可能已断开。请重试或重新连接。'), 15_000)
+    return () => clearTimeout(timer)
+  }, [loadingProjects, restoreAttempt])
+  useEffect(() => {
+    if (loadingProjects || recoveryFailed || !workspace) return
+    void props.saveProject(workspace.workspaceId).catch(() => setRestoreError('当前项目可使用，但恢复记录保存失败，请重试。'))
+  }, [loadingProjects, workspace?.workspaceId])
+  useEffect(() => {
+    if (loadingProjects || recoveryFailed || projectId || workspaces.length !== 1) return
+    useProject(workspaces[0]!.workspaceId)
+  }, [loadingProjects, recoveryFailed, projectId, workspaces])
   const resident = RESIDENTS.find(item => item.id === selected)
   const draftKey = `${projectId}:${selected}`
   const draft = drafts[draftKey] ?? ''
@@ -116,7 +166,7 @@ export function AgentvilleWorld(props: Props) {
   function choose(id: ResidentId) {
     setShowModels(false)
     setGuideView('welcome')
-    const next = workspace || id === 'coordinator' ? id : 'coordinator'
+    const next = workspace && !loadingProjects && !recoveryFailed || id === 'coordinator' ? id : 'coordinator'
     if (next === selected) return
     ++operation.current
     setSelected(next)
@@ -138,14 +188,14 @@ export function AgentvilleWorld(props: Props) {
   useEffect(() => {
     const ticket = ++operation.current
     setBindingId(undefined); setError(''); setBusy(false); setPicking(false)
-    if (!workspace || !selected || selected === 'coordinator') return
+    if (!workspace || !selected || selected === 'coordinator' || loadingProjects || recoveryFailed) return
     setBusy(true)
     void props.selectResident(selected, workspace.workspaceId).then(id => {
       if (ticket === operation.current) { props.focusSession(id); setBindingId(id) }
     }, reason => { if (ticket === operation.current) setError(String(reason.message ?? reason)) })
       .finally(() => { if (ticket === operation.current) setBusy(false) })
     return () => { ++operation.current }
-  }, [selected, workspace?.workspaceId])
+  }, [selected, workspace?.workspaceId, loadingProjects, recoveryFailed])
 
   useEffect(() => () => { pickerAbort.current?.abort() }, [selected])
 
@@ -164,7 +214,7 @@ export function AgentvilleWorld(props: Props) {
     }
     window.addEventListener('message', listener)
     return () => window.removeEventListener('message', listener)
-  }, [workspace, selected])
+  }, [workspace, selected, loadingProjects, recoveryFailed])
 
   const worldState = JSON.stringify({ workspace: workspace ? { workspaceId: workspace.workspaceId, title: workspace.title } : null, sessionId: bindingId ?? null, residents })
   useEffect(() => {
@@ -228,6 +278,7 @@ export function AgentvilleWorld(props: Props) {
 
   return <div className="town-shell" data-conversation={resident && !showModels ? '' : undefined} data-regions-pending={regions.stage !== 'ready' ? '' : undefined}>
     <iframe ref={iframe} src={worldUrl.href} title="Agentville 小镇" onLoad={() => setReady(true)} />
+    {!selected && !showModels && <button className="town-work-entry" onClick={() => choose('coordinator')}>{workspace ? `${workspace.title} · 工作记录` : '项目与工作记录'}</button>}
     {regions.stage !== 'ready' && <section className="town-regions" data-stage={regions.stage} aria-label="区域加载状态">
       <strong>溪间庭院 · 晴沙绿洲</strong>
       <p role={regions.stage === 'failed' ? 'alert' : 'status'}>{regions.detail}</p>
@@ -245,12 +296,25 @@ export function AgentvilleWorld(props: Props) {
       <div className="town-conversation-body">
       {selected === 'coordinator' ? <>
         {guideView === 'welcome' && <>
+          {loadingProjects && !recoveryFailed ? <p role="status">正在恢复项目和工作记录…</p> : recoveryFailed ? <div role="alert"><p>{recoveryFailed}</p><button onClick={() => { setRestoreAttempt(value => value + 1) }}>重试恢复</button><button onClick={() => window.location.reload()}>重新连接</button></div> : <>
+          {!workspace && projectId && <p role="alert">上次项目已不在当前项目列表中，请选择已有项目或重新绑定。原会话不会被自动替换。</p>}
+          {!workspace && workspaces.length > 0 && <section aria-label="已有项目"><h3>继续之前的项目</h3><div className="town-dialogue-choices">{workspaces.map(item => <button key={item.workspaceId} onClick={() => useProject(item.workspaceId)}>{item.title}<small>{item.path}</small></button>)}</div></section>}
+          {workspace && <section aria-label="居民工作记录"><h3>{workspace.title} · 工作记录</h3><p className="town-path">{workspace.path}</p><div className="town-dialogue-choices">{RESIDENTS.filter(item => item.id !== 'coordinator').map(item => {
+            const id = props.sessionForResident(workspace.workspaceId, item.id)
+            const summary = id ? sessionState.byId[id as SessionId] : undefined
+            const savedDraft = drafts[`${workspace.workspaceId}:${item.id}`]
+            const events = id ? props.getBinding(id)?.eventSource.getSnapshot().entries : undefined
+            const status = events?.length ? residentEventStatus(events) : 'idle'
+            const detail = id && pending.has(id as SessionId) ? '等待你的确认' : summary?.running ? '正在工作' : status === 'failed' ? '本轮未完成，可查看记录并继续' : status === 'completed' ? '本轮已结束，请检查成果与验证' : summary && !summary.blank ? '已有工作记录，查看结果或继续' : savedDraft ? '有未发送的草稿' : '还没有任务'
+            return <button key={item.id} onClick={() => choose(item.id)}><strong>{item.name.split(' · ')[0]} · {summary && !summary.blank ? '查看记录 / 继续' : '开始对话'}</strong><small>{detail}</small>{summary && !summary.blank && <><small>最近活动：{new Date(summary.updatedAt).toLocaleString('zh-CN')}</small><RecentWork id={summary.id} updatedAt={summary.updatedAt} running={summary.running} read={props.readRecentSession} /></>}{savedDraft && <small>草稿：{savedDraft.slice(0, 80)}</small>}</button>
+          })}</div>{workspace.sessionIds.some(id => !props.residentForSession(workspace.workspaceId, id) && sessionState.byId[id] && !sessionState.byId[id]!.blank) && <p>还有未关联居民的历史会话，可在<a href="/workbench">高级工作台</a>查看；不会自动分配给居民。</p>}</section>}
           <p className="town-dialogue-line">{!workspace ? '欢迎来到小镇！要把哪个项目安顿在这里？' : modelState.ready === null ? `「${workspace.title}」已经安顿好了。我看看大家准备好了没有。` : !modelState.ready ? `「${workspace.title}」已经安顿好了。再接通模型，大家就能开始工作。` : `「${workspace.title}」已经安顿好了。芽芽可以帮你把想法做出来，要见见她吗？`}</p>
           <div className="town-dialogue-choices">
             {!workspace ? <button className="town-primary" disabled={busy} onClick={() => { void bind() }}>选择文件夹</button> : !modelState.ready ? <button className="town-primary" disabled={modelState.ready === null} onClick={() => setShowModels(true)}>{modelState.ready === null ? '正在准备…' : '连接模型'}</button> : <button className="town-primary" onClick={() => choose('coder')}>找芽芽聊聊</button>}
             <button onClick={closeConversation}>先逛逛</button>
             {workspace && <button onClick={() => setGuideView('residents')}>认识其他居民</button>}
           </div>
+          </>}
         </>}
         {guideView === 'projects' && <>
           <p className="town-dialogue-line">这次要安顿一个新项目，还是继续之前的？</p>

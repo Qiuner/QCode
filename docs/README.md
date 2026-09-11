@@ -12,6 +12,8 @@
 | [世界网页方案](world-web-plan.md) | Godot 世界与 Harness Web 的组合方案 |
 | [网页优先 MVP](agentville-mvp-plan.md) | 当前最小业务闭环 |
 | [实施计划](plan.md) | 当前进度与后续阶段 |
+| [施工记录](construction-plan.md) | 工作闭环的实际交付、验证与后续施工顺序 |
+| [居民工作闭环](resident-work-loop.md) | 项目恢复、居民任务入口与存储边界 |
 
 已采用但尚未实施的长期产品边界，也会记录在 `.agents/notes/implemented/`；“已采用”表示方向已经确定，不表示功能已经完成。
 

@@ -3,6 +3,10 @@ export const WORLD_STYLES = `
 .town-shell { position: absolute; inset: 0; pointer-events: auto; color: #203c37; font: 14px/1.5 "Segoe UI", "Microsoft YaHei", sans-serif; }
 .town-shell * { box-sizing: border-box; letter-spacing: 0; }
 .town-shell > iframe { width: 100%; height: 100%; border: 0; }
+.town-work-entry { position: absolute; top: 20px; left: 20px; max-width: calc(100% - 110px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; box-shadow: 0 4px 16px #183a3922; }
+[aria-label='居民工作记录'] .town-dialogue-choices { display: grid; grid-template-columns: 1fr; }
+[aria-label='居民工作记录'] button { text-align: left; white-space: normal; overflow-wrap: anywhere; }
+[aria-label='居民工作记录'] small { display: block; }
 .town-guide-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 .town-shell a { color: #235950; }
 .town-shell button { font: inherit; cursor: pointer; min-height: 36px; border: 1px solid #a8c0b7; border-radius: 6px; padding: 7px 12px; color: #203c37; background: #f4f8f3; }

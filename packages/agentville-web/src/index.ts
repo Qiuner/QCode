@@ -6,6 +6,7 @@ import { extname, relative, resolve, sep } from 'node:path'
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-host-webserver'
 import { createModelTestHandler, type ModelTestServices } from './model-test.js'
+import { createResidentStateHandler } from './resident-state.js'
 
 export const inject = ['webServer', 'llm', 'agentDefaultModel']
 
@@ -97,6 +98,10 @@ export async function serveWorld(req: IncomingMessage, res: ServerResponse, worl
 
 /** Host half: mount the Godot export beside the existing Harness API and SPA. */
 export function apply(ctx: Context & ModelTestServices): void {
+  ctx.effect(() => ctx.webServer.register({
+    kind: 'exact', path: '/agentville/resident-state',
+    handler: createResidentStateHandler(resolve(process.env.DSH_HOME ?? '.agentville-home', 'agentville-state.json')),
+  }), 'agentville-web: resident recovery')
   ctx.effect(() => ctx.webServer.register({
     kind: 'exact', path: '/agentville/model-test', handler: createModelTestHandler(ctx),
   }), 'agentville-web: model connection test')
