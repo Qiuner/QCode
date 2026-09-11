@@ -223,6 +223,7 @@ func interact() -> bool:
 				return true
 			world_can.visible = false
 			equipped = true
+			game.set_echo_active(false)
 			game._show_toast("拾得水壶！去池塘边按 E 接水。I 打开背包，G 收起或拿出水壶。", 6)
 		"fill":
 			if water == WATER_CAPACITY:
@@ -294,6 +295,8 @@ func toggle_equipped() -> void:
 	for item: Dictionary in items:
 		if item.id == "watering_can":
 			equipped = not equipped
+			if equipped:
+				game.set_echo_active(false)
 			refresh()
 			return
 	game._show_toast("水壶在小屋右边，靠近按 E 拾起。", 4)
@@ -306,6 +309,7 @@ func set_open(value: bool) -> void:
 	game.pause_panel.visible = false
 	overlay.visible = value
 	if value:
+		game.set_echo_active(false)
 		game._show_toast("", 0)
 		game.prompt.text = ""
 		refresh()

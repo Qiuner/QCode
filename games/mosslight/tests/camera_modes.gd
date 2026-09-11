@@ -25,6 +25,7 @@ func run() -> void:
 	await tick(8)
 	check(game.camera.projection == Camera3D.PROJECTION_ORTHOGONAL, "starts in overview")
 	game.learned = true
+	game.use_echo()
 	var start: Vector3 = game.player.position
 	game.set_view_mode(game.ViewMode.THIRD_PERSON)
 	await tick(2)

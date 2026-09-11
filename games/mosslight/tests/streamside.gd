@@ -38,6 +38,7 @@ func run() -> void:
 	check(game.player.position.x < -22 and game.player.is_on_floor(), "west bridge reaches courtyard across both joins")
 	check(game.in_streamside and not game.in_desert and game.overview_labels[1].text == "STREAMSIDE", "courtyard title activates")
 	game.learned = true
+	game.use_echo()
 	await tick(2)
 	check(game.placement_valid and game.place_echo(), "echo placement on courtyard land")
 	game.set_view_mode(game.ViewMode.OVERVIEW)

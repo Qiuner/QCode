@@ -45,13 +45,46 @@ func run() -> void:
 	await tick(5)
 	game._interact()
 	check(game.learned, "nearby original crate teaches echo")
+	await tick(2)
+	check(game.echo_active and game.preview.visible and game.echoes.is_empty(), "learning immediately equips preview without placing")
 	game.player.position = Vector3(0, .05, 2.0)
 	game.player.velocity = Vector3.ZERO
 	game.facing = Vector3(0, 0, -1)
 	await tick(5)
 	check(game.placement_valid, "empty meadow gives valid placement preview")
-	check(game.place_echo(), "echo can be placed on real terrain")
+	game.use_echo()
+	check(game.echoes.size() == 1, "first use after learning places echo on real terrain")
 	await tick(3)
+	var cancel := InputEventMouseButton.new()
+	cancel.button_index = MOUSE_BUTTON_RIGHT
+	cancel.pressed = true
+	game._unhandled_input(cancel)
+	await tick(2)
+	check(not game.echo_active and not game.preview.visible and game.echoes.size() == 1, "right click stows preview but preserves placed crates")
+	var photo := InputEventAction.new()
+	photo.action = "photo"
+	photo.pressed = true
+	game._unhandled_input(photo)
+	game._unhandled_input(photo)
+	check(not game.preview.visible, "photo mode cannot resurrect stowed preview")
+	game.use_echo()
+	check(game.echo_active and game.echoes.size() == 1, "using a stowed echo restores preview without placing")
+	var pause := InputEventAction.new()
+	pause.action = "close_game"
+	pause.pressed = true
+	game._unhandled_input(pause)
+	check(game.game_paused and game.echo_active, "Escape pauses without unequipping echo")
+	game._unhandled_input(pause)
+	game.garden.set_open(true)
+	game.garden.set_open(false)
+	check(not game.echo_active and not game.preview.visible, "inventory closes placement mode")
+	game.garden.add_item("watering_can")
+	game.garden.toggle_equipped()
+	game.use_echo()
+	check(game.echo_active and not game.garden.equipped, "using echo stows watering can")
+	game.garden.toggle_equipped()
+	check(game.garden.equipped and not game.echo_active and not game.preview.visible, "equipping watering can stows echo")
+	game.use_echo()
 	var crate: StaticBody3D = game.echoes[0]
 	check(absf(crate.position.y - .462) < .08, "crate is placed on the raycast surface")
 	# Jump onto the actual generated crate: this is the ledge puzzle's critical step.

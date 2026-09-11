@@ -31,6 +31,7 @@ var source_body: StaticBody3D
 var echoes: Array[StaticBody3D] = []
 var motes: Array[MeshInstance3D] = []
 var learned := false
+var echo_active := false
 var facing := Vector3(0, 0, -1)
 var elapsed := 0.0
 var preview: MeshInstance3D
@@ -629,12 +630,12 @@ func _physics_process(delta: float) -> void:
 			_show_toast(region_message, 3 if embedded_mode else 5)
 	if not "--portrait" in OS.get_cmdline_user_args():
 		_update_camera(delta)
-	if learned:
+	if echo_active:
 		_update_preview()
 	if Input.is_action_just_pressed("interact"):
 		_interact()
 	if Input.is_action_just_pressed("echo") and learned:
-		place_echo()
+		use_echo()
 	if Input.is_action_just_pressed("undo_echo") and not echoes.is_empty():
 		var last: StaticBody3D = echoes.pop_back()
 		last.queue_free()
@@ -642,7 +643,32 @@ func _physics_process(delta: float) -> void:
 	_update_hud()
 
 
+func set_echo_active(value: bool) -> void:
+	echo_active = value and learned
+	preview.visible = false
+	placement_valid = false
+	if echo_active:
+		garden.equipped = false
+		garden.refresh()
+		_update_preview()
+	_update_hud()
+
+
+func use_echo() -> void:
+	if game_paused or agent_isles_panel_open or not learned:
+		return
+	if not echo_active:
+		set_echo_active(true)
+	else:
+		_update_preview()
+		place_echo()
+
+
 func _update_preview() -> void:
+	if not echo_active:
+		preview.visible = false
+		placement_valid = false
+		return
 	var candidate := player.position + facing * 1.65
 	candidate.x = snappedf(candidate.x, .5)
 	candidate.z = snappedf(candidate.z, .5)
@@ -677,7 +703,7 @@ func _update_preview() -> void:
 
 
 func place_echo() -> bool:
-	if not learned or not placement_valid:
+	if not echo_active or not placement_valid:
 		_show_toast("这里放不下回响。朝空地走一步，再试试。", 2.5)
 		return false
 	if echoes.size() == MAX_ECHOES:
@@ -697,8 +723,9 @@ func _interact() -> void:
 		return
 	if player.position.distance_to(SOURCE) < 2.6 and not learned:
 		learned = true
+		set_echo_active(true)
 		_tone(880, .4, .20)
-		_show_toast("已学会「木箱回响」！F 放置，Q 撤回。", 7)
+		_show_toast("已学会「木箱回响」！按 F 放置，右键收起。", 7)
 	else:
 		var npc: StaticBody3D = residents.nearest(player)
 		if npc != null:
@@ -852,6 +879,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			if view_mode != ViewMode.OVERVIEW:
 				Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		return
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT and echo_active:
+		set_echo_active(false)
+		get_viewport().set_input_as_handled()
+		return
 	if event.is_action_pressed("cycle_view"):
 		set_view_mode(((view_mode + 1) % 3) as ViewMode)
 	elif event.is_action_pressed("equip_tool"):
@@ -872,7 +903,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.is_action_pressed("photo"):
 		photo_mode = not photo_mode
 		ui.visible = not photo_mode
-		preview.visible = learned and not photo_mode
+		_update_preview()
 	elif event.is_action_pressed("mute"):
 		AudioServer.set_bus_mute(0, not AudioServer.is_bus_mute(0))
 	elif event.is_action_pressed("nature_motion"):
@@ -973,7 +1004,7 @@ func _build_ui() -> void:
 	game_hud.offset_top = -112
 	game_hud.offset_bottom = -34
 	echo_label = _label("01   未知回响", Vector2(22, 12), 21, Color("fae6b7"), game_hud)
-	_label("WASD 移动    空格 跳跃    E 学习 / 互动    F 复制    Q 撤回", Vector2(400, 15), 18, Color("eef2df"), game_hud)
+	_label("WASD 移动    空格 跳跃    E 互动    F 拿出 / 放置    右键 收起    Q 撤回", Vector2(400, 15), 18, Color("eef2df"), game_hud)
 	_label("Shift 奔跑    滚轮 缩放    V 视角    Tab 隐藏界面    N 动态    M 静音    R 重开    Esc 暂停", Vector2(400, 45), 14, Color("a5c4b9"), game_hud)
 	_label("回响之杖  /  最多保留 3 个造物", Vector2(22, 45), 13, Color("a5c4b9"), game_hud)
 	game_hud.visible = not embedded_mode
@@ -1065,6 +1096,8 @@ func _update_hud() -> void:
 		prompt.text = garden_target.hint
 	if not region_barriers.is_empty() and absf(player.position.x) > 9.5 and absf(player.position.z - 3) < 2:
 		prompt.text = "[ E ]  重新加载邻近区域" if regions_error else "邻近区域正在加载…"
+	if echo_active:
+		prompt.text += ("\n" if not prompt.text.is_empty() else "") + "[ F ] 放置木箱 · [ Q ] 撤回 · 右键收起"
 
 
 func _show_toast(text: String, seconds: float) -> void:

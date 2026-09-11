@@ -21,6 +21,7 @@ func run() -> void:
 	game._update_region_signs()
 	check(game.region_signs[0].text.contains("准备中"), "retry restores loading signs")
 	game.learned = true
+	game.use_echo()
 	game._update_preview()
 	game._process(.016)
 	check(game.player != null and game.residents.residents.size() == 4, "player and residents work before neighbors load")

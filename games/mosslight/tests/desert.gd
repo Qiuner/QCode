@@ -40,6 +40,7 @@ func run() -> void:
 	check(game.player.position.x > 22 and lowest > -.15, "walk from meadow across both bridge joins without falling or invisible walls")
 	check(game.player.is_on_floor() and game.in_desert, "arrive grounded in the desert")
 	game.learned = true
+	game.use_echo()
 	await tick(2)
 	check(game.player.position.x > 18.3 and game.placement_valid and game.place_echo(), "place an echo on desert terrain")
 	game.set_view_mode(game.ViewMode.OVERVIEW)
