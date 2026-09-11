@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process'
-import { existsSync, readFileSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -11,8 +11,7 @@ const dshPackagePath = require.resolve('@deepseek-ai/dsh/package.json')
 const dshPackage = JSON.parse(readFileSync(dshPackagePath, 'utf8'))
 const dshBin = path.resolve(path.dirname(dshPackagePath), dshPackage.bin.dsh)
 const overlay = path.resolve(workspaceRoot, 'packages', 'agent-isles-web', 'cordis.patch.yml')
-const legacyHome = path.join(workspaceRoot, '.agentville-home')
-const defaultHome = existsSync(legacyHome) ? legacyHome : path.join(workspaceRoot, '.agent-isles-home')
+const defaultHome = path.join(workspaceRoot, '.agent-isles-home')
 
 const child = spawn(process.execPath, [dshBin, 'web', '--patch', overlay, ...process.argv.slice(2)], {
   cwd: workspaceRoot,

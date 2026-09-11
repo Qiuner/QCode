@@ -38,37 +38,12 @@ test('recovery survives a new handler and concurrent resident updates without lo
   }
 })
 
-test('legacy host state is read and the next update writes the new state file', async () => {
-  const directory = await mkdtemp(join(tmpdir(), 'agent-isles-state-migration-'))
-  const file = join(directory, 'agent-isles-state.json')
-  const legacyFile = join(directory, 'agentville-state.json')
-  await writeFile(legacyFile, JSON.stringify({ projectId: 'legacy', sessions: { legacy: { coder: 'old' } } }))
-  const handler = createResidentStateHandler(file, legacyFile)
-  const server = createServer((req, res) => { void handler(req, res) })
-  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve))
-  const url = `http://127.0.0.1:${server.address().port}`
-  try {
-    const headers = { 'x-agent-isles-state': '1' }
-    assert.deepEqual(await (await fetch(url, { headers })).json(), { projectId: 'legacy', sessions: { legacy: { coder: 'old' } } })
-    const response = await fetch(url, {
-      method: 'POST', headers, body: JSON.stringify({ projectId: 'legacy', residentId: 'teacher', sessionId: 'new' }),
-    })
-    assert.equal(response.status, 200)
-    assert.deepEqual(JSON.parse(await readFile(file, 'utf8')), {
-      projectId: 'legacy', sessions: { legacy: { coder: 'old', teacher: 'new' } },
-    })
-  } finally {
-    await new Promise(resolve => server.close(resolve))
-    await rm(directory, { recursive: true, force: true })
-  }
-})
-
-function clientFixture(t, { state = { sessions: {} }, local = {}, rows = [], members = rows.map(row => row.id) } = {}) {
+function clientFixture(t, { state = { sessions: {} }, rows = [], members = rows.map(row => row.id) } = {}) {
   const originals = { window: globalThis.window, localStorage: globalThis.localStorage, fetch: globalThis.fetch }
   t.after(() => Object.assign(globalThis, originals))
   globalThis.window = { location: { search: '', pathname: '/' } }
   globalThis.localStorage = {
-    getItem: key => key === 'agentville.resident-sessions.v1' ? JSON.stringify(local) : null,
+    getItem: () => null,
     setItem: () => { throw new Error('storage disabled') },
   }
   const writes = []
@@ -102,14 +77,6 @@ test('fresh browser recovers host project and resident session without creating 
   assert.equal(await fixture.api.restoreProject(), 'project')
   assert.equal(fixture.api.sessionForResident('project', 'coder'), 'old')
   assert.equal(await fixture.api.selectResident('coder', 'project'), 'old')
-  assert.equal(fixture.created(), 0)
-})
-
-test('legacy browser mapping migrates even with storage unavailable for writes', async t => {
-  const fixture = clientFixture(t, { local: { project: { coder: 'old' } }, rows: [{ id: 'old' }] })
-  await fixture.api.restoreProject()
-  assert.equal(await fixture.api.selectResident('coder', 'project'), 'old')
-  assert.equal(fixture.writes.at(-1).sessionId, 'old')
   assert.equal(fixture.created(), 0)
 })
 

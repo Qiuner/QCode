@@ -1,12 +1,9 @@
 node_modules/
 .yarn/
 dist/
-.agentville-home/
-.agentville-test-home/
-.agent-isles-home/
-.agent-isles-test-home/
+.agent*-home/
+.agent*-test-home/
 .dsh-home-source-run/
-agentville-runtime-test/
-agent-isles-runtime-test/
+agent*-runtime-test/
 lib/
 *.tsbuildinfo

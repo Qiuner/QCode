@@ -24,7 +24,6 @@ import type { ResidentState } from '../resident-state.js'
 export const inject = ['slots', 'sessions', 'workspaces', 'uiWorkspace', 'remote', 'remote.settings', 'remote.credentials', 'remote.llm', 'remote.session', 'remote.directoryPicker']
 
 const RESIDENT_SESSION_KEY = 'agent-isles.resident-sessions.v1'
-const LEGACY_RESIDENT_SESSION_KEY = 'agentville.resident-sessions.v1'
 const RESIDENT_NAMES: Readonly<Record<ResidentId, string>> = {
   coder: 'Coder',
   file_keeper: 'File Keeper',
@@ -36,8 +35,7 @@ type ResidentSessions = Partial<Record<string, Partial<Record<ResidentId, string
 
 function readResidentSessions(): ResidentSessions {
   try {
-    const value: unknown = JSON.parse(localStorage.getItem(RESIDENT_SESSION_KEY)
-      ?? localStorage.getItem(LEGACY_RESIDENT_SESSION_KEY) ?? '{}')
+    const value: unknown = JSON.parse(localStorage.getItem(RESIDENT_SESSION_KEY) ?? '{}')
     return typeof value === 'object' && value !== null && !Array.isArray(value)
       ? value as ResidentSessions
       : {}
@@ -55,8 +53,7 @@ function writeResidentSession(workspaceId: string, residentId: ResidentId, sessi
 /** Replace the generic Web profile branding while retaining its layout and conversation UI. */
 export function apply(ctx: ClientContext): void {
   const search = new URLSearchParams(window.location.search)
-  const workbench = search.get('agent-isles') === 'workbench' || search.get('agentville') === 'workbench'
-    || window.location.pathname === '/workbench'
+  const workbench = search.get('agent-isles') === 'workbench' || window.location.pathname === '/workbench'
   const selecting = new Map<string, Promise<string>>()
   let saved: ResidentState = { sessions: {} }
   const stateRequest = async (update?: { projectId: string; residentId?: ResidentId; sessionId?: string }): Promise<ResidentState> => {

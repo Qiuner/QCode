@@ -51,10 +51,10 @@ export type HostToWorldMessage =
     }
 
 export type WorldToHostMessage =
-  | { source: 'agent-isles-world' | 'agentville-world'; version: typeof WORLD_BRIDGE_VERSION; type: 'world:ready' }
-  | { source: 'agent-isles-world' | 'agentville-world'; version: typeof WORLD_BRIDGE_VERSION; type: 'world:regions'; payload: RegionLoadState }
+  | { source: 'agent-isles-world'; version: typeof WORLD_BRIDGE_VERSION; type: 'world:ready' }
+  | { source: 'agent-isles-world'; version: typeof WORLD_BRIDGE_VERSION; type: 'world:regions'; payload: RegionLoadState }
   | {
-      source: 'agent-isles-world' | 'agentville-world'
+      source: 'agent-isles-world'
       version: typeof WORLD_BRIDGE_VERSION
       type: 'resident:selected'
       payload: { residentId: ResidentId }
@@ -63,8 +63,7 @@ export type WorldToHostMessage =
 export function isWorldToHostMessage(value: unknown): value is WorldToHostMessage {
   if (typeof value !== 'object' || value === null) return false
   const message = value as Partial<WorldToHostMessage>
-  if ((message.source !== 'agent-isles-world' && message.source !== 'agentville-world')
-    || message.version !== WORLD_BRIDGE_VERSION) return false
+  if (message.source !== 'agent-isles-world' || message.version !== WORLD_BRIDGE_VERSION) return false
   if (message.type === 'world:ready') return true
   if (message.type === 'world:regions') {
     return !!message.payload && ['waiting', 'downloading', 'installing', 'failed', 'ready'].includes(message.payload.stage)

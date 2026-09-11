@@ -93,7 +93,7 @@
       if (event.origin !== parentOrigin || event.source !== window.parent) return;
       const message = event.data;
       if (typeof message !== 'object' || message === null
-        || (message.source !== 'agent-isles-host' && message.source !== 'agentville-host')
+        || message.source !== 'agent-isles-host'
         || message.version !== AGENT_ISLES_BRIDGE_VERSION) return;
       if (message.type === 'world:show-guide') {
         document.getElementById('guide').showModal();
@@ -112,7 +112,6 @@
       if (godotMessageHandler) godotMessageHandler(JSON.stringify(message));
       else pendingHostMessages.push(message);
     });
-    window.agentvilleWorldBridge = window.agentIslesWorldBridge;
     window.agentIslesWorldBridge.emit('world:ready');
 
     const config = $GODOT_CONFIG;

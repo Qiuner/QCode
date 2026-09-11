@@ -16,7 +16,6 @@ test('remote deployment retains its own origin and never copies credentials', ()
 test('resident messages require the known protocol and resident', () => {
   const message = { source: 'agent-isles-world', version: 1, type: 'resident:selected', payload: { residentId: 'coordinator' } }
   assert.equal(isWorldToHostMessage(message), true)
-  assert.equal(isWorldToHostMessage({ ...message, source: 'agentville-world' }), true)
   assert.equal(isWorldToHostMessage({ ...message, version: 2 }), false)
   assert.equal(isWorldToHostMessage({ ...message, payload: { residentId: 'unknown' } }), false)
 })

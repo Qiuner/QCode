@@ -28,8 +28,6 @@ export interface AgentIslesWorldInjected {
 type Props = PropsRuntime<'shell.overlay'> & AgentIslesWorldInjected
 const PROJECT_KEY = 'agent-isles.active-workspace.v1'
 const DRAFTS_KEY = 'agent-isles.resident-drafts.v1'
-const LEGACY_PROJECT_KEY = 'agentville.active-workspace.v1'
-const LEGACY_DRAFTS_KEY = 'agentville.resident-drafts.v1'
 
 function RecentWork({ id, updatedAt, running, read }: { id: string; updatedAt: number; running: boolean; read: AgentIslesWorldInjected['readRecentSession'] }) {
   const [recent, setRecent] = useState<Awaited<ReturnType<typeof read>>>()
@@ -97,12 +95,12 @@ export function AgentIslesWorld(props: Props) {
   const [guideView, setGuideView] = useState<'welcome' | 'projects' | 'path' | 'residents' | 'options'>('welcome')
   const conversation = useRef<HTMLElement>(null)
   const [projectId, setProjectId] = useState<string | null>(() => {
-    try { return localStorage.getItem(PROJECT_KEY) ?? localStorage.getItem(LEGACY_PROJECT_KEY) }
+    try { return localStorage.getItem(PROJECT_KEY) }
     catch { return null }
   })
   const [path, setPath] = useState('')
   const [drafts, setDrafts] = useState<Record<string, string>>(() => {
-    try { return readResidentDrafts(localStorage.getItem(DRAFTS_KEY) ?? localStorage.getItem(LEGACY_DRAFTS_KEY)) }
+    try { return readResidentDrafts(localStorage.getItem(DRAFTS_KEY)) }
     catch { return {} }
   })
   const [draftStorageError, setDraftStorageError] = useState(false)

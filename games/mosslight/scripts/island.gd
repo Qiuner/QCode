@@ -177,8 +177,6 @@ func _setup_agent_isles_bridge() -> void:
 		return
 	agent_isles_bridge = JavaScriptBridge.get_interface("agentIslesWorldBridge")
 	if agent_isles_bridge == null:
-		agent_isles_bridge = JavaScriptBridge.get_interface("agentvilleWorldBridge")
-	if agent_isles_bridge == null:
 		return
 	agent_isles_message_handler = JavaScriptBridge.create_callback(_on_agent_isles_message)
 	agent_isles_bridge.attachGodot(agent_isles_message_handler)
@@ -197,7 +195,7 @@ func _on_agent_isles_message(arguments: Array) -> void:
 	if typeof(parsed) != TYPE_DICTIONARY:
 		return
 	var message := parsed as Dictionary
-	if message.get("source") not in ["agent-isles-host", "agentville-host"] or int(message.get("version", 0)) != 1:
+	if message.get("source") != "agent-isles-host" or int(message.get("version", 0)) != 1:
 		return
 	if message.get("type") == "world:neighbors-started":
 		regions_loading = true

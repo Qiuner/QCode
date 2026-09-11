@@ -8,25 +8,17 @@ export interface ResidentState {
 }
 
 /** Stores only navigation and associations; DSH remains the owner of session history. */
-export function createResidentStateHandler(file: string, legacyFile?: string) {
+export function createResidentStateHandler(file: string) {
   let writes: Promise<unknown> = Promise.resolve()
-  const readFrom = async (path: string): Promise<ResidentState> => {
-    const state = JSON.parse(await readFile(path, 'utf8')) as ResidentState
-    if (!state || typeof state !== 'object' || !state.sessions || typeof state.sessions !== 'object' || Array.isArray(state.sessions)) throw new Error('Invalid recovery state')
-    return state
-  }
   const read = async (): Promise<ResidentState> => {
     try {
-      return await readFrom(file)
+      const state = JSON.parse(await readFile(file, 'utf8')) as ResidentState
+      if (!state || typeof state !== 'object' || !state.sessions || typeof state.sessions !== 'object' || Array.isArray(state.sessions)) throw new Error('Invalid recovery state')
+      return state
     }
     catch (error) {
       if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error
-      if (legacyFile === undefined) return { sessions: {} }
-      try { return await readFrom(legacyFile) }
-      catch (legacyError) {
-        if ((legacyError as NodeJS.ErrnoException).code === 'ENOENT') return { sessions: {} }
-        throw legacyError
-      }
+      return { sessions: {} }
     }
   }
   return async (req: IncomingMessage, res: ServerResponse): Promise<void> => {
@@ -37,7 +29,7 @@ export function createResidentStateHandler(file: string, legacyFile?: string) {
     // World assets are public; recovery data is restricted to same-origin app requests.
     if (!['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(req.socket.remoteAddress ?? '')
       || !/^(127\.0\.0\.1|localhost|\[::1\]):\d+$/.test(req.headers.host ?? '')
-      || (req.headers['x-agent-isles-state'] !== '1' && req.headers['x-agentville-state'] !== '1')
+      || req.headers['x-agent-isles-state'] !== '1'
       || (req.headers.origin && req.headers.origin !== `http://${req.headers.host}`)) {
       reply(403, { error: '请求来源无效' }); return
     }

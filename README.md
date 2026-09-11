@@ -88,7 +88,7 @@ corepack yarn dev:web --no-open
 
 打开终端输出的本地地址。首次使用时，按页面提示完成模型配置并选择一个本地项目文件夹，然后即可与居民交谈。
 
-开发数据默认保存在仓库内的 `.agent-isles-home/`；已有 `.agentville-home/` 时会继续使用旧目录，避免丢失会话和凭据。如需更换位置，可在启动前设置 `DSH_HOME`。
+开发数据默认保存在仓库内的 `.agent-isles-home/`。如需更换位置，可在启动前设置 `DSH_HOME`。
 
 ## 工作原理
 

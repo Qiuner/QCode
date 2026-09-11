@@ -4,14 +4,14 @@
 
 ## 问题
 
-Agentville 的人物世界、对话和 Harness 工作台适合继续由 Web 承载，但面向普通 Windows 用户时，不能要求用户自行安装 Node/Yarn、运行命令并手动打开本地地址。同时，本机工作区、命令行、Godot 和 Blender 等能力仍需由本地 Harness Host 提供。
+agent-isles 的人物世界、对话和 Harness 工作台适合继续由 Web 承载，但面向普通 Windows 用户时，不能要求用户自行安装 Node/Yarn、运行命令并手动打开本地地址。同时，本机工作区、命令行、Godot 和 Blender 等能力仍需由本地 Harness Host 提供。
 
 ## 决定
 
-- Agentville 继续以网页作为唯一产品界面，不转为 Electron 或另一套桌面 UI。
-- 保留 `/` 的 Agentville 体验和 `/workbench` 的原版 Harness 工作台。
+- agent-isles 继续以网页作为唯一产品界面，不转为 Electron 或另一套桌面 UI。
+- 保留 `/` 的 agent-isles 体验和 `/workbench` 的原版 Harness 工作台。
 - 在核心 Web 工作流稳定后提供轻量 Windows Launcher，作为安装、启动和本地进程管理入口。
-- Launcher 打包并启动固定版本的 DSH runtime，加载 Agentville profile，等待健康检查通过后打开系统默认浏览器。
+- Launcher 打包并启动固定版本的 DSH runtime，加载 agent-isles profile，等待健康检查通过后打开系统默认浏览器。
 - Launcher 首版负责单实例、可用端口、启动失败提示和所启动子进程的退出清理。
 - Launcher 不重新实现人物世界、聊天、设置、审批或 Harness 工作台。
 
