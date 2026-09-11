@@ -10,6 +10,7 @@ const config: UserConfig = {
   clean: false,
   dts: false,
   sourcemap: true,
+  define: { 'process.env.NODE_ENV': '"production"' },
   deps: {
     neverBundle: specifier => specifier === 'react' || specifier === 'react/jsx-runtime',
     alwaysBundle: specifier => specifier !== 'react' && specifier !== 'react/jsx-runtime',

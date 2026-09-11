@@ -20,8 +20,11 @@ import { prepareResidentModel, readModelSettings, saveModelSettings } from './mo
 import { TownModelOnboarding } from './ModelSettings.js'
 import { applyDocumentBranding } from './document-branding.js'
 import type { ResidentState } from '../resident-state.js'
+import { tutorialActions } from './tutorial-api.js'
+import { FIRST_TUTORIAL } from '../tutorial-types.js'
+import type { ISessions } from '@deepseek-ai/dsh-api-session-controller/client'
 
-export const inject = ['slots', 'sessions', 'workspaces', 'uiWorkspace', 'remote', 'remote.settings', 'remote.credentials', 'remote.llm', 'remote.session', 'remote.directoryPicker']
+export const inject = ['slots', 'sessions', 'workspaces', 'uiWorkspace', 'uiConversation', 'remote', 'remote.settings', 'remote.credentials', 'remote.llm', 'remote.session', 'remote.directoryPicker']
 
 const RESIDENT_SESSION_KEY = 'agent-isles.resident-sessions.v1'
 const RESIDENT_NAMES: Readonly<Record<ResidentId, string>> = {
@@ -51,7 +54,7 @@ function writeResidentSession(workspaceId: string, residentId: ResidentId, sessi
 }
 
 /** Replace the generic Web profile branding while retaining its layout and conversation UI. */
-export function apply(ctx: ClientContext): void {
+export function apply(ctx: Omit<ClientContext, 'sessions'> & { sessions: ISessions }): void {
   const search = new URLSearchParams(window.location.search)
   const workbench = search.get('agent-isles') === 'workbench' || window.location.pathname === '/workbench'
   const selecting = new Map<string, Promise<string>>()
@@ -154,6 +157,38 @@ export function apply(ctx: ClientContext): void {
       id: 'agent-isles-world',
       order: -100,
       inject: (): AgentIslesWorldInjected => ({
+        tutorials: tutorialActions,
+        refreshProjects: id => new Promise<void>((resolve, reject) => {
+          if (ctx.workspaces.list.getSnapshot().items.some(item => item.workspaceId === id)) { resolve(); return }
+          const timer = setTimeout(() => { unsubscribe(); reject(new Error('项目已保存，列表同步尚未完成。请重新读取项目。')) }, 10000)
+          const unsubscribe = ctx.workspaces.list.subscribe(() => {
+            if (ctx.workspaces.list.getSnapshot().items.some(item => item.workspaceId === id)) { clearTimeout(timer); unsubscribe(); resolve() }
+          })
+        }),
+        submitTutorial: async (run, draft, followup = false) => {
+          if (!run.workspaceId) throw new Error('请先为作品选择项目。')
+          if (run.submission && !followup) {
+            const binding = ctx.sessions.binding(run.submission.sessionId as SessionId)
+            if (!binding) throw new Error('请先打开原居民会话，再重试这条提交。')
+            // DSH deduplicates this identity against both its inbox and durable user messages.
+            const result = await binding.session.prompt([{ type: 'text', text: run.submission.text }], 'queue', undefined, run.submission.requestId as Parameters<typeof binding.session.prompt>[3])
+            if (!result.ok) throw new Error(result.error.message)
+            return run
+          }
+          const sessionId = followup && run.submission ? run.submission.sessionId : await selectResident('coder', run.workspaceId)
+          const binding = ctx.sessions.binding(sessionId as SessionId)
+          if (!binding) throw new Error('居民会话暂不可用。')
+          if (binding.session.getSnapshot().running || binding.session.getSnapshot().queue.length) throw new Error('请等待当前任务结束，再开始教程这一轮。')
+          await prepareResidentModel(ctx.remote, sessionId as SessionId)
+          const text = residentPrompt('coder', `${draft}\n\n${FIRST_TUTORIAL.instruction}`)
+          const submission = binding.session.beginSubmission({ mode: 'queue', text, attachments: [] })
+          let prepared
+          try { prepared = await tutorialActions.command(followup ? 'followup' : 'submit', run, { sessionId, submissionId: submission.requestId, text }) }
+          catch (error) { submission.abandon(); throw error }
+          const result = await binding.session.prompt([{ type: 'text', text }], 'queue', undefined, submission.requestId)
+          if (!result.ok) throw new Error(result.error.message)
+          return prepared
+        },
         models: {
           load: () => readModelSettings(ctx.remote),
           save: (...args) => saveModelSettings(ctx.remote, ...args),
