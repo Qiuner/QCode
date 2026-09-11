@@ -21,7 +21,7 @@ const child = spawn(process.execPath, [dshBin, 'web', '--patch', overlay, ...pro
     DSH_HOME: home,
     AGENT_ISLES_DIST_INDEX: require.resolve('@deepseek-ai/dsh-web-frontend/dist/index.html'),
   },
-  stdio: ['inherit', 'pipe', 'inherit'],
+  stdio: [process.env.AGENT_ISLES_DESKTOP === '1' ? 'ignore' : 'inherit', 'pipe', 'inherit'],
 })
 
 let output = ''
@@ -38,7 +38,7 @@ child.stdout.on('data', chunk => {
     try {
       mkdirSync(home, { recursive: true })
       writeFileSync(path.join(home, 'browser-url.txt'), url, { mode: 0o600 })
-      console.log('agent-isles：开发访问入口已更新，可使用“打开小岛.cmd”直接打开。')
+      console.log(process.env.AGENT_ISLES_DESKTOP === '1' ? 'agent-isles：小岛已就绪。' : 'agent-isles：开发访问入口已更新，可使用“打开小岛.cmd”直接打开。')
     } catch (error) { console.error('无法保存本地入口：', error.message) }
   }
 })

@@ -28,7 +28,7 @@
 </div>
 
 > [!IMPORTANT]
-> agent-isles 仍处于早期开发阶段。目前提供可运行的本地 Web MVP，Windows Launcher 尚在规划中。
+> agent-isles 仍处于早期开发阶段。目前提供本地 Web MVP 和 Windows x64 启动器、安装包预览版。安装与构建说明见 [Windows 启动器](apps/desktop/README.md)。
 
 ## agent-isles 是什么
 
@@ -38,7 +38,7 @@ agent-isles 把 AI 能力变成住在同一个世界里的不同居民。学习�
 
 ## 当前体验
 
-开发辅助：本地服务启动后，`打开小岛.cmd` 可直接用当前有效链接打开默认浏览器，不经过中间页。换浏览器可使用启动终端打印的完整链接。此脚本仅供源码开发，不是最终用户入口；访问链接保存在被 Git 忽略的 `.agent-isles-home/`（或 `DSH_HOME`）中。正式本地发行版将由 Windows Launcher 管理启动与重新连接，目前尚未实现。
+Windows 预览版通过安装包安装后，点击 agent-isles 图标即可启动服务并进入小岛，运行时和资源已内置。源码开发仍可使用 `打开小岛.cmd` 打开正在运行的开发服务；该脚本不作为安装版入口。
 
 | 居民 | 职责 | 当前能力 |
 | --- | --- | --- |
@@ -109,7 +109,7 @@ Godot 负责呈现世界和居民状态，React 负责 Workspace、居民选择�
 | 目录 | 用途 |
 | --- | --- |
 | `apps/web/` | 启动 agent-isles 的 DSH Web profile |
-| `apps/desktop/` | 未来轻量 Windows Launcher，当前未实现 |
+| `apps/desktop/` | Windows 启动器、安装器及发行验证脚本 |
 | `packages/agent-isles-web/` | agent-isles Host/Client Web 插件 |
 | `games/mosslight/` | 使用 Blender 与 Godot 构建的世界 |
 | `deepseek-harness/` | 固定版本的上游 Git submodule |
@@ -141,7 +141,7 @@ Godot 负责呈现世界和居民状态，React 负责 Workspace、居民选择�
 - 居民与 Session 的映射保存在本地 Host 状态文件中，尚未进入 DSH runtime 持久化模型。
 - 文件管理员还没有独立的文件树预览器。
 - 移动端已支持面板布局，世界操作仍以键鼠为主。
-- Windows Launcher、自动更新和完整分发流程尚未实现。
+- Windows 安装包当前为未签名预览版，自动更新和发布渠道尚未实现。
 
 ## 文档
 
@@ -156,4 +156,4 @@ Godot 负责呈现世界和居民状态，React 负责 Workspace、居民选择�
 - 将居民 Session 映射迁移到持久化 runtime。
 - 在世界中展示更完整的进度、审批、错误与完成状态。
 - 增加居民任务历史和“继续上次工作”。
-- 提供只负责启动、健康检查与打开浏览器的轻量 Windows Launcher。
+- 完善 Windows 预览版的签名、升级和发布流程。
