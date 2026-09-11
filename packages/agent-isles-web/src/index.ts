@@ -8,6 +8,7 @@ import type {} from '@deepseek-ai/dsh-host-webserver'
 import type {} from '@deepseek-ai/dsh-client-connection'
 import { createModelTestHandler, type ModelTestServices } from './model-test.js'
 import { createResidentStateHandler } from './resident-state.js'
+import * as tutorial from './tutorial.js'
 import { createBrowserEntry } from './browser-entry.js'
 
 export const inject = ['webServer', 'llm', 'agentDefaultModel']
@@ -100,6 +101,7 @@ export async function serveWorld(req: IncomingMessage, res: ServerResponse, worl
 
 /** Host half: mount the Godot export beside the existing Harness API and SPA. */
 export function apply(ctx: Context & ModelTestServices): void {
+  ctx.plugin(tutorial)
   const distIndex = process.env.AGENT_ISLES_DIST_INDEX
   if (distIndex) ctx.inject(['connection'], connectionCtx => {
     const handler = createBrowserEntry(
