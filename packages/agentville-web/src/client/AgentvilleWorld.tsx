@@ -18,7 +18,7 @@ export interface AgentvilleWorldInjected {
   sendResidentPrompt(residentId: ResidentId, workspaceId: string, prompt: string): Promise<void>
   getBinding(id: string): SessionBinding | undefined
   focusSession(id: string): void
-  pickDirectory(): Promise<string | null>
+  pickDirectory(signal?: AbortSignal): Promise<string | null>
   bindWorkspace(path: string): Promise<string>
 }
 
@@ -80,6 +80,8 @@ export function AgentvilleWorld(props: Props) {
     catch { setDraftStorageError(true) }
   }, [drafts])
   const [busy, setBusy] = useState(false)
+  const [picking, setPicking] = useState(false)
+  const pickerAbort = useRef<AbortController>()
   const [error, setError] = useState('')
   const [bindingId, setBindingId] = useState<string>()
   const operation = useRef(0)
@@ -122,6 +124,7 @@ export function AgentvilleWorld(props: Props) {
   }
 
   function closeConversation() {
+    pickerAbort.current?.abort()
     ++operation.current
     setSelected(null)
     setShowModels(false)
@@ -134,7 +137,7 @@ export function AgentvilleWorld(props: Props) {
 
   useEffect(() => {
     const ticket = ++operation.current
-    setBindingId(undefined); setError(''); setBusy(false)
+    setBindingId(undefined); setError(''); setBusy(false); setPicking(false)
     if (!workspace || !selected || selected === 'coordinator') return
     setBusy(true)
     void props.selectResident(selected, workspace.workspaceId).then(id => {
@@ -143,6 +146,8 @@ export function AgentvilleWorld(props: Props) {
       .finally(() => { if (ticket === operation.current) setBusy(false) })
     return () => { ++operation.current }
   }, [selected, workspace?.workspaceId])
+
+  useEffect(() => () => { pickerAbort.current?.abort() }, [selected])
 
   useEffect(() => {
     const frame = document.querySelector<HTMLElement>('[data-shell-overlay]')?.parentElement
@@ -177,17 +182,27 @@ export function AgentvilleWorld(props: Props) {
   }
 
   async function bind(folder?: string) {
-    if (busy || folder !== undefined && !folder.trim()) return
+    if (busy || pickerAbort.current || folder !== undefined && !folder.trim()) return
     const ticket = operation.current
+    const controller = new AbortController()
+    pickerAbort.current = controller
     setBusy(true); setError('')
     try {
-      folder ??= await props.pickDirectory() ?? undefined
+      if (folder === undefined) {
+        setPicking(true)
+        folder = await props.pickDirectory(controller.signal) ?? undefined
+        if (ticket === operation.current) setPicking(false)
+      }
+      if (controller.signal.aborted) return
       if (folder && ticket === operation.current) {
         const id = await props.bindWorkspace(folder)
         if (ticket === operation.current) { setBusy(false); useProject(id); setPath(folder); setGuideView('welcome') }
       }
-    } catch (reason) { if (ticket === operation.current) setError(reason instanceof Error ? reason.message : String(reason)) }
-    finally { if (ticket === operation.current) setBusy(false) }
+    } catch (reason) { if (ticket === operation.current && !controller.signal.aborted) setError(reason instanceof Error ? reason.message : String(reason)) }
+    finally {
+      if (pickerAbort.current === controller) pickerAbort.current = undefined
+      if (ticket === operation.current) { setBusy(false); setPicking(false) }
+    }
   }
 
   async function send(text: string, clearDraft = true) {
@@ -274,7 +289,7 @@ export function AgentvilleWorld(props: Props) {
           <button disabled={busy || !binding || !draft.trim()}>{busy ? '正在连接…' : binding?.session.getSnapshot().running ? '发送补充（排队）' : resident.action}</button>
         </form>
       </>}
-      {busy && <p role="status">正在处理…</p>}
+      {picking ? <div><p role="status">等待系统文件夹选择窗口…</p><button onClick={() => pickerAbort.current?.abort()}>取消选择</button></div> : busy && <p role="status">正在处理…</p>}
       {error && <p role="alert">{error}</p>}
       </div>
     </aside>}

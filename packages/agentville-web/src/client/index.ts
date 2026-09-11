@@ -19,7 +19,7 @@ import { prepareResidentModel, readModelSettings, saveModelSettings } from './mo
 import { TownModelOnboarding } from './ModelSettings.js'
 import { applyDocumentBranding } from './document-branding.js'
 
-export const inject = ['slots', 'sessions', 'workspaces', 'uiWorkspace', 'remote', 'remote.settings', 'remote.credentials', 'remote.llm', 'remote.session']
+export const inject = ['slots', 'sessions', 'workspaces', 'uiWorkspace', 'remote', 'remote.settings', 'remote.credentials', 'remote.llm', 'remote.session', 'remote.directoryPicker']
 
 const RESIDENT_SESSION_KEY = 'agentville.resident-sessions.v1'
 const RESIDENT_NAMES: Readonly<Record<ResidentId, string>> = {
@@ -146,7 +146,11 @@ export function apply(ctx: ClientContext): void {
         getBinding: id => ctx.sessions.binding(id as SessionId),
         focusSession: id => ctx.sessions.open(id as SessionId),
         sessionForResident: (workspaceId, residentId) => readResidentSessions()[workspaceId]?.[residentId],
-        pickDirectory: () => ctx.uiWorkspace.pickDirectory(),
+        pickDirectory: async signal => {
+          const result = await ctx.remote.directoryPicker.pick(signal)
+          if (!result.ok) throw new Error(result.error.message)
+          return result.value
+        },
         bindWorkspace: async path => (await ctx.workspaces.create({ path })).workspaceId,
       }),
     }, AgentvilleWorld))
