@@ -1,25 +1,25 @@
 extends Node3D
 ## Original Blender residents; fixed homes keep the puzzle routes unobstructed.
-const MODELS = [preload("res://assets/npc_gardener.glb"), preload("res://assets/npc_fisher.glb"), preload("res://assets/npc_keeper.glb")]
+const MODELS = [preload("res://assets/npc_gardener.glb"), preload("res://assets/npc_fisher.glb"), preload("res://assets/npc_keeper.glb"), preload("res://assets/npc_keeper.glb")]
 const FONT = preload("res://assets/fonts/MosslightUI.ttf")
 var residents: Array[StaticBody3D] = []
 var time := 0.0
 
 
 func _ready() -> void:
-	var names := ["芽芽 · 园丁", "阿澜 · 钓鱼人", "苔伯 · 守井人"]
-	var agentville_ids := ["coder", "file_keeper", "teacher"]
-	var homes := [Vector3(-7.2, .06, 1.3), Vector3(6.6, .06, 2.9), Vector3(-4.25, .06, -4.5)]
-	for i in range(3):
+	var names := ["芽芽 · 园丁", "阿澜 · 钓鱼人", "苔伯 · 守井人", "向导 · 项目接待"]
+	var agentville_ids := ["coder", "file_keeper", "teacher", "coordinator"]
+	var homes := [Vector3(-7.2, .06, 1.3), Vector3(6.6, .06, 2.9), Vector3(-4.25, .06, -4.5), Vector3(2.8, .06, 6.0)]
+	for i in range(4):
 		var body := StaticBody3D.new()
-		body.name = ["Gardener", "Fisher", "Keeper"][i]
+		body.name = ["Gardener", "Fisher", "Keeper", "Guide"][i]
 		body.position = homes[i]
 		body.collision_layer = 1
 		body.collision_mask = 0
 		body.set_meta("resident_id", i)
 		body.set_meta("agentville_id", agentville_ids[i])
 		body.set_meta("display_name", names[i])
-		body.set_meta("home_yaw", [.6, PI, .6][i])
+		body.set_meta("home_yaw", [.6, PI, .6, -.8][i])
 		body.set_meta("line_index", 0)
 		body.set_meta("dialogue_phase", "")
 		add_child(body)
@@ -32,6 +32,8 @@ func _ready() -> void:
 		body.add_child(collision)
 		var visual := MODELS[i].instantiate() as Node3D
 		visual.rotation.y = body.get_meta("home_yaw")
+		if i == 3:
+			visual.scale = Vector3.ONE * .85
 		body.add_child(visual)
 		body.set_meta("visual", visual)
 		var label := Label3D.new()
@@ -74,7 +76,7 @@ func advance(delta: float, traveler: Vector3, motion_enabled: bool, labels_enabl
 		var target_yaw: float = atan2(direction.x, direction.z) if distance < 3 else npc.get_meta("home_yaw")
 		visual.rotation.y = lerp_angle(visual.rotation.y, target_yaw, 1 - exp(-delta * 3))
 		# Breathing changes height by less than one percent; boots stay grounded.
-		visual.scale.y = 1 + sin(time * 1.7 + int(npc.get_meta("resident_id"))) * .006
+		visual.scale.y = (.85 if int(npc.get_meta("resident_id")) == 3 else 1.0) * (1 + sin(time * 1.7 + int(npc.get_meta("resident_id"))) * .006)
 
 
 func nearest(traveler: CharacterBody3D) -> StaticBody3D:
@@ -99,11 +101,12 @@ func agentville_talk(npc: StaticBody3D, has_workspace: bool) -> Dictionary:
 		"coder": ["Coder · 开发", "我负责实现功能、调试问题和运行验证。"],
 		"file_keeper": ["File Keeper · 整理", "我负责阅读项目、整理文件和维护资料。"],
 		"teacher": ["Teacher · 教学", "我负责解释代码、梳理思路和沉淀文档。"],
+		"coordinator": ["向导 · 项目接待", "欢迎来到小镇。我负责绑定项目文件夹，也可以帮你切换项目。"],
 	}
 	var identity: Array = identities.get(str(npc.get_meta("agentville_id")), ["Resident · 居民", "我会协助处理这个项目。"])
 	return {
 		"name": identity[0],
-		"text": identity[1] + (" 请在右侧告诉我你的想法，我会在当前工作区开始处理。" if has_workspace else " 请先选择一个项目文件夹作为工作区；绑定完成后，我会接着听你的想法。"),
+		"text": identity[1] + (" 请在居民面板里继续。" if has_workspace else " 请找向导选择项目文件夹，绑定工作区后就能开始。"),
 	}
 
 
@@ -120,6 +123,8 @@ func talk(npc: StaticBody3D, learned: bool) -> String:
 			lines = ["我是苔伯，平时在这里照看花草。", "在高台前放一只木箱：先跳上箱子，再跳上石台。", "从石台上能望见两边的桥。走累了，随时来坐坐。"]
 			if not learned:
 				lines[1] = "先去南边石座上的木箱旁按 E。学会回响，就能搭出上台的落脚点。"
+		3:
+			lines = ["欢迎来到小镇，我是项目向导。", "制作找芽芽，学习找苔伯，查看文件找阿澜。", "项目需要安顿或更换的时候，来入口找我就好。"]
 	if npc.get_meta("dialogue_phase") != phase:
 		npc.set_meta("line_index", 0)
 		npc.set_meta("dialogue_phase", phase)

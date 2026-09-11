@@ -38,6 +38,7 @@ var preview_position := Vector3.ZERO
 var placement_valid := false
 var prompt: Label
 var echo_label: Label
+var game_hud: Panel
 var toast: Label
 var toast_left := 0.0
 var ui: Control
@@ -83,9 +84,11 @@ var agentville_bridge: JavaScriptObject
 var agentville_connected := false
 var agentville_workspace_id := ""
 var agentville_session_id := ""
+var embedded_mode := false
 
 
 func _ready() -> void:
+	embedded_mode = _is_embedded_web()
 	_setup_input()
 	_build_world()
 	_build_player()
@@ -103,10 +106,11 @@ func _ready() -> void:
 	_setup_agentville_bridge()
 	garden = GARDEN_INVENTORY.new()
 	add_child(garden)
+	_apply_embedded_hud()
 	camera_obstacle_shape.radius = .22
 	_update_view_hint()
 	_setup_audio()
-	_show_toast("欢迎来到苔光之屿。沿小径漫步，靠近木箱按 E 学习回响。", 9.0)
+	_show_toast("苔光之屿", 3.0) if embedded_mode else _show_toast("欢迎来到苔光之屿。沿小径漫步，靠近木箱按 E 学习回响。", 9.0)
 	if "--capture" in OS.get_cmdline_user_args():
 		screenshot_frames = 12
 	if "--portrait" in OS.get_cmdline_user_args():
@@ -118,6 +122,21 @@ func _ready() -> void:
 		ui.visible = false
 		screenshot_frames = 12
 	print("MOSSLIGHT_READY: Blender assets loaded; island, traveler and echo systems ready.")
+
+
+func _is_embedded_web() -> bool:
+	if not OS.has_feature("web"):
+		return false
+	return bool(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('embed') === '1'"))
+
+
+func _apply_embedded_hud() -> void:
+	for label: Label in overview_labels:
+		label.visible = not embedded_mode
+	view_hint.visible = not embedded_mode
+	game_hud.visible = not embedded_mode
+	if garden != null:
+		garden.bag_hint.visible = not embedded_mode
 
 
 func _setup_agentville_bridge() -> void:
@@ -156,9 +175,10 @@ func _on_agentville_message(arguments: Array) -> void:
 	if typeof(workspace) != TYPE_DICTIONARY:
 		agentville_workspace_id = ""
 		return
+	var previous_workspace_id := agentville_workspace_id
 	agentville_workspace_id = str((workspace as Dictionary).get("workspaceId", ""))
 	var workspace_title := str((workspace as Dictionary).get("title", ""))
-	if not workspace_title.is_empty():
+	if not workspace_title.is_empty() and agentville_workspace_id != previous_workspace_id:
 		_show_toast("已连接工作区：%s" % workspace_title, 4.0)
 
 
@@ -423,9 +443,12 @@ func _physics_process(delta: float) -> void:
 			overview_labels[1].text = "STREAMSIDE"
 			overview_labels[2].text = "溪 间 庭 院"
 			overview_labels[3].text = "古树荫下，沿溪过桥，去廊下坐一会儿。"
-			_show_toast("抵达溪间庭院。沿溪向南过石桥，坡道通向茶屋。", 5)
+			_show_toast("溪间庭院" if embedded_mode else "抵达溪间庭院。沿溪向南过石桥，坡道通向茶屋。", 3 if embedded_mode else 5)
 		else:
-			_show_toast("抵达晴沙绿洲。沙丘可步行攀登，石桥通往苔光之屿。" if in_desert else "回到苔光之屿。", 5)
+			var region_message := "晴沙绿洲" if in_desert else "苔光之屿"
+			if not embedded_mode:
+				region_message = "抵达晴沙绿洲。沙丘可步行攀登，石桥通往苔光之屿。" if in_desert else "回到苔光之屿。"
+			_show_toast(region_message, 3 if embedded_mode else 5)
 	if not "--portrait" in OS.get_cmdline_user_args():
 		_update_camera(delta)
 	if learned:
@@ -512,6 +535,8 @@ func _interact() -> void:
 			toast.visible = false
 			if starting_conversation:
 				_emit_agentville("resident:selected", {"residentId": npc.get_meta("agentville_id")})
+				if agentville_connected:
+					Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 
 func set_view_mode(mode: ViewMode) -> void:
@@ -531,7 +556,8 @@ func set_view_mode(mode: ViewMode) -> void:
 	hero.visible = mode != ViewMode.FIRST_PERSON
 	crosshair.visible = mode == ViewMode.FIRST_PERSON
 	for label: Label in overview_labels:
-		label.visible = mode == ViewMode.OVERVIEW
+		label.visible = mode == ViewMode.OVERVIEW and not embedded_mode
+	view_hint.visible = not embedded_mode
 	view_hint.position = Vector2(48, 192) if mode == ViewMode.OVERVIEW else Vector2(48, 34)
 	if mode == ViewMode.OVERVIEW:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -540,7 +566,8 @@ func set_view_mode(mode: ViewMode) -> void:
 		facing = Vector3(-sin(look_yaw), 0, -cos(look_yaw))
 		hero.rotation.y = atan2(facing.x, facing.z)
 	_update_view_hint()
-	_show_toast(["俯视角：滚轮观察小岛。", "第三人称：点击锁定鼠标，或按住鼠标拖动镜头。", "第一人称：点击锁定或拖动观察，WASD 行走，空格跳跃。"][mode], 5)
+	if not embedded_mode:
+		_show_toast(["俯视角：滚轮观察小岛。", "第三人称：点击锁定鼠标，或按住鼠标拖动镜头。", "第一人称：点击锁定或拖动观察，WASD 行走，空格跳跃。"][mode], 5)
 	_update_camera(1.0)
 
 
@@ -736,6 +763,9 @@ func _build_ui() -> void:
 	overview_labels.append(_label("苔 光 之 屿", Vector2(48, 121), 19, Color("f6e4bf")))
 	overview_labels.append(_label("沿着石径，穿过树影。", Vector2(48, 160), 16, Color("deede0")))
 	view_hint = _label("", Vector2(48, 192), 15, Color("eef2df"))
+	for label: Label in overview_labels:
+		label.visible = not embedded_mode
+	view_hint.visible = not embedded_mode
 	crosshair = _label("·", Vector2.ZERO, 32, Color("fff3d8"))
 	crosshair.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 	crosshair.offset_left = -12
@@ -744,16 +774,17 @@ func _build_ui() -> void:
 	crosshair.offset_bottom = 24
 	crosshair.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	crosshair.visible = false
-	var bottom := _panel(Vector2(40, -112), Vector2(1520, 78), Color(.055, .15, .16, .90))
-	bottom.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
-	bottom.offset_left = 40
-	bottom.offset_right = -40
-	bottom.offset_top = -112
-	bottom.offset_bottom = -34
-	echo_label = _label("01   未知回响", Vector2(22, 12), 21, Color("fae6b7"), bottom)
-	_label("WASD 移动    空格 跳跃    E 学习 / 互动    F 复制    Q 撤回", Vector2(400, 15), 18, Color("eef2df"), bottom)
-	_label("Shift 奔跑    滚轮 缩放    V 视角    Tab 隐藏界面    N 动态    M 静音    R 重开    Esc 暂停", Vector2(400, 45), 14, Color("a5c4b9"), bottom)
-	_label("回响之杖  /  最多保留 3 个造物", Vector2(22, 45), 13, Color("a5c4b9"), bottom)
+	game_hud = _panel(Vector2(40, -112), Vector2(1520, 78), Color(.055, .15, .16, .90))
+	game_hud.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	game_hud.offset_left = 40
+	game_hud.offset_right = -40
+	game_hud.offset_top = -112
+	game_hud.offset_bottom = -34
+	echo_label = _label("01   未知回响", Vector2(22, 12), 21, Color("fae6b7"), game_hud)
+	_label("WASD 移动    空格 跳跃    E 学习 / 互动    F 复制    Q 撤回", Vector2(400, 15), 18, Color("eef2df"), game_hud)
+	_label("Shift 奔跑    滚轮 缩放    V 视角    Tab 隐藏界面    N 动态    M 静音    R 重开    Esc 暂停", Vector2(400, 45), 14, Color("a5c4b9"), game_hud)
+	_label("回响之杖  /  最多保留 3 个造物", Vector2(22, 45), 13, Color("a5c4b9"), game_hud)
+	game_hud.visible = not embedded_mode
 	prompt = _label("", Vector2(0, -185), 22, Color("fff5d6"))
 	prompt.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 	prompt.offset_left = -430
@@ -768,12 +799,20 @@ func _build_ui() -> void:
 	toast.offset_top = -226
 	toast.offset_bottom = -190
 	toast.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	if embedded_mode:
+		prompt.offset_top = -100
+		prompt.offset_bottom = -60
+		toast.offset_top = -144
+		toast.offset_bottom = -108
 	dialogue_panel = _panel(Vector2.ZERO, Vector2(1040, 140), Color(.055, .15, .16, .96))
 	dialogue_panel.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 	dialogue_panel.offset_left = -520
 	dialogue_panel.offset_right = 520
 	dialogue_panel.offset_top = -350
 	dialogue_panel.offset_bottom = -210
+	if embedded_mode:
+		dialogue_panel.offset_top = -250
+		dialogue_panel.offset_bottom = -110
 	dialogue_name = _label("", Vector2(26, 14), 21, Color("efce87"), dialogue_panel)
 	dialogue_text = _label("", Vector2(26, 49), 23, Color("fff3d8"), dialogue_panel)
 	dialogue_text.size = Vector2(988, 58)

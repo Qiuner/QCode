@@ -254,6 +254,7 @@ func _build_inventory() -> void:
 	bag_hint.offset_right = -22
 	bag_hint.offset_top = 205
 	bag_hint.offset_bottom = 279
+	bag_hint.visible = not game.embedded_mode
 	overlay = Control.new()
 	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	overlay.mouse_filter = Control.MOUSE_FILTER_STOP

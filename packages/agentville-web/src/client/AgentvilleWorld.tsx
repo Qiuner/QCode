@@ -1,77 +1,51 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import type { PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
+import type { SessionBinding } from '@deepseek-ai/dsh-api-session-controller/client'
+import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import type {} from '@deepseek-ai/dsh-client-ui-session/client'
 import type {} from '@deepseek-ai/dsh-client-ui-workspace/client'
+import { WORLD_BRIDGE_VERSION, isWorldToHostMessage, worldFrameUrl, type ResidentId } from './world-bridge.js'
+import { RESIDENTS, projectResidentEvents, residentEventStatus } from './resident-model.js'
 import { ModelSettings } from './ModelSettings.js'
 import { ModelConfigurationRequired, type ModelSettingsActions } from './model-settings.js'
-import {
-  WORLD_BRIDGE_VERSION,
-  isWorldToHostMessage,
-  type HostToWorldMessage,
-  type ResidentId,
-  type ResidentView,
-} from './world-bridge.js'
 
 export interface AgentvilleWorldInjected {
   models: ModelSettingsActions
   residentForSession(workspaceId: string, sessionId: string): ResidentId | undefined
+  sessionForResident(workspaceId: string, residentId: ResidentId): string | undefined
   selectResident(residentId: ResidentId, workspaceId: string): Promise<string>
   sendResidentPrompt(residentId: ResidentId, workspaceId: string, prompt: string): Promise<void>
+  getBinding(id: string): SessionBinding | undefined
+  focusSession(id: string): void
+  pickDirectory(): Promise<string | null>
+  bindWorkspace(path: string): Promise<string>
 }
 
 type Props = PropsRuntime<'shell.overlay'> & AgentvilleWorldInjected
+const PROJECT_KEY = 'agentville.active-workspace.v1'
+const STATUS = { idle: '待命', thinking: '思考中', working: '工作中', approval: '等待确认', completed: '有新结果', failed: '需要处理' }
 
-const css = {
-  connection: 'agentville-connection',
-  iframe: 'agentville-iframe',
-  overlay: 'agentville-overlay',
-  residents: 'agentville-residents',
-  residentsHeading: 'agentville-residents-heading',
-  resident: 'agentville-resident',
-  residentDot: 'agentville-resident-dot',
-  residentCopy: 'agentville-resident-copy',
-  prompt: 'agentville-prompt',
-  returnButton: 'agentville-return-button',
-  topbar: 'agentville-topbar',
-  world: 'agentville-world',
-} as const
-
-const IDLE_RESIDENTS: readonly ResidentView[] = [
-  { id: 'coder', displayName: 'Coder · 开发', status: 'idle' },
-  { id: 'file_keeper', displayName: 'File Keeper · 整理', status: 'idle' },
-  { id: 'teacher', displayName: 'Teacher · 教学', status: 'idle' },
-  { id: 'coordinator', displayName: 'Coordinator · 协调', status: 'idle' },
-]
-
-const STATUS_LABEL: Readonly<Record<ResidentView['status'], string>> = {
-  idle: '待命', thinking: '思考中', working: '工作中', approval: '等待确认', completed: '已完成', failed: '遇到问题',
-}
-
-function go(path: string): void {
-  window.location.assign(path)
-}
-
-function openWorkspacePicker(): boolean {
-  const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>('button'))
-  const trigger = buttons.find(button => {
-    const label = button.getAttribute('aria-label')
-    return label === '添加工作区' || label === 'Add workspace'
-  }) ?? buttons.find(button => {
-    const label = button.getAttribute('aria-label')
-    return label === '选择工作区' || label === 'Choose workspace'
-  })
-  if (trigger === undefined) return false
-  queueMicrotask(() => {
-    trigger.click()
-    trigger.focus()
-  })
-  return true
+function SessionResult({ binding }: { binding: SessionBinding }) {
+  const [stopError, setStopError] = useState('')
+  const state = useSyncExternalStore(binding.session.subscribe.bind(binding.session), binding.session.getSnapshot.bind(binding.session))
+  const events = useSyncExternalStore(binding.eventSource.subscribe.bind(binding.eventSource), binding.eventSource.getSnapshot.bind(binding.eventSource))
+  const result = useMemo(() => projectResidentEvents(events.entries), [events.entries])
+  return <div className="town-results">
+    <p role="status">{state.running ? '正在工作' : result.outcome || '等待你的想法'}</p>
+    {(state.openError || state.promptError || state.lastAgentError) && <p role="alert">{state.openError?.message ?? state.promptError?.error.message ?? state.lastAgentError}</p>}
+    {result.messages.map(message => <article key={message.key}>{message.text}</article>)}
+    {result.live && <article>{result.live}</article>}
+    {result.tools.length > 0 && <details><summary>执行记录 ({result.tools.length})</summary>{result.tools.map(tool => <pre key={tool.key}>{tool.name}{'\n'}{tool.arguments}</pre>)}</details>}
+    {stopError && <p role="alert">{stopError}</p>}
+    {state.running && <button type="button" onClick={() => { void binding.session.cancel().then(result => { if (!result.ok) setStopError(result.error.message) }, reason => setStopError(String(reason))) }}>停止本轮</button>}
+    {state.hasMore && <button type="button" disabled={state.loadingOlder} onClick={() => { void binding.session.loadOlder() }}>更早的记录</button>}
+  </div>
 }
 
 export function AgentvilleWorld(props: Props) {
-  const workbench = new URLSearchParams(window.location.search).get('agentville') === 'workbench'
-    || window.location.pathname === '/workbench'
-  const iframe = useRef<HTMLIFrameElement | null>(null)
+  const iframe = useRef<HTMLIFrameElement>(null)
+  const [worldUrl] = useState(() => worldFrameUrl(location.href))
+  const [ready, setReady] = useState(false)
   const [showModels, setShowModels] = useState(false)
   useEffect(() => {
     let active = true
@@ -81,240 +55,158 @@ export function AgentvilleWorld(props: Props) {
     }).catch(() => { /* The settings panel exposes connection errors on demand. */ })
     return () => { active = false }
   }, [])
-  const [worldReady, setWorldReady] = useState(false)
-  const [selectedResident, setSelectedResident] = useState<ResidentId | undefined>()
-  const [pendingResident, setPendingResident] = useState<ResidentId | undefined>()
-  const [connectionMessage, setConnectionMessage] = useState<string | undefined>()
-  const [prompt, setPrompt] = useState('')
-  const [sending, setSending] = useState(false)
-  const [chatOpen, setChatOpen] = useState(() => window.innerWidth > 800)
-  const [residentsOpen, setResidentsOpen] = useState(true)
-  const currentSessionId = props.useSessions(state => state.current)
-  const currentRunning = props.useSessions(state => {
-    const current = state.current
-    return current === undefined ? false : state.byId[current]?.running ?? false
-  })
-  const currentCompleted = props.useSessions(state => {
-    const current = state.current
-    return current === undefined ? false : state.byId[current]?.completed ?? false
-  })
-  const awaitingApproval = props.useSessionPendingInteraction(state => (
-    currentSessionId === undefined ? false : state.has(currentSessionId)
-  ))
+  const [selected, setSelected] = useState<ResidentId | null>('coordinator')
+  const [projectId, setProjectId] = useState<string | null>(() => { try { return localStorage.getItem(PROJECT_KEY) } catch { return null } })
+  const [path, setPath] = useState('')
+  const [drafts, setDrafts] = useState<Record<string, string>>({})
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const [bindingId, setBindingId] = useState<string>()
+  const operation = useRef(0)
+  const [, refreshEvents] = useState(0)
   const workspaces = props.useWorkspaces(state => state.items)
-  const workspace = useMemo(() => {
-    if (currentSessionId !== undefined) {
-      const current = workspaces.find(item => item.sessionIds.includes(currentSessionId))
-      if (current !== undefined) return current
-    }
-    return workspaces.at(0)
-  }, [currentSessionId, workspaces])
-  const activeResident = useMemo(() => selectedResident ?? (
-    workspace !== undefined && currentSessionId !== undefined
-      ? props.residentForSession(workspace.workspaceId, currentSessionId)
-      : undefined
-  ), [currentSessionId, props, selectedResident, workspace])
-  const residents = useMemo<readonly ResidentView[]>(() => IDLE_RESIDENTS.map(resident => (
-    resident.id === activeResident && currentSessionId !== undefined
-      ? {
-          ...resident,
-          status: awaitingApproval ? 'approval'
-            : currentRunning ? 'working'
-              : currentCompleted ? 'completed' : 'idle',
-        }
-      : resident
-  )), [activeResident, awaitingApproval, currentCompleted, currentRunning, currentSessionId])
-
-  const openResident = (residentId: ResidentId): void => {
-    setChatOpen(true)
-    setResidentsOpen(true)
-    if (workspace === undefined) {
-      setPendingResident(residentId)
-      setConnectionMessage(openWorkspacePicker()
-        ? '请选择项目文件夹作为工作区'
-        : '请先在右侧选择工作区')
-      return
-    }
-    setConnectionMessage('正在打开居民会话')
-    void props.selectResident(residentId, workspace.workspaceId).then(() => {
-      setSelectedResident(residentId)
-      setConnectionMessage(undefined)
-    }, (error: unknown) => {
-      setConnectionMessage(error instanceof Error ? error.message : '居民会话打开失败')
+  const sessionState = props.useSessions(state => state)
+  const pending = props.useSessionPendingInteraction(state => state)
+  const workspace = workspaces.find(item => item.workspaceId === projectId)
+  const resident = RESIDENTS.find(item => item.id === selected)
+  const draftKey = `${projectId}:${selected}`
+  const draft = drafts[draftKey] ?? ''
+  const binding = bindingId ? props.getBinding(bindingId) : undefined
+  const interaction = bindingId ? pending.get(bindingId as SessionId) : undefined
+  const approval = interaction?.kind === 'approval' && 'answer' in interaction
+    ? interaction as typeof interaction & { toolName: string; reason?: string; callId?: string; answer(decision: 'allowed-once' | 'rejected'): Promise<void> }
+    : undefined
+  const residentIds = RESIDENTS.map(item => workspace ? props.sessionForResident(workspace.workspaceId, item.id) : undefined).filter((id): id is string => !!id)
+  useEffect(() => {
+    const unsubscribers = residentIds.flatMap(id => {
+      const face = props.getBinding(id)
+      return face ? [face.eventSource.subscribe(() => refreshEvents(value => value + 1)), face.session.subscribe(() => refreshEvents(value => value + 1))] : []
     })
-  }
+    return () => unsubscribers.forEach(unsubscribe => unsubscribe())
+  }, [residentIds.join('|')])
+  const residents = RESIDENTS.map(item => {
+    const id = workspace ? props.sessionForResident(workspace.workspaceId, item.id) : undefined
+    const summary = id ? sessionState.byId[id as SessionId] : undefined
+    const events = id ? props.getBinding(id)?.eventSource.getSnapshot().entries : undefined
+    return { id: item.id, displayName: item.name, status: id && pending.has(id as SessionId) ? 'approval' as const : summary?.running ? 'working' as const : events ? residentEventStatus(events) : 'idle' as const }
+  })
 
-  const submitPrompt = (): void => {
-    const text = prompt.trim()
-    if (text === '' || workspace === undefined || activeResident === undefined || sending) return
-    setSending(true)
-    setChatOpen(true)
-    setConnectionMessage('居民正在接收想法')
-    void props.sendResidentPrompt(activeResident, workspace.workspaceId, text).then(() => {
-      setPrompt('')
-      setConnectionMessage('居民已开始工作')
-    }, (error: unknown) => {
-      if (error instanceof ModelConfigurationRequired) setShowModels(true)
-      setConnectionMessage(error instanceof Error ? error.message : '想法发送失败')
-    }).finally(() => { setSending(false) })
+  function choose(id: ResidentId) {
+    const next = workspace || id === 'coordinator' ? id : 'coordinator'
+    if (next === selected) return
+    ++operation.current
+    setSelected(next)
+    setError('')
   }
 
   useEffect(() => {
-    if (pendingResident === undefined || workspace === undefined) return
-    const residentId = pendingResident
-    setPendingResident(undefined)
-    setConnectionMessage('正在打开居民会话')
-    void props.selectResident(residentId, workspace.workspaceId).then(() => {
-      setSelectedResident(residentId)
-      setConnectionMessage(undefined)
-    }, (error: unknown) => {
-      setConnectionMessage(error instanceof Error ? error.message : '居民会话打开失败')
-    })
-  }, [pendingResident, props, workspace])
+    const ticket = ++operation.current
+    setBindingId(undefined); setError(''); setBusy(false)
+    if (!workspace || !selected || selected === 'coordinator') return
+    setBusy(true)
+    void props.selectResident(selected, workspace.workspaceId).then(id => {
+      if (ticket === operation.current) { props.focusSession(id); setBindingId(id) }
+    }, reason => { if (ticket === operation.current) setError(String(reason.message ?? reason)) })
+      .finally(() => { if (ticket === operation.current) setBusy(false) })
+    return () => { ++operation.current }
+  }, [selected, workspace?.workspaceId])
 
   useEffect(() => {
-    if (!workbench) return
-    if (window.location.pathname !== '/workbench') {
-      window.history.replaceState(null, '', '/workbench')
+    const frame = document.querySelector<HTMLElement>('[data-shell-overlay]')?.parentElement
+    frame?.setAttribute('data-agentville-town', '')
+    return () => { frame?.removeAttribute('data-agentville-town') }
+  }, [])
+
+  useEffect(() => {
+    const listener = (event: MessageEvent) => {
+      if (event.origin !== worldUrl.origin || event.source !== iframe.current?.contentWindow || !isWorldToHostMessage(event.data)) return
+      if (event.data.type === 'world:ready') setReady(true)
+      if (event.data.type === 'resident:selected') choose(event.data.payload.residentId)
     }
-  }, [workbench])
+    window.addEventListener('message', listener)
+    return () => window.removeEventListener('message', listener)
+  }, [workspace, selected])
 
+  const worldState = JSON.stringify({ workspace: workspace ? { workspaceId: workspace.workspaceId, title: workspace.title } : null, sessionId: bindingId ?? null, residents })
   useEffect(() => {
-    if (workbench) return
-    const frame = document.querySelector<HTMLElement>('[data-shell-overlay]')?.parentElement
-    frame?.setAttribute('data-agentville-chat', chatOpen ? 'open' : 'closed')
-    return () => { frame?.removeAttribute('data-agentville-chat') }
-  }, [chatOpen, workbench])
+    if (!ready) return
+    iframe.current?.contentWindow?.postMessage({ source: 'agentville-host', version: WORLD_BRIDGE_VERSION, type: 'world:init', payload: JSON.parse(worldState) }, worldUrl.origin)
+  }, [ready, worldState])
 
-  useEffect(() => {
-    if (workbench) return
-    const frame = document.querySelector<HTMLElement>('[data-shell-overlay]')?.parentElement
-    frame?.setAttribute('data-agentville-shell', '')
-    return () => { frame?.removeAttribute('data-agentville-shell') }
-  }, [workbench])
-
-  const post = (message: HostToWorldMessage): void => {
-    iframe.current?.contentWindow?.postMessage(message, window.location.origin)
+  function useProject(id: string) {
+    if (id === projectId) return
+    ++operation.current
+    setProjectId(id)
+    try { localStorage.setItem(PROJECT_KEY, id) } catch { /* Current tab still owns the selection. */ }
+    setBindingId(undefined); setError('')
   }
 
-  useEffect(() => {
-    if (workbench) return
-    const onMessage = (event: MessageEvent<unknown>): void => {
-      if (event.origin !== window.location.origin || event.source !== iframe.current?.contentWindow) return
-      if (!isWorldToHostMessage(event.data)) return
-      if (event.data.type === 'world:ready') setWorldReady(true)
-      if (event.data.type === 'resident:selected') {
-        openResident(event.data.payload.residentId)
+  async function bind(pick: boolean) {
+    const ticket = operation.current
+    setBusy(true); setError('')
+    try {
+      const folder = pick ? await props.pickDirectory() : path.trim()
+      if (folder && ticket === operation.current) {
+        const id = await props.bindWorkspace(folder)
+        if (ticket === operation.current) { setBusy(false); useProject(id); setPath(folder) }
+      }
+    } catch (reason) { if (ticket === operation.current) setError(reason instanceof Error ? reason.message : String(reason)) }
+    finally { if (ticket === operation.current) setBusy(false) }
+  }
+
+  async function send(text: string) {
+    if (!workspace || !selected || selected === 'coordinator' || busy || !text.trim()) return
+    const ticket = operation.current
+    const key = draftKey
+    setBusy(true); setError('')
+    try {
+      await props.sendResidentPrompt(selected, workspace.workspaceId, text)
+      setDrafts(value => ({ ...value, [key]: '' }))
+    } catch (reason) {
+      if (ticket === operation.current) {
+        if (reason instanceof ModelConfigurationRequired) setShowModels(true)
+        setError(reason instanceof Error ? reason.message : String(reason))
       }
     }
-    window.addEventListener('message', onMessage)
-    return () => { window.removeEventListener('message', onMessage) }
-  }, [props, workbench, workspace])
-
-  useEffect(() => {
-    if (!worldReady || workbench) return
-    post({
-      source: 'agentville-host',
-      version: WORLD_BRIDGE_VERSION,
-      type: 'world:init',
-      payload: {
-        workspace: workspace === undefined
-          ? null
-          : { workspaceId: workspace.workspaceId, title: workspace.title },
-        sessionId: currentSessionId ?? null,
-        residents,
-      },
-    })
-  }, [currentSessionId, residents, workbench, workspace, worldReady])
-
-  if (workbench) {
-    return (
-      <button className={css.returnButton} type="button" onClick={() => { go('/') }}>
-        <span aria-hidden="true">←</span> 返回 Agentville
-      </button>
-    )
+    finally { if (ticket === operation.current) setBusy(false) }
   }
 
-  return (
-    <div className={css.overlay} data-chat-open={chatOpen}>
-      {showModels && <ModelSettings actions={props.models} close={() => setShowModels(false)} />}
-      <button
-        className="agentville-chat-toggle"
-        type="button"
-        aria-expanded={chatOpen}
-        aria-label={chatOpen ? '收起聊天侧栏' : '展开聊天侧栏'}
-        onClick={() => { setChatOpen(open => !open) }}
-      >
-        {chatOpen ? '× 收起聊天' : '☰ 展开聊天'}
-      </button>
-      <section className={css.world} aria-label="Agentville world">
-        <iframe
-          ref={iframe}
-          className={css.iframe}
-          src="/world/?embed=1"
-          title="Agentville interactive world"
-          onLoad={() => { setWorldReady(true) }}
-        />
-        <div className={css.topbar}>
-          <div>
-            <strong>Agentville</strong>
-            <span>{workspace?.title ?? '选择右侧工作区开始'}</span>
-          </div>
-          <button type="button" onClick={() => { go('/workbench') }} aria-label="打开完整工作台" title="打开完整工作台">
-            <span aria-hidden="true">↗</span>
-          </button>
-        </div>
-        <div className={css.connection} data-ready={worldReady || undefined}>
-          <span aria-hidden="true" />{connectionMessage ?? (worldReady ? '世界已连接' : '正在连接世界')}
-        </div>
-        {!residentsOpen && (
-          <button className="agentville-residents-open" type="button" aria-expanded={false} aria-controls="agentville-resident-panel" onClick={() => { setResidentsOpen(true) }}>
-            ☰ 选择居民
-          </button>
-        )}
-        <aside id="agentville-resident-panel" className={css.residents} aria-label="居民工作台" hidden={!residentsOpen}>
-          <div className={css.residentsHeading}>
-            <strong>居民工作台</strong>
-            <span>{workspace?.title ?? '未选择工作区'}</span>
-            <button className="agentville-residents-close" type="button" aria-label="收起居民选择栏" aria-expanded={true} aria-controls="agentville-resident-panel" onClick={() => { setResidentsOpen(false) }}>
-              ×
-            </button>
-          </div>
-          <button type="button" onClick={() => setShowModels(true)}>模型设置</button>
-          {residents.map(resident => (
-            <button
-              key={resident.id}
-              className={css.resident}
-              type="button"
-              aria-pressed={resident.id === activeResident}
-              data-active={resident.id === activeResident || undefined}
-              data-needs-workspace={workspace === undefined || undefined}
-              onClick={() => { openResident(resident.id) }}
-            >
-              <span className={css.residentDot} data-status={resident.status} />
-              <span className={css.residentCopy}>
-                <strong>{resident.displayName}</strong>
-                <small>{STATUS_LABEL[resident.status]}</small>
-              </span>
-              <span aria-hidden="true">›</span>
-            </button>
-          ))}
-          <form className={css.prompt} onSubmit={event => { event.preventDefault(); submitPrompt() }}>
-            <label htmlFor="agentville-prompt">告诉居民你想做什么</label>
-            <textarea
-              id="agentville-prompt"
-              value={prompt}
-              onChange={event => { setPrompt(event.target.value) }}
-              placeholder={activeResident === undefined ? '先选择一位居民' : '例如：帮我看看这个项目怎么加一个开始界面'}
-              disabled={activeResident === undefined || workspace === undefined || sending}
-              rows={3}
-            />
-            <button type="submit" disabled={prompt.trim() === '' || activeResident === undefined || workspace === undefined || sending}>
-              {sending ? '发送中…' : '交给居民'}
-            </button>
-          </form>
-        </aside>
-      </section>
-    </div>
-  )
+  function openWorldGuide() {
+    iframe.current?.contentWindow?.postMessage({ source: 'agentville-host', version: WORLD_BRIDGE_VERSION, type: 'world:show-guide' }, worldUrl.origin)
+  }
+
+  return <div className="town-shell">
+    <iframe ref={iframe} src={worldUrl.href} title="Agentville 小镇" onLoad={() => setReady(true)} />
+    <header className="town-top"><div><strong>Agentville</strong><span>{workspace ? `当前项目：${workspace.title}` : '尚未绑定项目'}</span></div><nav className="town-actions" aria-label="世界工具"><button className="town-help-button" type="button" title="查看世界操作" aria-label="查看世界操作" aria-haspopup="dialog" onClick={openWorldGuide}>?</button><a href="/workbench" title="打开高级工作台">高级工作台 ↗</a></nav></header>
+    <nav className="town-roster" aria-label="小镇居民">{residents.map(item => <button type="button" key={item.id} aria-pressed={selected === item.id} onClick={() => choose(item.id)}><strong>{item.displayName}</strong><small>{STATUS[item.status]}</small></button>)}</nav>
+    {showModels ? <ModelSettings actions={props.models} close={() => setShowModels(false)} /> : resident && <aside className="town-panel" aria-label={resident.name}>
+      <header><h2>{resident.name}</h2><button type="button" title="关闭居民面板" aria-label="关闭居民面板" onClick={() => { ++operation.current; setSelected(null) }}>×</button></header>
+      <p>{resident.greeting}</p>
+      {selected === 'coordinator' ? <>
+        <button type="button" onClick={() => setShowModels(true)}>模型设置</button>
+        <h3>{workspace ? '当前项目' : '安顿你的项目'}</h3>
+        {workspace && <p className="town-path">{workspace.path}</p>}
+        <button type="button" disabled={busy} onClick={() => { void bind(true) }}>选择项目文件夹</button>
+        <form onSubmit={event => { event.preventDefault(); void bind(false) }}><label htmlFor="town-folder">项目文件夹路径</label><input id="town-folder" value={path} onChange={event => setPath(event.target.value)} placeholder="D:\Projects\MyProject" /><button disabled={busy || !path.trim()}>绑定这个文件夹</button></form>
+        {workspaces.length > 0 && <><label htmlFor="town-projects">已有项目</label><select id="town-projects" value={workspace?.workspaceId ?? ''} disabled={busy} onChange={event => useProject(event.target.value)}><option value="" disabled>选择项目</option>{workspaces.map(item => <option key={item.workspaceId} value={item.workspaceId}>{item.title}</option>)}</select></>}
+        {workspace && <div className="town-introductions"><button onClick={() => choose('coder')}>找芽芽制作功能</button><button onClick={() => choose('teacher')}>找苔伯学习项目</button><button onClick={() => choose('file_keeper')}>找阿澜查看文件</button></div>}
+      </> : <>
+        {selected === 'file_keeper' && <button disabled={busy || !binding} onClick={() => { void send('列出当前项目根目录的文件和子目录，注明各项类型。最多列出 80 项，不要递归扫描。') }}>列出项目文件</button>}
+        <form onSubmit={event => { event.preventDefault(); void send(selected === 'file_keeper' ? `读取这个项目内的文件：${draft}` : draft) }}>
+          <label htmlFor="town-request">{selected === 'coder' ? '想制作的功能' : selected === 'teacher' ? '你的问题' : '文件相对路径'}</label>
+          <textarea id="town-request" rows={3} value={draft} disabled={busy} onChange={event => setDrafts(value => ({ ...value, [draftKey]: event.target.value }))} />
+          <button disabled={busy || !binding || !draft.trim()}>{busy ? '正在连接…' : resident.action}</button>
+        </form>
+        {interaction && <div className="town-approval" role="status"><strong>需要你的确认</strong>{approval ? <>
+          <p>{approval.toolName}：{approval.reason ?? '本次工具调用需要批准'}</p>
+          <pre>{binding && projectResidentEvents(binding.eventSource.getSnapshot().entries).tools.find(tool => tool.key === approval.callId)?.arguments}</pre>
+          <button onClick={() => { void approval.answer('allowed-once').catch(reason => setError(String(reason))) }}>仅允许这一次</button>
+          <button onClick={() => { void approval.answer('rejected').catch(reason => setError(String(reason))) }}>拒绝</button>
+        </> : <p>居民正在等待补充信息。</p>}<a href="/workbench">查看完整请求 ↗</a></div>}
+        {binding && <SessionResult key={bindingId} binding={binding} />}
+      </>}
+      {busy && <p role="status">正在处理…</p>}
+      {error && <p role="alert">{error}</p>}
+    </aside>}
+  </div>
 }

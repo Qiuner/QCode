@@ -13,11 +13,12 @@ import type { AgentvilleWorldInjected } from './AgentvilleWorld.js'
 import { AgentvilleBrandMark, AgentvilleBrandName, AgentvilleHeroMark } from './Brand.js'
 import { WORLD_STYLES } from './styles.js'
 import type { ResidentId } from './world-bridge.js'
+import { residentPrompt } from './resident-model.js'
 import type {} from '@deepseek-ai/dsh-api-remotes/client'
 import { prepareResidentModel, readModelSettings, saveModelSettings } from './model-settings.js'
 import { TownModelOnboarding } from './ModelSettings.js'
 
-export const inject = ['slots', 'sessions', 'workspaces', 'remote', 'remote.settings', 'remote.credentials', 'remote.llm', 'remote.session']
+export const inject = ['slots', 'sessions', 'workspaces', 'uiWorkspace', 'remote', 'remote.settings', 'remote.credentials', 'remote.llm', 'remote.session']
 
 const RESIDENT_SESSION_KEY = 'agentville.resident-sessions.v1'
 const RESIDENT_NAMES: Readonly<Record<ResidentId, string>> = {
@@ -69,17 +70,15 @@ export function apply(ctx: ClientContext): void {
       if (mappedSessionId !== undefined
         && workspace.sessionIds.includes(mappedSessionId)
         && ctx.sessions.list.getSnapshot().byId[mappedSessionId] !== undefined) {
-        ctx.sessions.open(mappedSessionId)
         return mappedSessionId
       }
-      const sessionId = await ctx.sessions.create({ workspaceId: workspace.workspaceId })
+      const sessionId = await ctx.sessions.create({ workspaceId: workspace.workspaceId, sessionId: crypto.randomUUID() as SessionId })
       const renamed = await ctx.sessions.binding(sessionId)?.session.rename(
         `${RESIDENT_NAMES[residentId]} · ${workspace.title}`)
       if (renamed !== undefined && !renamed.ok) {
         console.warn(`agentville: resident session rename failed: ${renamed.error.message}`)
       }
       writeResidentSession(workspaceId, residentId, sessionId)
-      ctx.sessions.open(sessionId)
       return sessionId
     })().finally(() => { selecting.delete(key) })
     selecting.set(key, operation)
@@ -90,7 +89,9 @@ export function apply(ctx: ClientContext): void {
     const binding = ctx.sessions.binding(sessionId as SessionId)
     if (binding === undefined) throw new Error('居民会话已断开，请重新打开')
     await prepareResidentModel(ctx.remote, sessionId as SessionId)
-    const result = await binding.session.prompt([{ type: 'text', text: prompt }], 'queue')
+    const text = residentPrompt(residentId, prompt)
+    const submission = binding.session.beginSubmission({ mode: 'queue', text, attachments: [] })
+    const result = await binding.session.prompt([{ type: 'text', text }], 'queue', undefined, submission.requestId)
     if (!result.ok) throw new Error(result.error.message)
   }
 
@@ -135,6 +136,11 @@ export function apply(ctx: ClientContext): void {
           },
         },
         residentForSession, selectResident, sendResidentPrompt,
+        getBinding: id => ctx.sessions.binding(id as SessionId),
+        focusSession: id => ctx.sessions.open(id as SessionId),
+        sessionForResident: (workspaceId, residentId) => readResidentSessions()[workspaceId]?.[residentId],
+        pickDirectory: () => ctx.uiWorkspace.pickDirectory(),
+        bindWorkspace: async path => (await ctx.workspaces.create({ path })).workspaceId,
       }),
     }, AgentvilleWorld))
 }

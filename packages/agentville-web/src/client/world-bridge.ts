@@ -1,7 +1,19 @@
 export const WORLD_BRIDGE_VERSION = 1 as const
 
+export function worldFrameUrl(hostHref: string): URL {
+  const url = new URL('/world/?embed=1', hostHref)
+  // Separate loopback sites let Chromium keep Godot startup off the host UI thread.
+  if (url.hostname === '127.0.0.1') url.hostname = 'localhost'
+  else if (url.hostname === 'localhost') url.hostname = '127.0.0.1'
+  return url
+}
+
 export type ResidentId = 'coder' | 'file_keeper' | 'teacher' | 'coordinator'
 export type ResidentStatus = 'idle' | 'thinking' | 'working' | 'approval' | 'completed' | 'failed'
+export interface RegionLoadState {
+  stage: 'waiting' | 'downloading' | 'installing' | 'failed' | 'ready'
+  detail: string
+}
 
 export interface ResidentView {
   id: ResidentId
@@ -10,6 +22,11 @@ export interface ResidentView {
 }
 
 export type HostToWorldMessage =
+  | {
+      source: 'agentville-host'
+      version: typeof WORLD_BRIDGE_VERSION
+      type: 'world:show-guide' | 'world:retry-neighbors'
+    }
   | {
       source: 'agentville-host'
       version: typeof WORLD_BRIDGE_VERSION
@@ -35,6 +52,7 @@ export type HostToWorldMessage =
 
 export type WorldToHostMessage =
   | { source: 'agentville-world'; version: typeof WORLD_BRIDGE_VERSION; type: 'world:ready' }
+  | { source: 'agentville-world'; version: typeof WORLD_BRIDGE_VERSION; type: 'world:regions'; payload: RegionLoadState }
   | {
       source: 'agentville-world'
       version: typeof WORLD_BRIDGE_VERSION
@@ -47,6 +65,10 @@ export function isWorldToHostMessage(value: unknown): value is WorldToHostMessag
   const message = value as Partial<WorldToHostMessage>
   if (message.source !== 'agentville-world' || message.version !== WORLD_BRIDGE_VERSION) return false
   if (message.type === 'world:ready') return true
+  if (message.type === 'world:regions') {
+    return !!message.payload && ['waiting', 'downloading', 'installing', 'failed', 'ready'].includes(message.payload.stage)
+      && typeof message.payload.detail === 'string' && message.payload.detail.length <= 240
+  }
   if (message.type !== 'resident:selected') return false
   const residentId = message.payload?.residentId
   return residentId === 'coder' || residentId === 'file_keeper'

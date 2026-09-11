@@ -26,11 +26,35 @@
 
 ## 当前落地范围
 
-- 复用现有 Workspace 选择流程。
-- 为选中的居民增加自然语言输入框。
-- 通过 `ISession.prompt([{ type: 'text', text }], 'queue')` 把请求送入 Harness。
-- 沿用现有运行中、完成、审批和失败状态，并把反馈显示在网页和 Godot 世界中。
-- `/workbench` 继续作为完整 Harness 高级入口。
+小镇是主页。首次进入打开向导面板；点击居民快捷入口或靠近居民按 E 交谈，只打开该居民的功能。
+
+| 居民 | 职责 |
+| --- | --- |
+| 向导 | 选择本地文件夹、绑定 Workspace、切换项目 |
+| 芽芽 Coder | 接收制作目标，实际读取、修改、验证项目 |
+| 苔伯 Teacher | 结合项目文件讲解问题 |
+| 阿澜 File Keeper | 列出真实目录、读取指定相对路径 |
+
+- 同一 Workspace 下各居民使用独立 Session；关闭面板不取消任务，切回恢复会话。
+- 当前项目保存在 `agentville.active-workspace.v1`，居民映射保存在 `agentville.resident-sessions.v1`。
+- 草稿按项目和居民隔离；异步返回通过操作序号防止覆盖后来的选择。
+- 通过 `beginSubmission` 和 `ISession.prompt` 调用真实 Harness，展示回复和工具调用。
+- `turn/end completed` 只显示“本轮已结束”，不宣称测试通过；错误与中断显示未完成。
+- 工具审批调用 Harness 原审批对象，允许一次或拒绝；其他交互转到 `/workbench`。
+- Godot 仅接收同源桥接消息、显示居民状态；新增入口向导暂时复用现有模型。
+
+## 验证与限制
+
+- `corepack yarn build:web` 检查类型和构建；`node --test packages/agentville-web/tests/resident-model.test.mjs` 验证事件投影。
+- `corepack yarn build:world` 包含资源导入和中文字体覆盖检查；Godot 居民测试位于 `games/mosslight/tests/residents.gd`。
+- 浏览器实测使用忽略的 `agentville-runtime-test/` 文件夹，验证 Coder 创建并读回文件、Teacher 读取讲解、File Keeper 列目录。
+- Teacher 和 File Keeper 的只读行为目前依靠提示，尚未强制限制工具权限，不能当作权限隔离。
+- 文件管理员暂时通过模型和文件工具展示结果，尚无独立文件树预览器。
+- 恢复项目和居民映射后，未打开会话的完整事件状态需要恢复会话才可显示。
+- 文件夹绑定依赖本机 Harness；远程网页不能凭浏览器直接访问任意本地路径。
+- 本地宿主与 Godot iframe 分别使用 `127.0.0.1` 和 `localhost`（相同端口），利用 Chromium 站点隔离避免 Godot 同步初始化阻塞关闭按钮。双方严格校验对应 origin、窗口和协议；操作指南也通过消息打开。远程部署目前保持同源，后续需配置独立世界站点才能获得相同隔离效果。
+- `tests/panel-responsiveness.mjs`（Web 插件目录）用阻塞中的世界替身验证关闭不等待初始化；可用 `sameSite=true` 对照重现旧行为。
+- 移动端支持面板布局，场景操作仍以键鼠为主。
 
 ## 下一阶段
 

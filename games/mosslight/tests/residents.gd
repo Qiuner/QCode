@@ -19,12 +19,12 @@ func run() -> void:
 	game = load("res://scenes/island.tscn").instantiate()
 	root.add_child(game)
 	await tick(12)
-	check(game.residents.residents.size() == 3, "three original residents load")
+	check(game.residents.residents.size() == 4, "four residents including project guide load")
 	check(game.residents.nearest(game.player) == null, "distant residents cannot be targeted")
 	var onboarding: Dictionary = game.residents.agentville_talk(game.residents.residents[0], false)
 	check(onboarding.text.contains("项目文件夹") and onboarding.text.contains("工作区"), "Agentville resident explains workspace binding")
 	var ready_dialogue: Dictionary = game.residents.agentville_talk(game.residents.residents[0], true)
-	check(ready_dialogue.text.contains("右侧") and ready_dialogue.text.contains("想法"), "Agentville resident hands off to conversation")
+	check(ready_dialogue.text.contains("居民面板"), "Agentville resident hands off to functional panel")
 	var all_clear := true
 	for npc: StaticBody3D in game.residents.residents:
 		var query := PhysicsShapeQueryParameters3D.new()
