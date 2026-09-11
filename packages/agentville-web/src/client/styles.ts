@@ -3,21 +3,11 @@ export const WORLD_STYLES = `
 .town-shell { position: absolute; inset: 0; pointer-events: auto; color: #203c37; font: 14px/1.5 "Segoe UI", "Microsoft YaHei", sans-serif; }
 .town-shell * { box-sizing: border-box; letter-spacing: 0; }
 .town-shell > iframe { width: 100%; height: 100%; border: 0; }
-.town-top { position: absolute; top: 18px; left: 22px; right: 22px; display: flex; justify-content: space-between; align-items: center; gap: 12px; pointer-events: none; }
-.town-top > div { padding: 8px 12px; background: #f5faf4eb; border-radius: 6px; max-width: 60%; }
-.town-top strong { font-size: 18px; }
-.town-top span { display: block; overflow-wrap: anywhere; }
-.town-top a { pointer-events: auto; background: #f5faf4; padding: 8px 12px; border-radius: 6px; }
-.town-actions { display: flex; align-items: flex-start; gap: 8px; pointer-events: auto; }
-.town-shell .town-help-button { display: grid; place-items: center; width: 38px; min-height: 38px; padding: 0; font-size: 18px; font-weight: 700; }
+.town-guide-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 .town-shell a { color: #235950; }
-.town-roster { position: absolute; left: 20px; bottom: 24px; display: flex; gap: 6px; max-width: calc(100% - 40px); flex-wrap: wrap; }
 .town-shell button { font: inherit; cursor: pointer; min-height: 36px; border: 1px solid #a8c0b7; border-radius: 6px; padding: 7px 12px; color: #203c37; background: #f4f8f3; }
 .town-shell button:hover { background: #e1eee5; }
 .town-shell button:disabled { opacity: .55; cursor: not-allowed; }
-.town-roster button { display: grid; text-align: left; min-width: 120px; background: #f5faf4f5; }
-.town-roster button[aria-pressed='true'] { border-color: #267b69; background: #d4e9df; }
-.town-roster small { color: #5f726a; }
 .town-regions { position: absolute; left: 20px; bottom: 104px; width: min(320px, calc(100% - 40px)); padding: 12px 14px; border-left: 3px solid #b78325; border-radius: 4px; background: #f5faf4f5; box-shadow: 0 3px 14px #17392c20; }
 .town-regions p { margin: 4px 0 8px; overflow-wrap: anywhere; }
 .town-regions progress { position: static; display: block; width: 100%; height: 4px; accent-color: #267b69; }
@@ -41,10 +31,7 @@ export const WORLD_STYLES = `
 .town-approval { padding: 12px 0; border-block: 1px solid #d1aa5f; }
 .town-shell :is(button,a,input,textarea,select):focus-visible { outline: 2px solid #1b8171; outline-offset: 3px; }
 @media (max-width: 800px) {
-  .town-top { left: 12px; right: 12px; top: 10px; }
   .town-panel { right: 12px; width: calc(100% - 24px); top: 92px; bottom: 164px; padding: 14px; }
-  .town-roster { left: 12px; right: 12px; bottom: 12px; max-width: none; display: grid; grid-template-columns: 1fr 1fr; }
-  .town-roster button { min-width: 0; }
   .town-regions { left: 12px; bottom: 156px; width: calc(100% - 24px); padding: 10px 12px; }
   .town-shell[data-regions-pending] .town-panel { bottom: 300px; }
 }

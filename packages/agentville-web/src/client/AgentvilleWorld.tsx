@@ -23,7 +23,6 @@ export interface AgentvilleWorldInjected {
 
 type Props = PropsRuntime<'shell.overlay'> & AgentvilleWorldInjected
 const PROJECT_KEY = 'agentville.active-workspace.v1'
-const STATUS = { idle: '待命', thinking: '思考中', working: '工作中', approval: '等待确认', completed: '有新结果', failed: '需要处理' }
 
 function SessionResult({ binding }: { binding: SessionBinding }) {
   const [stopError, setStopError] = useState('')
@@ -179,8 +178,6 @@ export function AgentvilleWorld(props: Props) {
 
   return <div className="town-shell" data-regions-pending={regions.stage !== 'ready' ? '' : undefined}>
     <iframe ref={iframe} src={worldUrl.href} title="Agentville 小镇" onLoad={() => setReady(true)} />
-    <header className="town-top"><div><strong>Agentville</strong><span>{workspace ? `当前项目：${workspace.title}` : '尚未绑定项目'}</span></div><nav className="town-actions" aria-label="世界工具"><button className="town-help-button" type="button" title="查看世界操作" aria-label="查看世界操作" aria-haspopup="dialog" onClick={openWorldGuide}>?</button><a href="/workbench" title="打开高级工作台">高级工作台 ↗</a></nav></header>
-    <nav className="town-roster" aria-label="小镇居民">{residents.map(item => <button type="button" key={item.id} aria-pressed={selected === item.id} onClick={() => choose(item.id)}><strong>{item.displayName}</strong><small>{STATUS[item.status]}</small></button>)}</nav>
     {regions.stage !== 'ready' && <section className="town-regions" data-stage={regions.stage} aria-label="区域加载状态">
       <strong>溪间庭院 · 晴沙绿洲</strong>
       <p role={regions.stage === 'failed' ? 'alert' : 'status'}>{regions.detail}</p>
@@ -195,9 +192,13 @@ export function AgentvilleWorld(props: Props) {
       <header><h2>{resident.name}</h2><button type="button" title="关闭居民面板" aria-label="关闭居民面板" onClick={() => { ++operation.current; setSelected(null) }}>×</button></header>
       <p>{resident.greeting}</p>
       {selected === 'coordinator' ? <>
-        <button type="button" onClick={() => setShowModels(true)}>模型设置</button>
+        <nav className="town-guide-tools" aria-label="小镇设置与帮助">
+          <button type="button" onClick={() => setShowModels(true)}>模型设置</button>
+          <button type="button" aria-haspopup="dialog" onClick={openWorldGuide}>操作帮助</button>
+          <a href="/workbench">高级工作台 ↗</a>
+        </nav>
         <h3>{workspace ? '当前项目' : '安顿你的项目'}</h3>
-        {workspace && <p className="town-path">{workspace.path}</p>}
+        {workspace && <p className="town-path">{workspace.title}<br />{workspace.path}</p>}
         <button type="button" disabled={busy} onClick={() => { void bind(true) }}>选择项目文件夹</button>
         <form onSubmit={event => { event.preventDefault(); void bind(false) }}><label htmlFor="town-folder">项目文件夹路径</label><input id="town-folder" value={path} onChange={event => setPath(event.target.value)} placeholder="D:\Projects\MyProject" /><button disabled={busy || !path.trim()}>绑定这个文件夹</button></form>
         {workspaces.length > 0 && <><label htmlFor="town-projects">已有项目</label><select id="town-projects" value={workspace?.workspaceId ?? ''} disabled={busy} onChange={event => useProject(event.target.value)}><option value="" disabled>选择项目</option>{workspaces.map(item => <option key={item.workspaceId} value={item.workspaceId}>{item.title}</option>)}</select></>}
