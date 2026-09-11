@@ -23,6 +23,7 @@ import type { ResidentState } from '../resident-state.js'
 import { tutorialActions } from './tutorial-api.js'
 import { FIRST_TUTORIAL } from '../tutorial-types.js'
 import type { ISessions } from '@deepseek-ai/dsh-api-session-controller/client'
+import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
 
 export const inject = ['slots', 'sessions', 'workspaces', 'uiWorkspace', 'uiConversation', 'remote', 'remote.settings', 'remote.credentials', 'remote.llm', 'remote.session', 'remote.directoryPicker']
 
@@ -54,7 +55,7 @@ function writeResidentSession(workspaceId: string, residentId: ResidentId, sessi
 }
 
 /** Replace the generic Web profile branding while retaining its layout and conversation UI. */
-export function apply(ctx: Omit<ClientContext, 'sessions'> & { sessions: ISessions }): void {
+export function apply(ctx: Omit<ClientContext, 'sessions' | 'connection'> & { sessions: ISessions; connection: ConnectionHandle }): void {
   const selecting = new Map<string, Promise<string>>()
   let saved: ResidentState = { sessions: {} }
   const stateRequest = async (update?: { projectId: string; residentId?: ResidentId; sessionId?: string }): Promise<ResidentState> => {
@@ -153,6 +154,7 @@ export function apply(ctx: Omit<ClientContext, 'sessions'> & { sessions: ISessio
       id: 'agent-isles-world',
       order: -100,
       inject: (): AgentIslesWorldInjected => ({
+        connectionState: ctx.connection?.state,
         tutorials: tutorialActions,
         refreshProjects: id => new Promise<void>((resolve, reject) => {
           if (ctx.workspaces.list.getSnapshot().items.some(item => item.workspaceId === id)) { resolve(); return }

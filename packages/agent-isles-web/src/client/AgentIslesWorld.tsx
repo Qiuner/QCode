@@ -15,6 +15,7 @@ import { NativeChat } from './NativeChat.js'
 import { FIRST_TUTORIAL, type TutorialActions, type TutorialRun } from '../tutorial-types.js'
 
 export interface AgentIslesWorldInjected {
+  connectionState?: { getSnapshot(): string | undefined; subscribe(listener: () => void): () => void }
   tutorials?: TutorialActions
   submitTutorial?(run: TutorialRun, draft: string, followup?: boolean): Promise<TutorialRun>
   models: ModelSettingsActions
@@ -33,6 +34,11 @@ export interface AgentIslesWorldInjected {
 }
 
 type Props = PropsRuntime<'shell.overlay'> & AgentIslesWorldInjected
+function ConnectionNotice({ source }: { source: NonNullable<AgentIslesWorldInjected['connectionState']> }) {
+  const state = useSyncExternalStore(source.subscribe, source.getSnapshot)
+  if (state === 'connected' || state === undefined) return null
+  return <div className="town-connection-notice" role="status">连接断开，正在重连。已提交的任务不会自动重发。</div>
+}
 const PROJECT_KEY = 'agent-isles.active-workspace.v1'
 const DRAFTS_KEY = 'agent-isles.resident-drafts.v1'
 
@@ -329,6 +335,7 @@ export function AgentIslesWorld(props: Props) {
     event.preventDefault()
     switchSurface(true)
   }} data-workspace={workOpen ? expandedWork ? 'expanded' : 'open' : undefined} data-conversation={playable && resident && !showModels ? '' : undefined} data-regions-pending={regions.stage !== 'ready' ? '' : undefined}>
+    {props.connectionState && <ConnectionNotice source={props.connectionState} />}
     <iframe ref={iframe} src={worldUrl.href} title="agent-isles 小镇" onLoad={() => setReady(true)} />
     {playable && <>
     {props.tutorials && tutorial.run && tutorial.run.step !== 'complete' && !selected && !showModels && <section className="town-tutorial-goal" aria-label="当前学习目标"><strong>{followingKeeper ? '跟阿澜去：找到带标记的阿澜，靠近按 E' : tutorial.run.paused ? '教程已暂停' : tutorial.run.submission && pending.has(tutorial.run.submission.sessionId as SessionId) ? '芽芽需要你的决定，返回对话查看请求' : FIRST_TUTORIAL.steps[tutorial.run.step]}</strong><button onClick={() => { moveKeeper('cancel'); setSelected('coder') }}>继续学习 / 直接操作</button></section>}
