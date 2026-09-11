@@ -63,6 +63,10 @@ export function apply(ctx: ClientContext): void {
     const active = selecting.get(key)
     if (active !== undefined) return active
     const operation = (async (): Promise<string> => {
+      // A restored workspace can arrive before the session catalog. Do not
+      // replace its saved resident mapping while that catalog is still loading.
+      await ctx.sessions.refresh()
+      if (ctx.sessions.list.getSnapshot().phase !== 'ready') throw new Error('会话记录尚未加载，请稍后重试')
       const workspace = ctx.workspaces.list.getSnapshot().items
         .find(candidate => candidate.workspaceId === workspaceId)
       if (workspace === undefined) throw new Error('工作区已不可用，请重新选择')

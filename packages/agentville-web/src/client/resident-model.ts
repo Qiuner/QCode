@@ -28,24 +28,51 @@ export function residentEventStatus(entries: readonly SessionEventLikeEntry[]): 
 }
 
 export function projectResidentEvents(entries: readonly SessionEventLikeEntry[]) {
-  const messages: { key: string; text: string }[] = []
-  const tools: { key: string; name: string; arguments: string }[] = []
+  const messages: { key: string; text: string; role: 'user' | 'assistant' }[] = []
+  const history: typeof messages = []
+  const tools: { key: string; name: string; arguments: string; result?: string; failed?: boolean }[] = []
   let status: ResidentStatus = 'idle'
   let outcome = ''
   let live = ''
   for (const { event } of entries) {
-    if (event.type === 'turn/start') { status = 'working'; outcome = ''; live = ''; tools.length = 0 }
+    if (event.type === 'turn/start') {
+      history.push(...messages); messages.length = 0
+      status = 'working'; outcome = ''; live = ''; tools.length = 0
+    }
     if (event.type === 'assistant/message') {
       const text = event.data.message.content.filter(block => block.type === 'text').map(block => block.text).join('\n')
-      if (text) messages.push({ key: String(event.seq), text })
+      if (text) messages.push({ key: String(event.seq), text, role: 'assistant' })
+    }
+    if (event.type === 'user/message' && event.data.source.kind === 'user') {
+      let text = event.data.content.filter(block => block.type === 'text').map(block => block.text).join('\n')
+      const prefix = RESIDENTS.map(resident => residentPrompt(resident.id, '')).find(prefix => text.startsWith(prefix))
+      if (prefix) text = text.slice(prefix.length)
+      if (text) messages.push({ key: String(event.seq), text, role: 'user' })
     }
     if (event.type === 'assistant/live-chunk' && event.data.chunk.type === 'text-delta') live += event.data.chunk.text
     if (event.type === 'tool/call') tools.push({ key: event.data.callId, name: event.data.name, arguments: event.data.arguments })
+    if (event.type === 'tool/result') {
+      const tool = tools.find(tool => tool.key === event.data.message.source.callId)
+      if (tool) {
+        const result = event.data.message.content[0]
+        tool.result = result.content.filter(block => block.type === 'text').map(block => block.text).join('\n') || '工具已返回非文本结果，请在高级工作台查看。'
+        tool.failed = !!event.data.error || !!result.isError
+      }
+    }
     if (event.type === 'turn/end') {
       const reason = event.data.reason
       status = reason.kind === 'completed' ? 'completed' : 'failed'
       outcome = reason.kind === 'completed' ? '本轮已结束' : reason.kind === 'error' ? reason.error.message : `本轮未完成：${reason.kind}`
     }
   }
-  return { messages, tools, status, outcome, live }
+  return { messages, history, tools, status, outcome, live }
+}
+
+/** Browser drafts contain only user text, never model credentials. */
+export function readResidentDrafts(raw: string | null): Record<string, string> {
+  try {
+    const value: unknown = JSON.parse(raw ?? '{}')
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return {}
+    return Object.fromEntries(Object.entries(value).filter((entry): entry is [string, string] => typeof entry[1] === 'string'))
+  } catch { return {} }
 }

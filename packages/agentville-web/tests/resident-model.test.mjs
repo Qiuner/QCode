@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { projectResidentEvents, residentPrompt, residentEventStatus } from '../lib/types/client/resident-model.js'
+import { projectResidentEvents, residentPrompt, readResidentDrafts, residentEventStatus } from '../lib/types/client/resident-model.js'
 
 function events(...items) {
   return items.map(([type, data], seq) => ({ event: { type, data, seq } }))
@@ -39,8 +39,38 @@ test('next turn clears stale outcome and calls while retaining history', () => {
   assert.equal(result.status, 'working')
   assert.equal(result.outcome, '')
   assert.equal(result.live, 'Looking now')
-  assert.equal(result.messages[0].text, 'Earlier response')
+  assert.equal(result.history[0].text, 'Earlier response')
+  assert.deepEqual(result.messages, [])
   assert.deepEqual(result.tools.map(tool => tool.key), ['new'])
+})
+
+test('draft restoration ignores corrupt or non-text browser data', () => {
+  for (const raw of [null, '{', '[]', 'null', 'false']) assert.deepEqual(readResidentDrafts(raw), {})
+  assert.deepEqual(readResidentDrafts('{"project:coder":"unfinished idea","invalid":42}'), { 'project:coder': 'unfinished idea' })
+})
+
+test('current request is readable without role instructions or injected context', () => {
+  const result = projectResidentEvents(events(
+    ['turn/start', {}],
+    ['user/message', { source: { kind: 'plugin' }, content: [{ type: 'text', text: 'Internal context' }] }],
+    ['user/message', { source: { kind: 'user' }, content: [{ type: 'text', text: residentPrompt('coder', 'Build a timer\n用户请求：\nkeep this') }] }],
+  ))
+  assert.deepEqual(result.messages.map(item => [item.role, item.text]), [['user', 'Build a timer\n用户请求：\nkeep this']])
+})
+
+test('tool results match call identities and failures are visible', () => {
+  const result = projectResidentEvents(events(
+    ['tool/call', { callId: 'a', name: 'test', arguments: '{}' }],
+    ['tool/call', { callId: 'b', name: 'read', arguments: '{}' }],
+    ['tool/result', { message: { source: { callId: 'b' }, content: [{ type: 'tool-result', content: [{ type: 'text', text: 'file content' }] }] } }],
+    ['tool/result', { message: { source: { callId: 'a' }, content: [{ type: 'tool-result', isError: true, content: [{ type: 'text', text: 'exit 1' }] }] } }],
+    ['turn/end', { reason: { kind: 'completed' } }],
+  ))
+  assert.equal(result.tools[0].failed, true)
+  assert.match(result.tools[0].result, /exit 1/)
+  assert.equal(result.tools[1].failed, false)
+  assert.match(result.tools[1].result, /file content/)
+  assert.equal(result.outcome, '本轮已结束')
 })
 
 test('each resident receives its role and the complete user request', () => {
