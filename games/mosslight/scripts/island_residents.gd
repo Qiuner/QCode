@@ -4,6 +4,72 @@ const MODELS = [preload("res://assets/npc_gardener.glb"), preload("res://assets/
 const FONT = preload("res://assets/fonts/MosslightUI.ttf")
 var residents: Array[StaticBody3D] = []
 var time := 0.0
+signal tutorial_motion(encounter_id: String, status: String)
+var tutorial_id := ""
+var tutorial_action := ""
+var tutorial_tween: Tween
+var tutorial_home := Vector3.ZERO
+var tutorial_marker: MeshInstance3D
+
+
+func guide_keeper(encounter_id: String, action: String, traveler: Vector3, reduced_motion: bool) -> void:
+	if residents.size() < 2:
+		return
+	var keeper := residents[1]
+	if action == "cancel":
+		if tutorial_tween:
+			tutorial_tween.kill()
+		if not tutorial_id.is_empty():
+			keeper.position = tutorial_home
+		keeper.collision_layer = 1
+		if is_instance_valid(tutorial_marker):
+			tutorial_marker.queue_free()
+		tutorial_marker = null
+		tutorial_id = ""
+		tutorial_action = ""
+		tutorial_motion.emit(encounter_id, "cancelled")
+		return
+	if tutorial_id == encounter_id and tutorial_action == action:
+		return
+	if tutorial_id != encounter_id:
+		guide_keeper(encounter_id, "cancel", traveler, reduced_motion)
+		tutorial_home = keeper.position
+	tutorial_id = encounter_id
+	tutorial_action = action
+	if tutorial_tween:
+		tutorial_tween.kill()
+	keeper.collision_layer = 0
+	var target := tutorial_home if action == "home" else traveler + Vector3(1.6, 0, 1.2)
+	target.y = tutorial_home.y
+	if action == "home" and not is_instance_valid(tutorial_marker):
+		tutorial_marker = MeshInstance3D.new()
+		var mesh := CylinderMesh.new()
+		mesh.top_radius = .85
+		mesh.bottom_radius = .85
+		mesh.height = .03
+		tutorial_marker.mesh = mesh
+		var material := StandardMaterial3D.new()
+		material.albedo_color = Color("efce87")
+		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		tutorial_marker.material_override = material
+		add_child(tutorial_marker)
+		tutorial_marker.position = tutorial_home + Vector3(0, .08, 0)
+	if reduced_motion:
+		keeper.position = target
+		keeper.collision_layer = 1 if action == "home" else 0
+		tutorial_motion.emit(encounter_id, "home" if action == "home" else "arrived")
+		return
+	if action == "arrive":
+		keeper.position = target + Vector3(0, 2.2, 0)
+	tutorial_tween = create_tween()
+	# A one-time explanatory flight; interruption always restores the original resident.
+	if action == "home":
+		tutorial_tween.tween_property(keeper, "position", keeper.position + Vector3(0, 2.2, 0), .25).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		tutorial_tween.tween_property(keeper, "position", target + Vector3(0, 2.2, 0), 1.2).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+	tutorial_tween.tween_property(keeper, "position", target, .5).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tutorial_tween.tween_callback(func():
+		keeper.collision_layer = 1 if action == "home" else 0
+		tutorial_motion.emit(encounter_id, "home" if action == "home" else "arrived"))
 
 
 func _ready() -> void:
@@ -68,7 +134,7 @@ func advance(delta: float, traveler: Vector3, motion_enabled: bool, labels_enabl
 		time += delta
 	for npc: StaticBody3D in residents:
 		var distance := traveler.distance_to(npc.position)
-		(npc.get_meta("name_label") as Label3D).visible = labels_enabled and distance < 4.5
+		(npc.get_meta("name_label") as Label3D).visible = labels_enabled and (distance < 4.5 or npc == residents[1] and tutorial_action == "home")
 		if not motion_enabled:
 			continue
 		var visual := npc.get_meta("visual") as Node3D

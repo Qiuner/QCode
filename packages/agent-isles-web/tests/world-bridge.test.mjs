@@ -4,6 +4,14 @@ import { readFileSync } from 'node:fs'
 import { runInNewContext } from 'node:vm'
 import { worldFrameUrl, isWorldToHostMessage } from '../lib/types/client/world-bridge.js'
 
+test('tutorial presentation receipts require a bounded encounter identity and known status', () => {
+  const message = { source: 'agent-isles-world', version: 1, type: 'tutorial:keeper', payload: { encounterId: 'course-1', status: 'arrived' } }
+  assert.equal(isWorldToHostMessage(message), true)
+  assert.equal(isWorldToHostMessage({ ...message, payload: { ...message.payload, status: 'complete' } }), false)
+  assert.equal(isWorldToHostMessage({ ...message, payload: { ...message.payload, encounterId: 'x'.repeat(161) } }), false)
+  assert.equal(isWorldToHostMessage({ ...message, source: 'other' }), false)
+})
+
 test('local world uses a different site while retaining the local server port', () => {
   assert.equal(worldFrameUrl('http://127.0.0.1:3081/?token=private').href, 'http://localhost:3081/world/?embed=1')
   assert.equal(worldFrameUrl('http://localhost:3081/').href, 'http://127.0.0.1:3081/world/?embed=1')

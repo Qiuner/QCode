@@ -101,6 +101,11 @@
         document.getElementById('guide').showModal();
         return;
       }
+      if (message.type === 'tutorial:keeper') {
+        const payload = message.payload;
+        if (!payload || typeof payload.encounterId !== 'string' || !/^[\w-]{1,160}$/.test(payload.encounterId)
+          || !['arrive', 'home', 'cancel'].includes(payload.action) || typeof payload.reducedMotion !== 'boolean') return;
+      }
       if (message.type === 'world:retry-neighbors') {
         window.loadNeighborRegions();
         return;

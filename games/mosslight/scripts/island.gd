@@ -112,6 +112,7 @@ func _ready() -> void:
 	add_child(environment_details)
 	residents = ISLAND_RESIDENTS.new()
 	add_child(residents)
+	residents.tutorial_motion.connect(func(encounter_id: String, status: String): _emit_agent_isles("tutorial:keeper", {"encounterId": encounter_id, "status": status}))
 	if OS.has_feature("web"):
 		nature_motion = not bool(JavaScriptBridge.eval("window.matchMedia('(prefers-reduced-motion: reduce)').matches"))
 		camera_motion = nature_motion
@@ -203,6 +204,20 @@ func _on_agent_isles_message(arguments: Array) -> void:
 		return
 	var message := parsed as Dictionary
 	if message.get("source") != "agent-isles-host" or int(message.get("version", 0)) != 1:
+		return
+	if message.get("type") == "tutorial:keeper":
+		var cue: Variant = message.get("payload")
+		if typeof(cue) != TYPE_DICTIONARY:
+			return
+		var encounter: Variant = cue.get("encounterId")
+		var action: Variant = cue.get("action")
+		if typeof(encounter) != TYPE_STRING or encounter.length() < 1 or encounter.length() > 160 or typeof(cue.get("reducedMotion")) != TYPE_BOOL:
+			return
+		var valid_id := RegEx.new()
+		valid_id.compile("^[A-Za-z0-9_-]+$")
+		if valid_id.search(encounter) == null or action not in ["arrive", "home", "cancel"]:
+			return
+		residents.guide_keeper(encounter, action, player.position, cue.reducedMotion)
 		return
 	if message.get("type") == "world:neighbors-started":
 		regions_loading = true

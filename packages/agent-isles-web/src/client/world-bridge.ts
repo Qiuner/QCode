@@ -22,6 +22,7 @@ export interface ResidentView {
 }
 
 export type HostToWorldMessage =
+  | { source: 'agent-isles-host'; version: typeof WORLD_BRIDGE_VERSION; type: 'tutorial:keeper'; payload: { encounterId: string; action: 'arrive' | 'home' | 'cancel'; reducedMotion: boolean } }
   | {
       source: 'agent-isles-host'
       version: typeof WORLD_BRIDGE_VERSION
@@ -52,6 +53,7 @@ export type HostToWorldMessage =
     }
 
 export type WorldToHostMessage =
+  | { source: 'agent-isles-world'; version: typeof WORLD_BRIDGE_VERSION; type: 'tutorial:keeper'; payload: { encounterId: string; status: 'arrived' | 'home' | 'cancelled' } }
   | { source: 'agent-isles-world'; version: typeof WORLD_BRIDGE_VERSION; type: 'world:ready' | 'world:playable' }
   | { source: 'agent-isles-world'; version: typeof WORLD_BRIDGE_VERSION; type: 'world:regions'; payload: RegionLoadState }
   | {
@@ -65,6 +67,7 @@ export function isWorldToHostMessage(value: unknown): value is WorldToHostMessag
   if (typeof value !== 'object' || value === null) return false
   const message = value as Partial<WorldToHostMessage>
   if (message.source !== 'agent-isles-world' || message.version !== WORLD_BRIDGE_VERSION) return false
+  if (message.type === 'tutorial:keeper') return !!message.payload && typeof message.payload.encounterId === 'string' && /^[\w-]{1,160}$/.test(message.payload.encounterId) && ['arrived', 'home', 'cancelled'].includes(message.payload.status)
   if (message.type === 'world:ready' || message.type === 'world:playable') return true
   if (message.type === 'world:regions') {
     return !!message.payload && ['waiting', 'downloading', 'installing', 'failed', 'ready'].includes(message.payload.stage)
