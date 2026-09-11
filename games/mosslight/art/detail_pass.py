@@ -77,7 +77,7 @@ cylinder('Garden / broom bristles',(-5.6,.16,-2.2),.13,.30,'path',.045)
 
 # Conifers alternate with the round canopies, giving the forest a layered edge.
 for x,z,s in [(-10.9,-8.8,.95),(-8.1,-9.1,.78),(-3.7,-8.9,.93),
-               (5.7,-8.8,.90),(10.7,-8.0,1.10),(11.1,2.8,.84),
+               (5.7,-8.8,.90),(10.7,-8.0,1.10),
                (-11.2,8.1,.84),(11.1,8.5,.83)]:
     cylinder('Fir / trunk',(x,.65*s,z),.16*s,1.3*s,'wood',.10*s)
     for j in range(4):

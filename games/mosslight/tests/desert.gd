@@ -26,8 +26,8 @@ func run() -> void:
 	game.camera_motion = false
 	game.look_yaw = -PI / 2
 	game.look_pitch = 0
-	# Pass south of the existing fir at (11.1, 2.8), keeping its art and collider.
-	game.player.position = Vector3(10.5, .1, 3.65)
+	# The bridge center must be reachable directly, without detouring around trees.
+	game.player.position = Vector3(10.5, .1, 3.0)
 	game.player.velocity = Vector3.ZERO
 	await tick(10)
 	Input.action_press("walk_up")
