@@ -33,7 +33,7 @@ var learned := false
 var facing := Vector3(0, 0, -1)
 var elapsed := 0.0
 var preview: MeshInstance3D
-var preview_material: StandardMaterial3D
+var preview_material: ShaderMaterial
 var preview_position := Vector3.ZERO
 var placement_valid := false
 var prompt: Label
@@ -505,12 +505,28 @@ func _build_player() -> void:
 	var box_mesh := BoxMesh.new()
 	box_mesh.size = CRATE_SIZE
 	preview.mesh = box_mesh
-	preview_material = _material(Color(.55, .95, .82, .28), .6, true)
-	preview_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	preview_material = ShaderMaterial.new()
+	preview_material.shader = preload("res://assets/echo_preview.gdshader")
+	preview_material.render_priority = 101
 	preview.material_override = preview_material
 	preview.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	preview.visible = false
 	add_child(preview)
+	if OS.has_feature("web"):
+		_warm_echo_preview()
+
+
+func _warm_echo_preview() -> void:
+	# Submit the actual preview shader during startup, before the first interaction.
+	var warmup := MeshInstance3D.new()
+	warmup.mesh = preview.mesh
+	warmup.material_override = preview_material
+	warmup.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	warmup.scale = Vector3.ONE * .001
+	warmup.position = Vector3(0, 0, -2)
+	camera.add_child(warmup)
+	await RenderingServer.frame_post_draw
+	warmup.queue_free()
 
 
 func _material(color: Color, roughness: float, glow: bool = false) -> StandardMaterial3D:
@@ -630,7 +646,7 @@ func _update_preview() -> void:
 	var on_streamside: bool = streamside != null and streamside.allows_echo(preview_position)
 	placement_valid = overlaps.is_empty() and (on_meadow or on_desert or on_bridge or on_west_bridge or on_streamside)
 	placement_valid = placement_valid and preview_position.y <= player.position.y + 1.05
-	preview_material.albedo_color = Color(.55, .95, .82, .30) if placement_valid else Color(.96, .40, .32, .30)
+	preview_material.set_shader_parameter("tint", Color(.55, .95, .82, .30) if placement_valid else Color(.96, .40, .32, .30))
 
 
 func place_echo() -> bool:
