@@ -1,4 +1,7 @@
 shader_type spatial;
+#ifdef WEB_MATTE
+render_mode diffuse_lambert, specular_disabled;
+#endif
 varying float dune_height;
 
 void vertex() {

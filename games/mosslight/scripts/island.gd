@@ -21,6 +21,7 @@ const ENVIRONMENT_DETAILS = preload("res://scripts/environment_details.gd")
 const FIRST_PERSON_FEEDBACK = preload("res://scripts/first_person_feedback.gd")
 const ISLAND_RESIDENTS = preload("res://scripts/island_residents.gd")
 const GARDEN_INVENTORY = preload("res://scripts/garden_inventory.gd")
+const WEB_RENDERING = preload("res://scripts/web_rendering.gd")
 enum ViewMode { OVERVIEW, THIRD_PERSON, FIRST_PERSON }
 
 var player: CharacterBody3D
@@ -90,10 +91,12 @@ var region_signs: Array[Label3D] = []
 var regions_loading := false
 var regions_error := false
 var regions_installing := false
+var web_lightweight := false
 var distance_haze: ShaderMaterial
 
 
 func _ready() -> void:
+	web_lightweight = (OS.has_feature("web") or "--web-lightweight" in OS.get_cmdline_user_args()) and not "--full-materials" in OS.get_cmdline_user_args()
 	embedded_mode = _is_embedded_web()
 	_setup_input()
 	_build_world()
@@ -117,6 +120,8 @@ func _ready() -> void:
 	camera_obstacle_shape.radius = .22
 	_update_view_hint()
 	_setup_audio()
+	if web_lightweight:
+		WEB_RENDERING.apply(self)
 	_show_toast("苔光之屿", 3.0) if embedded_mode else _show_toast("欢迎来到苔光之屿。沿小径漫步，靠近木箱按 E 学习回响。", 9.0)
 	if "--capture" in OS.get_cmdline_user_args():
 		screenshot_frames = 12
@@ -416,6 +421,8 @@ func _install_neighbor_regions(staged: bool = false) -> bool:
 		desert = desert_scene.instantiate()
 		desert.position = DESERT_ORIGIN
 		add_child(desert)
+		if web_lightweight:
+			WEB_RENDERING.apply(desert)
 		if staged:
 			await RenderingServer.frame_post_draw
 			await get_tree().process_frame
@@ -429,6 +436,8 @@ func _install_neighbor_regions(staged: bool = false) -> bool:
 		streamside = streamside_scene.instantiate()
 		streamside.position = STREAMSIDE_ORIGIN
 		add_child(streamside)
+		if web_lightweight:
+			WEB_RENDERING.apply(streamside)
 		if staged:
 			await RenderingServer.frame_post_draw
 			await get_tree().process_frame
@@ -482,6 +491,8 @@ func _make_crate(at: Vector3, is_echo: bool) -> StaticBody3D:
 		trim.position.y = -.37
 		trim.material_override = _material(Color("b2efd8"), .5, true)
 		body.add_child(trim)
+	if web_lightweight:
+		WEB_RENDERING.apply(body)
 	return body
 
 

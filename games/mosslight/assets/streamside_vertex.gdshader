@@ -1,5 +1,9 @@
 shader_type spatial;
+#ifdef WEB_MATTE
+render_mode cull_disabled, diffuse_lambert, specular_disabled;
+#else
 render_mode cull_disabled;
+#endif
 
 void fragment() {
 	// Three exports linear COLOR_0. Compatibility lighting expects sRGB albedo.
