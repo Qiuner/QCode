@@ -12,7 +12,15 @@ export const WORLD_STYLES = `
 .town-shell { position: absolute; inset: 0; pointer-events: auto; color: #203c37; font: 14px/1.5 "Segoe UI", "Microsoft YaHei", sans-serif; }
 .town-shell * { box-sizing: border-box; letter-spacing: 0; }
 .town-shell > iframe { width: 100%; height: 100%; border: 0; }
-.town-work-entry { position: absolute; top: 20px; left: 20px; max-width: calc(100% - 110px); display: flex; flex-wrap: wrap; gap: 8px; }
+.town-work-entry { position: absolute; top: 20px; left: 20px; max-width: calc(100% - 110px); display: flex; flex-wrap: wrap; gap: 8px; z-index: 5; }
+.town-project-menu { position: relative; min-width: 0; max-width: 100%; }
+.town-project-list { position: absolute; top: calc(100% + 8px); left: 0; width: min(320px, calc(100vw - 40px)); max-height: calc(100svh - 100px); overflow-y: auto; padding: 12px; border: 1px solid #aac3b5; border-radius: 10px; background: #fcfdf8; box-shadow: 0 8px 30px #17392c30; }
+.town-project-items, .town-project-actions { display: grid; gap: 6px; margin-top: 10px; }
+.town-project-actions { border-top: 1px solid #d5dfd4; padding-top: 10px; }
+.town-shell .town-project-list button { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; text-align: left; box-shadow: none; }
+.town-project-list button span { overflow: hidden; text-overflow: ellipsis; }
+.town-project-list button small { flex: none; }
+.town-shell .town-project-list button[aria-current] { background: #e1eee5; font-weight: 600; }
 .town-work-entry button { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; box-shadow: 0 4px 16px #183a3922; }
 [aria-label='居民工作记录'] .town-dialogue-choices { display: grid; grid-template-columns: 1fr; }
 [aria-label='居民工作记录'] button { text-align: left; white-space: normal; overflow-wrap: anywhere; }
@@ -55,7 +63,7 @@ export const WORLD_STYLES = `
 .town-conversation > header > div { flex: 1; min-width: 0; }
 .town-conversation > header small { color: #667867; font-size: 12px; }
 .town-conversation > header h2 { font-size: 19px; color: #254236; }
-.town-conversation > header button { border: 0; background: transparent; align-self: flex-start; }
+.town-conversation > header button { width: auto; height: auto; min-height: 36px; padding: 6px 8px; font-size: 14px; white-space: nowrap; border: 0; background: transparent; align-self: flex-start; }
 .town-conversation-body { overflow-y: auto; min-height: 0; padding: 0 24px 18px; overscroll-behavior: contain; }
 .town-dialogue-line { font-size: 17px; line-height: 1.7; margin: 12px 0 18px; }
 .town-dialogue-choices { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
@@ -92,6 +100,12 @@ export const WORLD_STYLES = `
 .town-studio .town-conversation-body { flex: 1; padding: 16px 20px; }
 .town-studio:has(.town-native-chat-seat) .town-conversation-body { flex: none; max-height: 40%; padding: 0 20px; }
 .town-studio { --dsw-alias-bg-base: #fcfdf8; }
+.town-work-story { margin: 16px 0; padding: 16px; border-left: 3px solid #7c9c75; border-radius: 8px; background: #eaf0e3; }
+.town-work-story h3 { margin: 8px 0; font-size: 18px; }
+.town-work-story p { margin: 8px 0 0; line-height: 1.7; }
+.town-work-story small { color: #52694f; }
+.town-studio > .town-process-toggle { flex: none; margin: 8px 20px; text-align: left; }
+.town-reply { margin: 12px 0; overflow-wrap: anywhere; }
 .town-tutorial-hint { margin: 8px 0; font-size: 13px; }
 .town-tutorial-hint > summary { color: #52694f; }
 .town-chat-menu { position: relative; flex: none; }

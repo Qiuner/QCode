@@ -50,7 +50,9 @@ export function useTutorial(actions: TutorialActions | undefined, workspaceId?: 
 }
 export type TutorialController = ReturnType<typeof useTutorial>
 
-export function TutorialPanel({ tutorial, actions, project, pick, bindProject, submit, move, modelSettings, leave, composerTarget, previewTarget }: {
+export function TutorialPanel({ tutorial, actions, project, pick, bindProject, submit, move, modelSettings, leave, composerTarget, previewTarget, running = false, waiting = false }: {
+  running?: boolean
+  waiting?: boolean
   composerTarget?: HTMLElement | null
   previewTarget?: HTMLElement | null
   tutorial: TutorialController; actions: TutorialActions
@@ -112,7 +114,7 @@ export function TutorialPanel({ tutorial, actions, project, pick, bindProject, s
   }
   if (run.paused) return <section className="town-tutorial"><h3>教程已暂停</h3><p>作品和学习记录已保留。</p><button disabled={disabled} onClick={() => void act(() => tutorial.command('resume'))}>继续教程</button></section>
   return <section className="town-tutorial" aria-label="首课教学">
-    <details className="town-course-menu"><summary>{FIRST_TUTORIAL.title} · {FIRST_TUTORIAL.steps[run.step]}</summary><button disabled={disabled} onClick={() => void act(async () => { await tutorial.command('draft', { draft: text }); await tutorial.command('pause'); move('cancel') })}>暂停教程</button>{project && <p>作品位置：{project.path}</p>}</details>
+    <details className="town-course-menu"><summary>学习选项 · {FIRST_TUTORIAL.title}</summary><button disabled={disabled} onClick={() => void act(async () => { await tutorial.command('draft', { draft: text }); await tutorial.command('pause'); move('cancel') })}>暂停教程</button>{project && <p>作品位置：{project.path}</p>}</details>
     {run.step === 'idea' && <><p>你负责提出想法、体验结果，芽芽帮你实现。先说说作品要做什么、最重要的两个功能是什么。</p><label htmlFor="tutorial-idea">我的第一个作品</label><textarea id="tutorial-idea" value={text} maxLength={12000} onChange={event => editText(event.target.value)} /><button disabled={disabled} onClick={() => { editText(FIRST_TUTORIAL.example); void tutorial.command('assist', { assistance: '提示方向' }).catch(() => {}) }}>看看需求示例</button><button disabled={disabled || !text.trim()} onClick={() => void act(async () => { await tutorial.command('idea', { draft: text }); if (!project && !run.encounterSeen) { await tutorial.command('seen'); move('arrive') } })}>确认想法，准备制作</button></>}
     {run.step === 'folder' && <>
       <p className="town-dialogue-line">{folderLine === 0 ? project ? `这个作品要放在「${project.title}」吗？` : '芽芽：可以！先给这个作品找个家。' : folderLine === 1 ? '阿澜：每个项目都需要自己的文件夹，代码和图片才不会混在一起。' : '阿澜：来找我，我们给它准备一个家。刚才的想法已经留好了。'}</p>
@@ -135,14 +137,14 @@ export function TutorialPanel({ tutorial, actions, project, pick, bindProject, s
       {run.assistance.some(item => item === `${run.step}:提示方向`) && <p>我现在看到……我希望改成……改好后，我会这样检查……</p>}
       <button disabled={disabled || !text.trim()} onClick={() => void act(async () => { const saved = await tutorial.command('draft', { draft: text }); try { tutorial.accept(await submit(saved, text)) } catch (error) { await tutorial.reload(); throw error } })}>确认需求，交给芽芽</button></>)}</> : <>
         {composer(<>
-        <label htmlFor="tutorial-answer">回答芽芽 / 补充说明</label>
-        <textarea id="tutorial-answer" value={text} maxLength={12000} placeholder="如果芽芽问你问题，在这里回答；也可以说明被拒绝的操作要怎样替代。" onChange={event => editText(event.target.value)} />
+        <label htmlFor="tutorial-answer">{waiting ? '处理请求后，告诉芽芽你的决定' : '告诉芽芽想改哪里，或补充说明'}</label>
+        <textarea id="tutorial-answer" value={text} maxLength={12000} placeholder="例如：先保留现在的样子，请继续检查添加事项是否正常。" onChange={event => editText(event.target.value)} />
         <button disabled={disabled || !text.trim()} onClick={() => void act(async () => {
           const saved = await tutorial.command('draft', { draft: text })
           try { tutorial.accept(await submit(saved, text, true)) }
           catch (error) { await tutorial.reload(); throw error }
-        })}>发送回答，继续这一步</button></>)}
-        <button disabled={disabled} onClick={() => void act(async () => { const checked = await tutorial.command('check'); setPreview(await actions.preview(checked)) })}>核对执行，打开作品</button>
+        })}>{running ? '发送补充，等待处理' : '交给芽芽继续制作'}</button></>)}
+        <p>先核对本轮执行和作品文件，核对通过后会打开预览，请亲手试一试。</p><button disabled={disabled || running || waiting} onClick={() => void act(async () => { const checked = await tutorial.command('check'); setPreview(await actions.preview(checked)) })}>{running ? '制作中，完成后可检查' : waiting ? '请先处理上面的请求' : '检查成果，打开作品'}</button>
         <details><summary>任务没有继续？</summary><p>执行或等待审批时，请先处理当前请求。离开对话不会停止任务。</p>
         <button disabled={disabled} onClick={() => void act(() => tutorial.command('retry'))}>本轮失败后，重新编辑</button>
         <button disabled={disabled} onClick={() => void act(async () => { tutorial.accept(await submit(run, run.draft)) })}>连接中断后，重试原提交</button>
