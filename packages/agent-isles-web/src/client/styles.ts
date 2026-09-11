@@ -3,7 +3,8 @@ export const WORLD_STYLES = `
 .town-shell { position: absolute; inset: 0; pointer-events: auto; color: #203c37; font: 14px/1.5 "Segoe UI", "Microsoft YaHei", sans-serif; }
 .town-shell * { box-sizing: border-box; letter-spacing: 0; }
 .town-shell > iframe { width: 100%; height: 100%; border: 0; }
-.town-work-entry { position: absolute; top: 20px; left: 20px; max-width: calc(100% - 110px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; box-shadow: 0 4px 16px #183a3922; }
+.town-work-entry { position: absolute; top: 20px; left: 20px; max-width: calc(100% - 110px); display: flex; flex-wrap: wrap; gap: 8px; }
+.town-work-entry button { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; box-shadow: 0 4px 16px #183a3922; }
 [aria-label='居民工作记录'] .town-dialogue-choices { display: grid; grid-template-columns: 1fr; }
 [aria-label='居民工作记录'] button { text-align: left; white-space: normal; overflow-wrap: anywhere; }
 [aria-label='居民工作记录'] small { display: block; }
@@ -36,6 +37,7 @@ export const WORLD_STYLES = `
 .town-shell :is(button,a,input,textarea,select):focus-visible { outline: 2px solid #1b8171; outline-offset: 3px; }
 .town-conversation { top: auto; bottom: 28px; left: 50%; right: auto; transform: translateX(-50%); width: min(720px, calc(100% - 40px)); max-height: min(480px, 54svh); padding: 0; display: flex; flex-direction: column; overflow: hidden; background: #fcfdf8; border: 1px solid #bed0bf; box-shadow: 0 10px 36px #183a3933; }
 .town-conversation:focus { outline: none; }
+.town-work-panel { top: 20px; bottom: 20px; left: auto; right: 20px; transform: none; width: min(440px, calc(100% - 40px)); max-height: none; }
 .town-conversation > header { flex: none; padding: 12px 20px 0; justify-content: flex-start; }
 .town-portrait { width: 64px; height: 64px; object-fit: contain; flex: none; background: #e6eee0; border-radius: 50%; }
 .town-conversation > header > div { flex: 1; min-width: 0; }

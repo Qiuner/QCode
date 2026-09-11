@@ -14,6 +14,7 @@
 | [实施计划](plan.md) | 当前进度与后续阶段 |
 | [施工记录](construction-plan.md) | 工作闭环的实际交付、验证与后续施工顺序 |
 | [居民工作闭环](resident-work-loop.md) | 项目恢复、居民任务入口与存储边界 |
+| [居民对话系统](dialogue-system.md) | 世界交互、统一居民面板与输入焦点规则 |
 
 已采用但尚未实施的长期产品边界，也会记录在 `.agents/notes/implemented/`；“已采用”表示方向已经确定，不表示功能已经完成。
 

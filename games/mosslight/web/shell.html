@@ -84,6 +84,8 @@
       },
       emit(type, payload) {
         if (window.parent === window) return;
+        // Godot sends JSON strings; shell-originated events already use JS objects.
+        if (typeof payload === 'string') payload = JSON.parse(payload);
         window.parent.postMessage({
           source: 'agent-isles-world', version: AGENT_ISLES_BRIDGE_VERSION, type, ...(payload === undefined ? {} : { payload })
         }, parentOrigin);
@@ -250,6 +252,7 @@
         gate.hidden = true;
         canvas.focus();
         document.getElementById('connection').textContent = '';
+        window.agentIslesWorldBridge.emit('world:playable');
       } catch (error) { reportFailure(error); }
     }
     start.addEventListener('click', startGame);

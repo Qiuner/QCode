@@ -46,8 +46,7 @@ function RecentWork({ id, updatedAt, running, read }: { id: string; updatedAt: n
   if (!recent) return <small>正在读取最近任务…</small>
   const messages = [...recent.history, ...recent.messages]
   const request = messages.filter(item => item.role === 'user').at(-1)?.text
-  const reply = messages.filter(item => item.role === 'assistant').at(-1)?.text
-  return <>{request && <small>上次需求：{request.slice(0, 140)}</small>}{reply && <small>最近回复：{reply.slice(0, 140)}</small>}{!running && <small>{recent.status === 'working' ? '上次执行未记录结束，请检查后继续。' : recent.outcome || '打开会话查看完整记录'}{recent.status === 'completed' ? '，请检查成果与验证。' : ''}</small>}</>
+  return <>{request && <small>上次需求：{request.slice(0, 140)}</small>}{!running && <small>{recent.status === 'working' ? '上次执行未记录结束，请查看进度。' : recent.status === 'failed' ? '上次任务未完成，请查看进度和原因。' : recent.status === 'completed' ? '本轮已结束，成果仍需检查与验证。' : '打开会话查看完整记录'}</small>}</>
 }
 
 function SessionResult({ binding }: { binding: SessionBinding }) {
@@ -75,6 +74,7 @@ export function AgentIslesWorld(props: Props) {
   const iframe = useRef<HTMLIFrameElement>(null)
   const [worldUrl] = useState(() => worldFrameUrl(location.href))
   const [ready, setReady] = useState(false)
+  const [playable, setPlayable] = useState(false)
   const [showModels, setShowModels] = useState(false)
   const [modelState, setModelState] = useState<{ ready: boolean | null; detail: string }>({ ready: null, detail: '正在读取模型配置…' })
   useEffect(() => {
@@ -88,11 +88,11 @@ export function AgentIslesWorld(props: Props) {
     return () => { active = false }
   }, [showModels])
   const [regions, setRegions] = useState<RegionLoadState>({ stage: 'waiting', detail: '等待主岛就绪' })
-  const [selected, setSelected] = useState<ResidentId | null>('coordinator')
+  const [selected, setSelected] = useState<ResidentId | null>(null)
   const [restoring, setRestoring] = useState(true)
   const [restoreError, setRestoreError] = useState('')
   const [restoreAttempt, setRestoreAttempt] = useState(0)
-  const [guideView, setGuideView] = useState<'welcome' | 'projects' | 'path' | 'residents' | 'options'>('welcome')
+  const [guideView, setGuideView] = useState<'welcome' | 'records' | 'projects' | 'path' | 'residents' | 'options'>('welcome')
   const conversation = useRef<HTMLElement>(null)
   const [projectId, setProjectId] = useState<string | null>(() => {
     try { return localStorage.getItem(PROJECT_KEY) }
@@ -186,8 +186,8 @@ export function AgentIslesWorld(props: Props) {
   }
 
   useEffect(() => {
-    if (selected && !showModels) conversation.current?.focus({ preventScroll: true })
-  }, [selected, showModels, guideView])
+    if (playable && selected && !showModels) conversation.current?.focus({ preventScroll: true })
+  }, [playable, selected, showModels, guideView])
 
   useEffect(() => {
     const ticket = ++operation.current
@@ -212,7 +212,8 @@ export function AgentIslesWorld(props: Props) {
   useEffect(() => {
     const listener = (event: MessageEvent) => {
       if (event.origin !== worldUrl.origin || event.source !== iframe.current?.contentWindow || !isWorldToHostMessage(event.data)) return
-      if (event.data.type === 'world:ready') setReady(true)
+      if (event.data.type === 'world:ready') { setReady(true); setPlayable(false) }
+      if (event.data.type === 'world:playable') setPlayable(true)
       if (event.data.type === 'world:regions') setRegions(event.data.payload)
       if (event.data.type === 'resident:selected') choose(event.data.payload.residentId)
     }
@@ -220,7 +221,7 @@ export function AgentIslesWorld(props: Props) {
     return () => window.removeEventListener('message', listener)
   }, [workspace, selected, loadingProjects, recoveryFailed])
 
-  const worldState = JSON.stringify({ workspace: workspace ? { workspaceId: workspace.workspaceId, title: workspace.title } : null, sessionId: bindingId ?? null, residents })
+  const worldState = JSON.stringify({ workspace: workspace ? { workspaceId: workspace.workspaceId, title: workspace.title } : null, sessionId: bindingId ?? null, panelOpen: playable && (selected !== null || showModels), residents })
   useEffect(() => {
     if (!ready) return
     iframe.current?.contentWindow?.postMessage({ source: 'agent-isles-host', version: WORLD_BRIDGE_VERSION, type: 'world:init', payload: JSON.parse(worldState) }, worldUrl.origin)
@@ -280,9 +281,13 @@ export function AgentIslesWorld(props: Props) {
     iframe.current?.contentWindow?.postMessage({ source: 'agent-isles-host', version: WORLD_BRIDGE_VERSION, type: 'world:show-guide' }, worldUrl.origin)
   }
 
-  return <div className="town-shell" data-conversation={resident && !showModels ? '' : undefined} data-regions-pending={regions.stage !== 'ready' ? '' : undefined}>
+  return <div className="town-shell" data-conversation={playable && resident && !showModels ? '' : undefined} data-regions-pending={regions.stage !== 'ready' ? '' : undefined}>
     <iframe ref={iframe} src={worldUrl.href} title="agent-isles 小镇" onLoad={() => setReady(true)} />
-    {!selected && !showModels && <button className="town-work-entry" onClick={() => choose('coordinator')}>{workspace ? `${workspace.title} · 工作记录` : '项目与工作记录'}</button>}
+    {playable && <>
+    {!selected && !showModels && <nav className="town-work-entry" aria-label="项目与工作">
+      <button onClick={() => { choose('coordinator'); setGuideView(loadingProjects || recoveryFailed ? 'welcome' : 'projects') }}>{loadingProjects ? '正在恢复项目…' : recoveryFailed ? '项目恢复需要处理' : workspace ? `当前项目：${workspace.title} ▾` : '选择项目 ▾'}</button>
+      <button onClick={() => { choose('coordinator'); setGuideView('records') }}>工作记录{residents.some(item => item.status === 'approval') ? ' · 待确认' : residents.some(item => item.status === 'working') ? ' · 进行中' : ''}</button>
+    </nav>}
     {regions.stage !== 'ready' && <section className="town-regions" data-stage={regions.stage} aria-label="区域加载状态">
       <strong>溪间庭院 · 晴沙绿洲</strong>
       <p role={regions.stage === 'failed' ? 'alert' : 'status'}>{regions.detail}</p>
@@ -293,31 +298,32 @@ export function AgentIslesWorld(props: Props) {
         }}>重新加载区域</button>
         : <progress aria-label="邻近区域正在加载" />}
     </section>}
-    {showModels ? <ModelSettings actions={props.models} close={() => setShowModels(false)} /> : resident && <aside ref={conversation} tabIndex={-1} className="town-panel town-conversation" aria-label={resident.name} onKeyDown={event => {
+    {showModels ? <ModelSettings actions={props.models} close={() => setShowModels(false)} /> : resident && <aside ref={conversation} tabIndex={-1} className={`town-panel town-conversation${selected === 'coordinator' && guideView === 'records' ? ' town-work-panel' : ''}`} aria-label={guideView === 'records' ? '工作记录' : resident.name} onKeyDown={event => {
       if (event.key === 'Escape') { event.preventDefault(); closeConversation() }
     }}>
-      <header><img className="town-portrait" src={RESIDENT_PORTRAITS[resident.id]} alt="" /><div><small>{selected === 'coordinator' ? '小镇接待' : selected === 'coder' ? '制作功能' : selected === 'teacher' ? '一起学习' : '查阅文件'}</small><h2>{resident.name.split(' · ')[0]}</h2></div><button type="button" title="关闭居民面板" aria-label="关闭居民面板" onClick={closeConversation}>×</button></header>
+      <header>{guideView !== 'records' && <img className="town-portrait" src={RESIDENT_PORTRAITS[resident.id]} alt="" />}<div><small>{guideView === 'records' ? workspace?.title ?? '项目工作' : selected === 'coordinator' ? '小镇接待' : selected === 'coder' ? '制作功能' : selected === 'teacher' ? '一起学习' : '查阅文件'}</small><h2>{guideView === 'records' ? '工作记录' : resident.name.split(' · ')[0]}</h2></div><button type="button" title="关闭面板" aria-label="关闭面板" onClick={closeConversation}>×</button></header>
       <div className="town-conversation-body">
       {selected === 'coordinator' ? <>
-        {guideView === 'welcome' && <>
+        {(guideView === 'welcome' || guideView === 'records') && <>
           {loadingProjects && !recoveryFailed ? <p role="status">正在恢复项目和工作记录…</p> : recoveryFailed ? <div role="alert"><p>{recoveryFailed}</p><button onClick={() => { setRestoreAttempt(value => value + 1) }}>重试恢复</button><button onClick={() => window.location.reload()}>重新连接</button></div> : <>
           {!workspace && projectId && <p role="alert">上次项目已不在当前项目列表中，请选择已有项目或重新绑定。原会话不会被自动替换。</p>}
-          {!workspace && workspaces.length > 0 && <section aria-label="已有项目"><h3>继续之前的项目</h3><div className="town-dialogue-choices">{workspaces.map(item => <button key={item.workspaceId} onClick={() => useProject(item.workspaceId)}>{item.title}<small>{item.path}</small></button>)}</div></section>}
-          {workspace && <section aria-label="居民工作记录"><h3>{workspace.title} · 工作记录</h3><p className="town-path">{workspace.path}</p><div className="town-dialogue-choices">{RESIDENTS.filter(item => item.id !== 'coordinator').map(item => {
+          {guideView === 'records' && !workspace && <p>选择项目后，可以查看居民之前的工作。<button onClick={() => setGuideView('projects')}>选择项目</button></p>}
+          {guideView === 'records' && workspace && <section aria-label="居民工作记录"><details className="town-path"><summary>项目位置</summary><p>{workspace.path}</p></details>{!residentIds.some(id => sessionState.byId[id as SessionId] && !sessionState.byId[id as SessionId]!.blank) && !RESIDENTS.some(item => drafts[`${workspace.workspaceId}:${item.id}`]) && <p>还没有工作记录。找芽芽聊聊想做什么，或先在岛上逛逛。</p>}<div className="town-dialogue-choices">{RESIDENTS.filter(item => item.id !== 'coordinator').map(item => {
             const id = props.sessionForResident(workspace.workspaceId, item.id)
             const summary = id ? sessionState.byId[id as SessionId] : undefined
             const savedDraft = drafts[`${workspace.workspaceId}:${item.id}`]
+            if ((!summary || summary.blank) && !savedDraft && !summary?.running && !(id && pending.has(id as SessionId))) return null
             const events = id ? props.getBinding(id)?.eventSource.getSnapshot().entries : undefined
             const status = events?.length ? residentEventStatus(events) : 'idle'
             const detail = id && pending.has(id as SessionId) ? '等待你的确认' : summary?.running ? '正在工作' : status === 'failed' ? '本轮未完成，可查看记录并继续' : status === 'completed' ? '本轮已结束，请检查成果与验证' : summary && !summary.blank ? '已有工作记录，查看结果或继续' : savedDraft ? '有未发送的草稿' : '还没有任务'
             return <button key={item.id} onClick={() => choose(item.id)}><strong>{item.name.split(' · ')[0]} · {summary && !summary.blank ? '查看记录 / 继续' : '开始对话'}</strong><small>{detail}</small>{summary && !summary.blank && <><small>最近活动：{new Date(summary.updatedAt).toLocaleString('zh-CN')}</small><RecentWork id={summary.id} updatedAt={summary.updatedAt} running={summary.running} read={props.readRecentSession} /></>}{savedDraft && <small>草稿：{savedDraft.slice(0, 80)}</small>}</button>
           })}</div>{workspace.sessionIds.some(id => !props.residentForSession(workspace.workspaceId, id) && sessionState.byId[id] && !sessionState.byId[id]!.blank) && <p>还有未关联居民的历史会话，可在<a href="/workbench">高级工作台</a>查看；不会自动分配给居民。</p>}</section>}
-          <p className="town-dialogue-line">{!workspace ? '欢迎来到小镇！要把哪个项目安顿在这里？' : modelState.ready === null ? `「${workspace.title}」已经安顿好了。我看看大家准备好了没有。` : !modelState.ready ? `「${workspace.title}」已经安顿好了。再接通模型，大家就能开始工作。` : `「${workspace.title}」已经安顿好了。芽芽可以帮你把想法做出来，要见见她吗？`}</p>
+          {guideView === 'welcome' && <><p className="town-dialogue-line">{workspace ? `欢迎回来。「${workspace.title}」已准备好，你想做点什么？` : '欢迎来到小岛。想做点什么，或先认识这里？'}</p>
           <div className="town-dialogue-choices">
-            {!workspace ? <button className="town-primary" disabled={busy} onClick={() => { void bind() }}>选择文件夹</button> : !modelState.ready ? <button className="town-primary" disabled={modelState.ready === null} onClick={() => setShowModels(true)}>{modelState.ready === null ? '正在准备…' : '连接模型'}</button> : <button className="town-primary" onClick={() => choose('coder')}>找芽芽聊聊</button>}
+            {!workspace ? <button className="town-primary" onClick={() => setGuideView('projects')}>我想做一个东西</button> : !modelState.ready ? <button className="town-primary" disabled={modelState.ready === null} onClick={() => setShowModels(true)}>{modelState.ready === null ? '正在准备…' : '连接模型，开始制作'}</button> : <button className="town-primary" onClick={() => choose('coder')}>找芽芽聊聊</button>}
             <button onClick={closeConversation}>先逛逛</button>
-            {workspace && <button onClick={() => setGuideView('residents')}>认识其他居民</button>}
-          </div>
+            <button onClick={() => setGuideView('residents')}>带我认识这里</button>
+          </div></>}
           </>}
         </>}
         {guideView === 'projects' && <>
@@ -329,10 +335,10 @@ export function AgentIslesWorld(props: Props) {
           <p className="town-dialogue-line">把项目文件夹的路径告诉我。</p>
           <form onSubmit={event => { event.preventDefault(); void bind(path.trim()) }}><label htmlFor="town-folder">文件夹路径</label><input id="town-folder" value={path} onChange={event => setPath(event.target.value)} placeholder="D:\Projects\MyProject" /><button disabled={busy || !path.trim()}>安顿在这里</button></form>
         </>}
-        {guideView === 'residents' && workspace && <><p className="town-dialogue-line">你想和谁聊聊？</p><div className="town-dialogue-choices">{RESIDENTS.filter(item => item.id !== 'coordinator').map(item => {
-          const id = props.sessionForResident(workspace.workspaceId, item.id)
+        {guideView === 'residents' && <><p className="town-dialogue-line">芽芽帮你制作功能，苔伯陪你学习，阿澜帮你查阅文件。靠近居民按 E 就能交谈。</p><div className="town-dialogue-choices">{RESIDENTS.filter(item => item.id !== 'coordinator').map(item => {
+          const id = workspace ? props.sessionForResident(workspace.workspaceId, item.id) : undefined
           const summary = id ? sessionState.byId[id as SessionId] : undefined
-          const savedDraft = drafts[`${workspace.workspaceId}:${item.id}`]
+          const savedDraft = workspace ? drafts[`${workspace.workspaceId}:${item.id}`] : undefined
           const continuing = !!savedDraft || !!summary && !summary.blank
           return <button key={item.id} onClick={() => choose(item.id)}>{continuing ? `继续找${item.name.split(' · ')[0]}` : item.id === 'coder' ? '找芽芽制作功能' : item.id === 'teacher' ? '找苔伯学习项目' : '找阿澜查看文件'}{continuing && <small>{savedDraft ? '有草稿' : summary?.running ? '正在工作' : '继续会话'}</small>}</button>
         })}</div></>}
@@ -361,5 +367,6 @@ export function AgentIslesWorld(props: Props) {
       {error && <p role="alert">{error}</p>}
       </div>
     </aside>}
+    </>}
   </div>
 }

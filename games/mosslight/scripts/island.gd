@@ -86,6 +86,7 @@ var agent_isles_connected := false
 var agent_isles_workspace_id := ""
 var agent_isles_session_id := ""
 var embedded_mode := false
+var agent_isles_panel_open := false
 var region_barriers: Array[StaticBody3D] = []
 var region_signs: Array[Label3D] = []
 var regions_loading := false
@@ -185,7 +186,8 @@ func _setup_agent_isles_bridge() -> void:
 func _emit_agent_isles(type: String, payload: Dictionary) -> void:
 	if not OS.has_feature("web") or agent_isles_bridge == null:
 		return
-	agent_isles_bridge.emit(type, payload)
+	# JavaScriptBridge cannot marshal Dictionary arguments; pass JSON across the boundary.
+	agent_isles_bridge.emit(type, JSON.stringify(payload))
 
 
 func _on_agent_isles_message(arguments: Array) -> void:
@@ -230,6 +232,20 @@ func _on_agent_isles_message(arguments: Array) -> void:
 		return
 	agent_isles_connected = true
 	var payload: Dictionary = message.get("payload", {})
+	var panel_open := bool(payload.get("panelOpen", false))
+	if panel_open != agent_isles_panel_open:
+		agent_isles_panel_open = panel_open
+		mouse_was_captured = false
+		player.velocity = Vector3.ZERO
+		for action in ["walk_left", "walk_right", "walk_up", "walk_down", "jump", "sprint", "interact", "echo", "undo_echo"]:
+			Input.action_release(action)
+		if panel_open:
+			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	# The host owns the conversation; never leave a second dialogue behind it.
+	talking_to = null
+	dialogue_panel.visible = false
+	dialogue_left = 0
+	prompt.visible = not panel_open
 	agent_isles_session_id = str(payload.get("sessionId", ""))
 	for resident: Dictionary in payload.get("residents", []):
 		residents.set_agent_status(str(resident.get("id", "")), str(resident.get("status", "idle")))
@@ -552,7 +568,7 @@ func _material(color: Color, roughness: float, glow: bool = false) -> StandardMa
 
 
 func _physics_process(delta: float) -> void:
-	if game_paused:
+	if game_paused or agent_isles_panel_open:
 		return
 	var input := Input.get_vector("walk_left", "walk_right", "walk_up", "walk_down")
 	var right := camera.global_basis.x
@@ -674,7 +690,7 @@ func place_echo() -> bool:
 
 
 func _interact() -> void:
-	if game_paused or garden.interact():
+	if game_paused or agent_isles_panel_open or garden.interact():
 		return
 	if regions_error and absf(player.position.x) > 9.5 and absf(player.position.z - 3) < 2:
 		_request_neighbor_regions()
@@ -686,22 +702,20 @@ func _interact() -> void:
 	else:
 		var npc: StaticBody3D = residents.nearest(player)
 		if npc != null:
-			var starting_conversation := talking_to != npc
+			if embedded_mode or agent_isles_connected:
+				talking_to = null
+				dialogue_panel.visible = false
+				dialogue_left = 0
+				mouse_was_captured = false
+				Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+				_emit_agent_isles("resident:selected", {"residentId": npc.get_meta("agent_isles_id")})
+				return
 			talking_to = npc
-			if agent_isles_connected:
-				var work_dialogue: Dictionary = residents.agent_isles_talk(npc, not agent_isles_workspace_id.is_empty())
-				dialogue_name.text = work_dialogue.name
-				dialogue_text.text = work_dialogue.text
-			else:
-				dialogue_name.text = npc.get_meta("display_name")
-				dialogue_text.text = residents.talk(npc, learned)
+			dialogue_name.text = npc.get_meta("display_name")
+			dialogue_text.text = residents.talk(npc, learned)
 			dialogue_left = 10
 			dialogue_panel.visible = true
 			toast.visible = false
-			if starting_conversation:
-				_emit_agent_isles("resident:selected", {"residentId": npc.get_meta("agent_isles_id")})
-				if agent_isles_connected:
-					Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 
 func set_view_mode(mode: ViewMode) -> void:
@@ -820,6 +834,8 @@ func _process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if agent_isles_panel_open:
+		return
 	if garden.opened:
 		if event.is_action_pressed("inventory") or event.is_action_pressed("close_game"):
 			garden.set_open(false)
@@ -913,6 +929,13 @@ func set_game_paused(value: bool) -> void:
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and pause_panel != null:
+		if embedded_mode:
+			# Focus moves to the host conversation without opening the game pause menu.
+			mouse_was_captured = false
+			player.velocity = Vector3.ZERO
+			for action in ["walk_left", "walk_right", "walk_up", "walk_down", "jump", "sprint", "interact", "echo", "undo_echo"]:
+				Input.action_release(action)
+			return
 		set_game_paused(true)
 
 

@@ -34,6 +34,7 @@ export type HostToWorldMessage =
       payload: {
         workspace: { workspaceId: string; title: string } | null
         sessionId: string | null
+        panelOpen: boolean
         residents: readonly ResidentView[]
       }
     }
@@ -51,7 +52,7 @@ export type HostToWorldMessage =
     }
 
 export type WorldToHostMessage =
-  | { source: 'agent-isles-world'; version: typeof WORLD_BRIDGE_VERSION; type: 'world:ready' }
+  | { source: 'agent-isles-world'; version: typeof WORLD_BRIDGE_VERSION; type: 'world:ready' | 'world:playable' }
   | { source: 'agent-isles-world'; version: typeof WORLD_BRIDGE_VERSION; type: 'world:regions'; payload: RegionLoadState }
   | {
       source: 'agent-isles-world'
@@ -64,7 +65,7 @@ export function isWorldToHostMessage(value: unknown): value is WorldToHostMessag
   if (typeof value !== 'object' || value === null) return false
   const message = value as Partial<WorldToHostMessage>
   if (message.source !== 'agent-isles-world' || message.version !== WORLD_BRIDGE_VERSION) return false
-  if (message.type === 'world:ready') return true
+  if (message.type === 'world:ready' || message.type === 'world:playable') return true
   if (message.type === 'world:regions') {
     return !!message.payload && ['waiting', 'downloading', 'installing', 'failed', 'ready'].includes(message.payload.stage)
       && typeof message.payload.detail === 'string' && message.payload.detail.length <= 240

@@ -18,6 +18,31 @@ func run() -> void:
 	check(not game.game_hud.visible, "embedded world hides echo and keyboard HUD")
 	check(not game.garden.bag_hint.visible, "embedded world hides persistent inventory hint")
 	check(game.prompt.visible and game.toast.visible, "embedded world keeps contextual feedback")
+	var npc: StaticBody3D = game.residents.residents[3]
+	game.player.position = npc.position + Vector3(0, 0, 1.15)
+	game.player.velocity = Vector3.ZERO
+	await physics_frame
+	game._interact()
+	check(not game.dialogue_panel.visible and game.talking_to == null, "embedded interaction never opens standalone dialogue before host handshake")
+	var message := {"source": "agent-isles-host", "version": 1, "type": "world:init", "payload": {"panelOpen": true, "residents": [], "workspace": null}}
+	game.mouse_was_captured = true
+	Input.action_press("walk_up")
+	game._on_agent_isles_message([JSON.stringify(message)])
+	check(game.agent_isles_panel_open and not Input.is_action_pressed("walk_up"), "host panel releases held movement")
+	check(not game.mouse_was_captured and not game.prompt.visible, "host panel hides E prompt without triggering pause")
+	game._notification(Node.NOTIFICATION_APPLICATION_FOCUS_OUT)
+	check(not game.game_paused and not game.pause_panel.visible, "focusing host conversation does not open game pause menu")
+	var position: Vector3 = game.player.position
+	Input.action_press("walk_up")
+	game._physics_process(.1)
+	game._interact()
+	check(game.player.position == position and not game.dialogue_panel.visible, "host panel blocks movement and duplicate interaction")
+	message.payload.panelOpen = false
+	game._on_agent_isles_message([JSON.stringify(message)])
+	check(not game.agent_isles_panel_open and game.prompt.visible and not Input.is_action_pressed("walk_up"), "closing panel restores world controls without held keys")
+	game._interact()
+	game._interact()
+	check(not game.dialogue_panel.visible and game.talking_to == null, "reopening same resident leaves no local dialogue latch")
 	print("MOSSLIGHT_EMBEDDED_HUD_TESTS_COMPLETE failures=%d" % failures)
 	quit(1 if failures else 0)
 
