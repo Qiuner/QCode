@@ -8,16 +8,16 @@ import { createResidentStateHandler } from '../lib/types/resident-state.js'
 import { apply } from '../lib/types/client/index.js'
 
 test('recovery survives a new handler and concurrent resident updates without losing associations', async () => {
-  const directory = await mkdtemp(join(tmpdir(), 'agentville-recovery-'))
+  const directory = await mkdtemp(join(tmpdir(), 'agent-isles-recovery-'))
   const file = join(directory, 'state.json')
   let handler = createResidentStateHandler(file)
   const server = createServer((req, res) => { void handler(req, res) })
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve))
   const url = `http://127.0.0.1:${server.address().port}`
-  const request = body => fetch(url, { method: body ? 'POST' : 'GET', headers: { 'x-agentville-state': '1' }, ...(body ? { body: JSON.stringify(body) } : {}) })
+  const request = body => fetch(url, { method: body ? 'POST' : 'GET', headers: { 'x-agent-isles-state': '1' }, ...(body ? { body: JSON.stringify(body) } : {}) })
   try {
     assert.equal((await fetch(url)).status, 403)
-    assert.equal((await fetch(url, { headers: { 'x-agentville-state': '1', origin: 'http://untrusted.test' } })).status, 403)
+    assert.equal((await fetch(url, { headers: { 'x-agent-isles-state': '1', origin: 'http://untrusted.test' } })).status, 403)
     assert.deepEqual(await (await request()).json(), { sessions: {} })
     const results = await Promise.all([
       request({ projectId: 'project' }),
@@ -38,11 +38,39 @@ test('recovery survives a new handler and concurrent resident updates without lo
   }
 })
 
+test('legacy host state is read and the next update writes the new state file', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'agent-isles-state-migration-'))
+  const file = join(directory, 'agent-isles-state.json')
+  const legacyFile = join(directory, 'agentville-state.json')
+  await writeFile(legacyFile, JSON.stringify({ projectId: 'legacy', sessions: { legacy: { coder: 'old' } } }))
+  const handler = createResidentStateHandler(file, legacyFile)
+  const server = createServer((req, res) => { void handler(req, res) })
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve))
+  const url = `http://127.0.0.1:${server.address().port}`
+  try {
+    const headers = { 'x-agent-isles-state': '1' }
+    assert.deepEqual(await (await fetch(url, { headers })).json(), { projectId: 'legacy', sessions: { legacy: { coder: 'old' } } })
+    const response = await fetch(url, {
+      method: 'POST', headers, body: JSON.stringify({ projectId: 'legacy', residentId: 'teacher', sessionId: 'new' }),
+    })
+    assert.equal(response.status, 200)
+    assert.deepEqual(JSON.parse(await readFile(file, 'utf8')), {
+      projectId: 'legacy', sessions: { legacy: { coder: 'old', teacher: 'new' } },
+    })
+  } finally {
+    await new Promise(resolve => server.close(resolve))
+    await rm(directory, { recursive: true, force: true })
+  }
+})
+
 function clientFixture(t, { state = { sessions: {} }, local = {}, rows = [], members = rows.map(row => row.id) } = {}) {
   const originals = { window: globalThis.window, localStorage: globalThis.localStorage, fetch: globalThis.fetch }
   t.after(() => Object.assign(globalThis, originals))
   globalThis.window = { location: { search: '', pathname: '/' } }
-  globalThis.localStorage = { getItem: () => JSON.stringify(local), setItem: () => { throw new Error('storage disabled') } }
+  globalThis.localStorage = {
+    getItem: key => key === 'agentville.resident-sessions.v1' ? JSON.stringify(local) : null,
+    setItem: () => { throw new Error('storage disabled') },
+  }
   const writes = []
   globalThis.fetch = async (_url, options) => {
     if (options.method === 'POST') {

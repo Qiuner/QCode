@@ -8,7 +8,7 @@ var time := 0.0
 
 func _ready() -> void:
 	var names := ["芽芽 · 园丁", "阿澜 · 钓鱼人", "苔伯 · 守井人", "向导 · 项目接待"]
-	var agentville_ids := ["coder", "file_keeper", "teacher", "coordinator"]
+	var agent_isles_ids := ["coder", "file_keeper", "teacher", "coordinator"]
 	var homes := [Vector3(-7.2, .06, 1.3), Vector3(6.6, .06, 2.9), Vector3(-4.25, .06, -4.5), Vector3(2.8, .06, 6.0)]
 	for i in range(4):
 		var body := StaticBody3D.new()
@@ -17,7 +17,7 @@ func _ready() -> void:
 		body.collision_layer = 1
 		body.collision_mask = 0
 		body.set_meta("resident_id", i)
-		body.set_meta("agentville_id", agentville_ids[i])
+		body.set_meta("agent_isles_id", agent_isles_ids[i])
 		body.set_meta("display_name", names[i])
 		body.set_meta("home_yaw", [.6, PI, .6, -.8][i])
 		body.set_meta("line_index", 0)
@@ -52,10 +52,10 @@ func _ready() -> void:
 		residents.append(body)
 
 
-func set_agent_status(agentville_id: String, status: String) -> void:
+func set_agent_status(agent_isles_id: String, status: String) -> void:
 	var labels := {"working": "工作中", "thinking": "思考中", "approval": "等待确认", "completed": "已完成", "failed": "遇到问题"}
 	for npc: StaticBody3D in residents:
-		if npc.get_meta("agentville_id") != agentville_id:
+		if npc.get_meta("agent_isles_id") != agent_isles_id:
 			continue
 		var label := npc.get_meta("name_label") as Label3D
 		var suffix: String = labels.get(status, "")
@@ -96,14 +96,14 @@ func nearest(traveler: CharacterBody3D) -> StaticBody3D:
 	return result
 
 
-func agentville_talk(npc: StaticBody3D, has_workspace: bool) -> Dictionary:
+func agent_isles_talk(npc: StaticBody3D, has_workspace: bool) -> Dictionary:
 	var identities := {
 		"coder": ["Coder · 开发", "我负责实现功能、调试问题和运行验证。"],
 		"file_keeper": ["File Keeper · 整理", "我负责阅读项目、整理文件和维护资料。"],
 		"teacher": ["Teacher · 教学", "我负责解释代码、梳理思路和沉淀文档。"],
 		"coordinator": ["向导 · 项目接待", "欢迎来到小镇。我负责绑定项目文件夹，也可以帮你切换项目。"],
 	}
-	var identity: Array = identities.get(str(npc.get_meta("agentville_id")), ["Resident · 居民", "我会协助处理这个项目。"])
+	var identity: Array = identities.get(str(npc.get_meta("agent_isles_id")), ["Resident · 居民", "我会协助处理这个项目。"])
 	return {
 		"name": identity[0],
 		"text": identity[1] + (" 请在居民面板里继续。" if has_workspace else " 请找向导选择项目文件夹，绑定工作区后就能开始。"),

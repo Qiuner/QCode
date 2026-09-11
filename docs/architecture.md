@@ -1,4 +1,4 @@
-# Agentville 架构
+# agent-isles 架构
 
 ## 目标
 
@@ -16,7 +16,7 @@
 - 对话面板
 - 状态与活动反馈
 
-### 2. Agentville 居民领域层
+### 2. agent-isles 居民领域层
 
 负责：
 
@@ -29,7 +29,7 @@
 
 负责：
 
-- 通过 Cordis patch 装入 Agentville Host 和 Client 能力
+- 通过 Cordis patch 装入 agent-isles Host 和 Client 能力
 - 直接使用 DSH 的 Workspace、Session、WebServer 和 UI slots
 - 保留官方对话、工具、审批和完整工作台
 - 通过同源消息桥接连接 React 与 Godot
@@ -46,11 +46,11 @@
 
 当前默认 runtime 采用 `deepseek-harness`。项目通过 git submodule 固定上游源码，通过 `upstream.json` 记录上游版本和 commit，通过 `vendor/dsh-runtime/<version>` 固定构建后的 runtime 产物。
 
-当前执行链路直接以 DSH 插件 API 为边界，不另设 Agentville 中间层。网页修改优先通过 Agentville 的 patch、Host 插件和 Client overlay 完成，不散落到上游 submodule。
+当前执行链路直接以 DSH 插件 API 为边界，不另设 agent-isles 中间层。网页修改优先通过 agent-isles 的 patch、Host 插件和 Client overlay 完成，不散落到上游 submodule。
 
 ### 5. Windows Launcher（规划）
 
-Agentville 继续以网页作为唯一产品界面。未来提供一个轻量 Windows Launcher，用于打包并启动固定版本的 runtime、加载 Agentville profile、等待本地 Web 服务就绪并打开系统默认浏览器。Launcher 不复制人物世界、聊天或 Harness 工作台，也不改变当前 Web + Harness 的实现路径。
+agent-isles 继续以网页作为唯一产品界面。未来提供一个轻量 Windows Launcher，用于打包并启动固定版本的 runtime、加载 agent-isles profile、等待本地 Web 服务就绪并打开系统默认浏览器。Launcher 不复制人物世界、聊天或 Harness 工作台，也不改变当前 Web + Harness 的实现路径。
 
 Launcher 属于分发和本地进程管理边界，目前尚未实现。第一版只考虑单实例、端口与健康检查、启动失败提示、打开浏览器和退出清理；托盘、自动更新及完整桌面窗口不进入首版范围。
 
@@ -64,7 +64,7 @@ Launcher 属于分发和本地进程管理边界，目前尚未实现。第一�
 ## 升级策略
 
 - 锁定 runtime 版本
-- 保持 Agentville 插件与上游源码的所有权边界
+- 保持 agent-isles 插件与上游源码的所有权边界
 - 升级前先做兼容测试
 - 只依赖所固定版本提供的公开 DSH/Cordis 接口
 

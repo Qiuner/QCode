@@ -6,7 +6,7 @@ export async function testResidentDialogue(page, url) {
   const choice = name => page.getByRole('button', { name, exact: true })
   const reopen = async () => {
     const world = page.frames().find(frame => new URL(frame.url()).pathname.startsWith('/world/'))
-    await world.evaluate(origin => parent.postMessage({ source: 'agentville-world', version: 1, type: 'resident:selected', payload: { residentId: 'coordinator' } }, origin), new URL(url).origin)
+    await world.evaluate(origin => parent.postMessage({ source: 'agent-isles-world', version: 1, type: 'resident:selected', payload: { residentId: 'coordinator' } }, origin), new URL(url).origin)
     await choice('选择文件夹').waitFor()
   }
   await choice('选择文件夹').waitFor()

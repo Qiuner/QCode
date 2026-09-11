@@ -523,10 +523,10 @@
     "upstream:build:official": "cd deepseek-harness && CI=true DSH_BUILD_CLIENT_PROFILE=official corepack pnpm run build",
     "upstream:pack:dsh": "cd deepseek-harness && CI=true corepack pnpm run release:pack --family dsh",
     "upstream:prepare-runtime": "yarn upstream:install && yarn upstream:build:official && yarn upstream:pack:dsh",
-    "build:web": "yarn workspace @agentville/web-plugin build",
+    "build:web": "yarn workspace @agent-isles/web-plugin build",
     "build:world": "node scripts/export-world.mjs",
-    "dev:web": "yarn build:web && yarn workspace @agentville/web start",
-    "typecheck": "yarn workspace @agentville/web-plugin typecheck"
+    "dev:web": "yarn build:web && yarn workspace @agent-isles/web start",
+    "typecheck": "yarn workspace @agent-isles/web-plugin typecheck"
   },
   "devDependencies": {
     "@types/node": "^22.20.0",

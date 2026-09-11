@@ -1,7 +1,7 @@
 import type { UserConfig } from 'tsdown'
 
 const config: UserConfig = {
-  name: '@agentville/web-plugin/client',
+  name: '@agent-isles/web-plugin/client',
   entry: { client: 'lib/types/client/index.js' },
   outDir: 'lib',
   format: 'cjs',
@@ -17,7 +17,7 @@ const config: UserConfig = {
   outputOptions: {
     entryFileNames: 'client.js',
     sourcemapExcludeSources: false,
-    banner: 'window.__ModuleLoader__.load({ id: "@agentville/web-plugin", factory: (require) => {',
+    banner: 'window.__ModuleLoader__.load({ id: "@agent-isles/web-plugin", factory: (require) => {',
     footer: 'return module.exports; } });',
     intro: 'var module = { exports: {} }; var exports = module.exports;',
   },

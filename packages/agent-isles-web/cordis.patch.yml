@@ -1,0 +1,4 @@
+# agent-isles browser presentation layered over the official Web profile.
+- insert:
+    - id: agent-isles-web
+      name: '@agent-isles/web-plugin'

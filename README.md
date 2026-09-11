@@ -16,23 +16,23 @@
 </p>
 
 <p>
-  <a href="#agentville-是什么">产品介绍</a> ·
+  <a href="#agent-isles-是什么">产品介绍</a> ·
   <a href="#产品画面">产品画面</a> ·
   <a href="#快速开始">快速开始</a> ·
   <a href="#工作原理">工作原理</a> ·
   <a href="#文档">项目文档</a>
 </p>
 
-<img src="docs/images/agentville-workspace.png" alt="Agentville 小镇与项目向导" width="100%">
+<img src="docs/images/agent-isles-workspace.png" alt="agent-isles 小镇与项目向导" width="100%">
 
 </div>
 
 > [!IMPORTANT]
-> Agentville 仍处于早期开发阶段。目前提供可运行的本地 Web MVP，Windows Launcher 尚在规划中。
+> agent-isles 仍处于早期开发阶段。目前提供可运行的本地 Web MVP，Windows Launcher 尚在规划中。
 
-## Agentville 是什么
+## agent-isles 是什么
 
-Agentville 把 AI 能力变成住在同一个世界里的不同居民。学习者不需要先理解复杂的模型、工具和会话概念，只需选择一个真实项目，找到合适的居民，用自然语言说明自己想学什么或做什么。
+agent-isles 把 AI 能力变成住在同一个世界里的不同居民。学习者不需要先理解复杂的模型、工具和会话概念，只需选择一个真实项目，找到合适的居民，用自然语言说明自己想学什么或做什么。
 
 这里的学习发生在实际项目中：AI 可以读取文件、解释代码、协助实现并展示执行过程，学习者始终可以进入高级工作台查看完整对话、工具调用和审批记录。
 
@@ -57,14 +57,14 @@ Agentville 把 AI 能力变成住在同一个世界里的不同居民。学习�
 
 Coder 在绑定的项目中读取和修改文件。对话、进度与最终结果直接显示在居民面板中，完整工具调用仍可在高级工作台查看。
 
-![Agentville Coder 居民执行真实项目任务](docs/images/agentville-coder.png)
+![agent-isles Coder 居民执行真实项目任务](docs/images/agent-isles-coder.png)
 
 ### 在不同尺寸下使用
 
 居民选择、项目绑定和对话面板支持窄屏布局。
 
 <p align="center">
-  <img src="docs/images/agentville-mobile.png" alt="Agentville 移动端项目向导" width="390">
+  <img src="docs/images/agent-isles-mobile.png" alt="agent-isles 移动端项目向导" width="390">
 </p>
 
 ## 快速开始
@@ -88,27 +88,27 @@ corepack yarn dev:web --no-open
 
 打开终端输出的本地地址。首次使用时，按页面提示完成模型配置并选择一个本地项目文件夹，然后即可与居民交谈。
 
-开发数据默认保存在仓库内的 `.agentville-home/`。如需更换位置，可在启动前设置 `DSH_HOME`。
+开发数据默认保存在仓库内的 `.agent-isles-home/`；已有 `.agentville-home/` 时会继续使用旧目录，避免丢失会话和凭据。如需更换位置，可在启动前设置 `DSH_HOME`。
 
 ## 工作原理
 
 ```text
 学习者
-  -> Agentville Web：小镇、居民、对话与状态
-    -> Agentville Host/Client 插件：Workspace 与 Resident/Session 映射
+  -> agent-isles Web：小镇、居民、对话与状态
+    -> agent-isles Host/Client 插件：Workspace 与 Resident/Session 映射
       -> DeepSeek Harness：模型、工具、审批、文件与终端
         -> 本地项目
 ```
 
-Godot 负责呈现世界和居民状态，React 负责 Workspace、居民选择和交互面板，DeepSeek Harness 是会话与执行状态的唯一事实来源。Agentville 通过公开的 DSH/Cordis 插件接口接入，不修改上游源码，也不再包装一套重复的 Session API。
+Godot 负责呈现世界和居民状态，React 负责 Workspace、居民选择和交互面板，DeepSeek Harness 是会话与执行状态的唯一事实来源。agent-isles 通过公开的 DSH/Cordis 插件接口接入，不修改上游源码，也不再包装一套重复的 Session API。
 
 ## 仓库结构
 
 | 目录 | 用途 |
 | --- | --- |
-| `apps/web/` | 启动 Agentville 的 DSH Web profile |
+| `apps/web/` | 启动 agent-isles 的 DSH Web profile |
 | `apps/desktop/` | 未来轻量 Windows Launcher，当前未实现 |
-| `packages/agentville-web/` | Agentville Host/Client Web 插件 |
+| `packages/agent-isles-web/` | agent-isles Host/Client Web 插件 |
 | `games/mosslight/` | 使用 Blender 与 Godot 构建的世界 |
 | `deepseek-harness/` | 固定版本的上游 Git submodule |
 | `vendor/dsh-runtime/` | 固定并校验过的 DSH runtime 包 |
@@ -131,12 +131,12 @@ Godot 负责呈现世界和居民状态，React 负责 Workspace、居民选择�
 
 - 不直接修改 `deepseek-harness/`。
 - runtime 升级先更新固定版本，再执行兼容性验证。
-- Agentville 的产品逻辑保留在自身插件和世界代码中。
+- agent-isles 的产品逻辑保留在自身插件和世界代码中。
 
 ## 当前限制
 
 - Teacher 与 File Keeper 的只读行为目前由提示词约束，尚未形成强权限隔离。
-- 居民与 Session 的映射暂存在浏览器本地存储中。
+- 居民与 Session 的映射保存在本地 Host 状态文件中，尚未进入 DSH runtime 持久化模型。
 - 文件管理员还没有独立的文件树预览器。
 - 移动端已支持面板布局，世界操作仍以键鼠为主。
 - Windows Launcher、自动更新和完整分发流程尚未实现。
@@ -144,7 +144,7 @@ Godot 负责呈现世界和居民状态，React 负责 Workspace、居民选择�
 ## 文档
 
 - [系统架构](docs/architecture.md)
-- [网页优先 MVP](docs/agentville-mvp-plan.md)
+- [网页优先 MVP](docs/agent-isles-mvp-plan.md)
 - [Web 定制边界](docs/web-customization.md)
 - [世界与 Web 的职责](docs/world-web-plan.md)
 - [居民角色设计](docs/roles.md)

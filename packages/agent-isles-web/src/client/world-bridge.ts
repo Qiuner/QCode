@@ -23,12 +23,12 @@ export interface ResidentView {
 
 export type HostToWorldMessage =
   | {
-      source: 'agentville-host'
+      source: 'agent-isles-host'
       version: typeof WORLD_BRIDGE_VERSION
       type: 'world:show-guide' | 'world:retry-neighbors'
     }
   | {
-      source: 'agentville-host'
+      source: 'agent-isles-host'
       version: typeof WORLD_BRIDGE_VERSION
       type: 'world:init'
       payload: {
@@ -38,23 +38,23 @@ export type HostToWorldMessage =
       }
     }
   | {
-      source: 'agentville-host'
+      source: 'agent-isles-host'
       version: typeof WORLD_BRIDGE_VERSION
       type: 'workspace:changed'
       payload: { workspaceId: string; title: string } | null
     }
   | {
-      source: 'agentville-host'
+      source: 'agent-isles-host'
       version: typeof WORLD_BRIDGE_VERSION
       type: 'resident:status'
       payload: ResidentView
     }
 
 export type WorldToHostMessage =
-  | { source: 'agentville-world'; version: typeof WORLD_BRIDGE_VERSION; type: 'world:ready' }
-  | { source: 'agentville-world'; version: typeof WORLD_BRIDGE_VERSION; type: 'world:regions'; payload: RegionLoadState }
+  | { source: 'agent-isles-world' | 'agentville-world'; version: typeof WORLD_BRIDGE_VERSION; type: 'world:ready' }
+  | { source: 'agent-isles-world' | 'agentville-world'; version: typeof WORLD_BRIDGE_VERSION; type: 'world:regions'; payload: RegionLoadState }
   | {
-      source: 'agentville-world'
+      source: 'agent-isles-world' | 'agentville-world'
       version: typeof WORLD_BRIDGE_VERSION
       type: 'resident:selected'
       payload: { residentId: ResidentId }
@@ -63,7 +63,8 @@ export type WorldToHostMessage =
 export function isWorldToHostMessage(value: unknown): value is WorldToHostMessage {
   if (typeof value !== 'object' || value === null) return false
   const message = value as Partial<WorldToHostMessage>
-  if (message.source !== 'agentville-world' || message.version !== WORLD_BRIDGE_VERSION) return false
+  if ((message.source !== 'agent-isles-world' && message.source !== 'agentville-world')
+    || message.version !== WORLD_BRIDGE_VERSION) return false
   if (message.type === 'world:ready') return true
   if (message.type === 'world:regions') {
     return !!message.payload && ['waiting', 'downloading', 'installing', 'failed', 'ready'].includes(message.payload.stage)

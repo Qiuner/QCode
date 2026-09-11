@@ -8,7 +8,7 @@ import { gzipSync, brotliCompressSync } from 'node:zlib'
 import { serveWorld } from '../lib/types/index.js'
 
 test('world assets negotiate compression, revalidate and avoid stale variants', async () => {
-  const root = await mkdtemp(join(tmpdir(), 'agentville-assets-'))
+  const root = await mkdtemp(join(tmpdir(), 'agent-isles-assets-'))
   const data = 'world mesh data\n'.repeat(256)
   await writeFile(join(root, 'index.wasm'), data)
   await writeFile(join(root, 'index.wasm.gz'), gzipSync(data))

@@ -3,7 +3,10 @@ node_modules/
 dist/
 .agentville-home/
 .agentville-test-home/
+.agent-isles-home/
+.agent-isles-test-home/
 .dsh-home-source-run/
 agentville-runtime-test/
+agent-isles-runtime-test/
 lib/
 *.tsbuildinfo

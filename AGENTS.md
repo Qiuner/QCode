@@ -8,7 +8,7 @@ Node.js `^22.19.0` 或 `>=24.0.0`，通过 Corepack 使用 Yarn `4.18.0`。
 | --- | --- |
 | `apps/web/` | 启动 DSH Web profile |
 | `apps/desktop/` | 未来轻量 Windows Launcher，当前未实现 |
-| `packages/agentville-web/` | Agentville Host/Client Web 插件 |
+| `packages/agent-isles-web/` | agent-isles Host/Client Web 插件 |
 | `games/mosslight/` | Blender 与 Godot 世界 |
 | `deepseek-harness/` | 固定版本的上游 Git submodule |
 | `vendor/dsh-runtime/` | 固定并校验过的 DSH runtime 包 |

@@ -11,10 +11,10 @@ test('neighbor download copies the pack before notifying Godot and allows retry'
   const states = []
   let requests = 0
   let fail = true
-  const window = { agentvilleWorldBridge: { emit: (_type, payload) => states.push(payload) } }
+  const window = { agentIslesWorldBridge: { emit: (_type, payload) => states.push(payload) } }
   runInNewContext(source, {
     window, AbortController, setTimeout, clearTimeout, Uint8Array,
-    AGENTVILLE_BRIDGE_VERSION: 1,
+    AGENT_ISLES_BRIDGE_VERSION: 1,
     console: { error() {} },
     fetch: async () => {
       requests++

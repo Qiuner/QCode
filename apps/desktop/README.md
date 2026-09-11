@@ -4,7 +4,7 @@
 
 Launcher 的职责将限定为：
 
-- 启动固定版本的 DeepSeek Harness runtime 和 Agentville Web profile；
+- 启动固定版本的 DeepSeek Harness runtime 和 agent-isles Web profile；
 - 等待本地 Web 服务健康后打开系统默认浏览器；
 - 处理单实例、端口冲突、启动错误和所启动子进程的退出清理。
 

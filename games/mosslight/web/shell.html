@@ -68,7 +68,7 @@
   </main>
   <script src="$GODOT_URL"></script>
   <script>
-    const AGENTVILLE_BRIDGE_VERSION = 1;
+    const AGENT_ISLES_BRIDGE_VERSION = 1;
     const embedded = new URLSearchParams(location.search).get('embed') === '1';
     const parentUrl = new URL(location.origin);
     if (embedded && parentUrl.hostname === 'localhost') parentUrl.hostname = '127.0.0.1';
@@ -77,7 +77,7 @@
     if (embedded) document.body.dataset.embedded = '';
     const pendingHostMessages = [];
     let godotMessageHandler = null;
-    window.agentvilleWorldBridge = {
+    window.agentIslesWorldBridge = {
       attachGodot(handler) {
         godotMessageHandler = handler;
         for (const message of pendingHostMessages.splice(0)) handler(JSON.stringify(message));
@@ -85,7 +85,7 @@
       emit(type, payload) {
         if (window.parent === window) return;
         window.parent.postMessage({
-          source: 'agentville-world', version: AGENTVILLE_BRIDGE_VERSION, type, ...(payload === undefined ? {} : { payload })
+          source: 'agent-isles-world', version: AGENT_ISLES_BRIDGE_VERSION, type, ...(payload === undefined ? {} : { payload })
         }, parentOrigin);
       }
     };
@@ -93,8 +93,8 @@
       if (event.origin !== parentOrigin || event.source !== window.parent) return;
       const message = event.data;
       if (typeof message !== 'object' || message === null
-        || message.source !== 'agentville-host'
-        || message.version !== AGENTVILLE_BRIDGE_VERSION) return;
+        || (message.source !== 'agent-isles-host' && message.source !== 'agentville-host')
+        || message.version !== AGENT_ISLES_BRIDGE_VERSION) return;
       if (message.type === 'world:show-guide') {
         document.getElementById('guide').showModal();
         return;
@@ -104,7 +104,7 @@
         return;
       }
       if (message.type === 'world:init' && window.neighborState) {
-        window.agentvilleWorldBridge.emit('world:regions', window.neighborState);
+        window.agentIslesWorldBridge.emit('world:regions', window.neighborState);
       }
       if (message.type === 'world:init' && message.payload?.workspace) {
         document.title = `${message.payload.workspace.title} · agent-isles`;
@@ -112,7 +112,8 @@
       if (godotMessageHandler) godotMessageHandler(JSON.stringify(message));
       else pendingHostMessages.push(message);
     });
-    window.agentvilleWorldBridge.emit('world:ready');
+    window.agentvilleWorldBridge = window.agentIslesWorldBridge;
+    window.agentIslesWorldBridge.emit('world:ready');
 
     const config = $GODOT_CONFIG;
     const engine = new Engine(config);
@@ -121,7 +122,7 @@
     window.neighborState = { stage: 'waiting', detail: '等待主岛就绪' };
     function reportNeighbors(stage, detail) {
       window.neighborState = { stage, detail };
-      window.agentvilleWorldBridge.emit('world:regions', window.neighborState);
+      window.agentIslesWorldBridge.emit('world:regions', window.neighborState);
     }
     window.finishNeighborRegions = (ok) => {
       clearTimeout(neighborInstallTimeout);
@@ -139,7 +140,7 @@
       loadingNeighbors = true;
       reportNeighbors('downloading', '正在下载区域…');
       setTimeout(() => godotMessageHandler?.(JSON.stringify({
-        source: 'agentville-host', version: AGENTVILLE_BRIDGE_VERSION, type: 'world:neighbors-started'
+        source: 'agent-isles-host', version: AGENT_ISLES_BRIDGE_VERSION, type: 'world:neighbors-started'
       })), 0);
       let type = 'world:neighbors-failed';
       let failure = '';
@@ -175,7 +176,7 @@
           break;
         } catch (error) {
           failure = error.name === 'AbortError' ? '连接超时' : (error instanceof TypeError ? '网络连接中断' : error.message);
-          console.error('Agentville region download failed:', error);
+          console.error('agent-isles region download failed:', error);
           if (attempt === 0) {
             reportNeighbors('downloading', `${failure}，正在重试…`);
             await new Promise(resolve => setTimeout(resolve, 1000));
@@ -190,7 +191,7 @@
       }
       // Defer re-entry into Godot until the current WASM callback has returned.
       setTimeout(() => godotMessageHandler?.(JSON.stringify({
-        source: 'agentville-host', version: AGENTVILLE_BRIDGE_VERSION, type
+        source: 'agent-isles-host', version: AGENT_ISLES_BRIDGE_VERSION, type
       })), 0);
     };
     const canvas = document.getElementById('canvas');
@@ -221,7 +222,7 @@
       start.disabled = false;
       start.textContent = '重新加载';
       status.textContent = '加载失败，请检查网络与浏览器硬件加速后重试。';
-      console.error('Agentville failed to start:', error);
+      console.error('agent-isles failed to start:', error);
     }
     async function startGame() {
       if (started) return;

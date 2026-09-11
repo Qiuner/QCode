@@ -6,11 +6,11 @@
 
 Windows 双击 **Play.cmd**。启动器优先使用本机已有的 Godot 4.7.2，也支持 PATH 中的 `godot.exe` / `godot4.exe`。首次运行会导入资产，然后打开游戏。
 
-也可以用 Godot 4.7.2 打开 `project.godot`，按 **F5**。无需 Node、Yarn 或运行 Agentville。游玩不需要联网。
+也可以用 Godot 4.7.2 打开 `project.godot`，按 **F5**。无需 Node、Yarn 或运行 agent-isles。游玩不需要联网。
 
 ## 网页试玩与部署
 
-本机双击 **Play-Web.cmd**，会启动本地 HTTP 服务并打开 `http://127.0.0.1:8068/`。点击“进入世界”后可使用同一套键鼠操作。入口使用 Agentville 标题和三岛实景全景，加载进度与重试信息按需显示。启动器需要 Python；有现成导出文件时不需要再运行 Godot。
+本机双击 **Play-Web.cmd**，会启动本地 HTTP 服务并打开 `http://127.0.0.1:8068/`。点击“进入世界”后可使用同一套键鼠操作。入口使用 agent-isles 标题和三岛实景全景，加载进度与重试信息按需显示。启动器需要 Python；有现成导出文件时不需要再运行 Godot。
 
 网页版本使用 WebGL 2 Compatibility 渲染和单线程 WebAssembly，直接复用 GDScript 的移动、跳跃、碰撞、复制和拾取逻辑。Esc 释放鼠标并暂停 / 继续；切换到其他页面自动暂停，点击游戏画面或按 Esc 恢复。中文字体子集随游戏分发，不要求玩家安装字体或 Godot。
 

@@ -1,4 +1,0 @@
-# Agentville browser presentation layered over the official Web profile.
-- insert:
-    - id: agentville-web
-      name: '@agentville/web-plugin'

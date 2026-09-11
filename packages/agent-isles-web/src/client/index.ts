@@ -8,9 +8,9 @@ import type {} from '@deepseek-ai/dsh-client-ui-sidebar/client'
 import type {} from '@deepseek-ai/dsh-client-ui-session/client'
 import type {} from '@deepseek-ai/dsh-client-ui-workspace/client'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
-import { AgentvilleWorld } from './AgentvilleWorld.js'
-import type { AgentvilleWorldInjected } from './AgentvilleWorld.js'
-import { AgentvilleBrandMark, AgentvilleBrandName, AgentvilleHeroMark } from './Brand.js'
+import { AgentIslesWorld } from './AgentIslesWorld.js'
+import type { AgentIslesWorldInjected } from './AgentIslesWorld.js'
+import { AgentIslesBrandMark, AgentIslesBrandName, AgentIslesHeroMark } from './Brand.js'
 import { WORLD_STYLES } from './styles.js'
 import type { ResidentId } from './world-bridge.js'
 import { residentPrompt, projectResidentEvents } from './resident-model.js'
@@ -23,7 +23,8 @@ import type { ResidentState } from '../resident-state.js'
 
 export const inject = ['slots', 'sessions', 'workspaces', 'uiWorkspace', 'remote', 'remote.settings', 'remote.credentials', 'remote.llm', 'remote.session', 'remote.directoryPicker']
 
-const RESIDENT_SESSION_KEY = 'agentville.resident-sessions.v1'
+const RESIDENT_SESSION_KEY = 'agent-isles.resident-sessions.v1'
+const LEGACY_RESIDENT_SESSION_KEY = 'agentville.resident-sessions.v1'
 const RESIDENT_NAMES: Readonly<Record<ResidentId, string>> = {
   coder: 'Coder',
   file_keeper: 'File Keeper',
@@ -35,7 +36,8 @@ type ResidentSessions = Partial<Record<string, Partial<Record<ResidentId, string
 
 function readResidentSessions(): ResidentSessions {
   try {
-    const value: unknown = JSON.parse(localStorage.getItem(RESIDENT_SESSION_KEY) ?? '{}')
+    const value: unknown = JSON.parse(localStorage.getItem(RESIDENT_SESSION_KEY)
+      ?? localStorage.getItem(LEGACY_RESIDENT_SESSION_KEY) ?? '{}')
     return typeof value === 'object' && value !== null && !Array.isArray(value)
       ? value as ResidentSessions
       : {}
@@ -52,13 +54,14 @@ function writeResidentSession(workspaceId: string, residentId: ResidentId, sessi
 
 /** Replace the generic Web profile branding while retaining its layout and conversation UI. */
 export function apply(ctx: ClientContext): void {
-  const workbench = new URLSearchParams(window.location.search).get('agentville') === 'workbench'
+  const search = new URLSearchParams(window.location.search)
+  const workbench = search.get('agent-isles') === 'workbench' || search.get('agentville') === 'workbench'
     || window.location.pathname === '/workbench'
   const selecting = new Map<string, Promise<string>>()
   let saved: ResidentState = { sessions: {} }
   const stateRequest = async (update?: { projectId: string; residentId?: ResidentId; sessionId?: string }): Promise<ResidentState> => {
-    const response = await fetch('/agentville/resident-state', {
-      method: update ? 'POST' : 'GET', headers: { 'x-agentville-state': '1', 'content-type': 'application/json' },
+    const response = await fetch('/agent-isles/resident-state', {
+      method: update ? 'POST' : 'GET', headers: { 'x-agent-isles-state': '1', 'content-type': 'application/json' },
       ...(update ? { body: JSON.stringify(update) } : {}), signal: AbortSignal.timeout(10_000),
     })
     if (!response.ok) throw new Error('工作记录暂时无法恢复或保存，请重试')
@@ -106,7 +109,7 @@ export function apply(ctx: ClientContext): void {
       const renamed = await ctx.sessions.binding(sessionId)?.session.rename(
         `${RESIDENT_NAMES[residentId]} · ${workspace.title}`)
       if (renamed !== undefined && !renamed.ok) {
-        console.warn(`agentville: resident session rename failed: ${renamed.error.message}`)
+        console.warn(`agent-isles: resident session rename failed: ${renamed.error.message}`)
       }
       writeResidentSession(workspaceId, residentId, sessionId)
       saved.sessions[workspaceId] = { ...saved.sessions[workspaceId], [residentId]: sessionId }
@@ -127,7 +130,7 @@ export function apply(ctx: ClientContext): void {
     if (!result.ok) throw new Error(result.error.message)
   }
 
-  ctx.effect(() => applyDocumentBranding(document), 'agentville-web: document branding')
+  ctx.effect(() => applyDocumentBranding(document), 'agent-isles-web: document branding')
 
   if (workbench) return
 
@@ -137,23 +140,23 @@ export function apply(ctx: ClientContext): void {
 
   ctx.effect(() => {
     const style = document.createElement('style')
-    style.dataset.agentvilleWorld = ''
+    style.dataset.agentIslesWorld = ''
     style.textContent = WORLD_STYLES
     document.head.append(style)
     return () => { style.remove() }
-  }, 'agentville-web: world styles')
+  }, 'agent-isles-web: world styles')
   ctx.slots.inject('sidebar.brand.mark', () =>
-    ctx.slots.register({ name: 'sidebar.brand.mark', priority: -100 }, AgentvilleBrandMark))
+    ctx.slots.register({ name: 'sidebar.brand.mark', priority: -100 }, AgentIslesBrandMark))
   ctx.slots.inject('sidebar.brand.name', () =>
-    ctx.slots.register({ name: 'sidebar.brand.name', priority: -100 }, AgentvilleBrandName))
+    ctx.slots.register({ name: 'sidebar.brand.name', priority: -100 }, AgentIslesBrandName))
   ctx.slots.inject('conversation.hero.brand.mark', () =>
-    ctx.slots.register({ name: 'conversation.hero.brand.mark', priority: -100 }, AgentvilleHeroMark))
+    ctx.slots.register({ name: 'conversation.hero.brand.mark', priority: -100 }, AgentIslesHeroMark))
   ctx.slots.inject('shell.overlay', () =>
     ctx.slots.register({
       name: 'shell.overlay',
-      id: 'agentville-world',
+      id: 'agent-isles-world',
       order: -100,
-      inject: (): AgentvilleWorldInjected => ({
+      inject: (): AgentIslesWorldInjected => ({
         models: {
           load: () => readModelSettings(ctx.remote),
           save: (...args) => saveModelSettings(ctx.remote, ...args),
@@ -162,7 +165,7 @@ export function apply(ctx: ClientContext): void {
             if (!result.ok) throw new Error('密钥删除失败，可能由启动环境或只读配置管理')
           },
           test: async () => {
-            const response = await fetch('/agentville/model-test', {
+            const response = await fetch('/agent-isles/model-test', {
               method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}', signal: AbortSignal.timeout(35_000),
             })
             const result = await response.json() as { ok: boolean; message?: string }
@@ -193,5 +196,5 @@ export function apply(ctx: ClientContext): void {
         },
         bindWorkspace: async path => (await ctx.workspaces.create({ path })).workspaceId,
       }),
-    }, AgentvilleWorld))
+    }, AgentIslesWorld))
 }

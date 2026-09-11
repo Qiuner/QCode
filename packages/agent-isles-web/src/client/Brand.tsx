@@ -5,15 +5,15 @@ import type { HeroBrandMarkOwnerProps } from '@deepseek-ai/dsh-client-ui-convers
 
 const colors = ['#1f6f5c', '#e0a12f', '#d45b48', '#3977b8']
 
-export function AgentvilleBrandMark({ size }: SidebarBrandMarkOwnerProps) {
-  return <AgentvilleMark size={size} />
+export function AgentIslesBrandMark({ size }: SidebarBrandMarkOwnerProps) {
+  return <AgentIslesMark size={size} />
 }
 
-export function AgentvilleHeroMark({ size, className }: HeroBrandMarkOwnerProps) {
-  return <AgentvilleMark size={size} className={className} hero />
+export function AgentIslesHeroMark({ size, className }: HeroBrandMarkOwnerProps) {
+  return <AgentIslesMark size={size} className={className} hero />
 }
 
-function AgentvilleMark({ size, className, hero = false }: {
+function AgentIslesMark({ size, className, hero = false }: {
   size: number
   className?: string | undefined
   hero?: boolean
@@ -21,7 +21,7 @@ function AgentvilleMark({ size, className, hero = false }: {
   return (
     <span
       aria-hidden="true"
-      className={`${className ?? ''}${hero ? ' agentville-hero-mark' : ''}`.trim() || undefined}
+      className={`${className ?? ''}${hero ? ' agent-isles-hero-mark' : ''}`.trim() || undefined}
       style={{
         boxSizing: 'border-box',
         display: 'grid',
@@ -39,7 +39,7 @@ function AgentvilleMark({ size, className, hero = false }: {
   )
 }
 
-export function AgentvilleBrandName() {
+export function AgentIslesBrandName() {
   return (
     <span style={{
       color: 'var(--dsw-alias-label-primary)',
@@ -49,7 +49,7 @@ export function AgentvilleBrandName() {
       lineHeight: '24px',
       whiteSpace: 'nowrap',
     }}>
-      Agentville
+      agent-isles
     </span>
   )
 }

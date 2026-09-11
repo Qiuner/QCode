@@ -5,18 +5,9 @@ __metadata:
   version: 10
   cacheKey: 10c0
 
-"@agentclientprotocol/sdk@npm:1.4.0":
-  version: 1.4.0
-  resolution: "@agentclientprotocol/sdk@npm:1.4.0"
-  peerDependencies:
-    zod: ^3.25.0 || ^4.0.0
-  checksum: 10c0/d2bc6a9e94cd064d8df1a7c37fc44381a767cfeeda663ba8531164980505c29426b88a50b1a5781a8b4b4304e8756ac557e98d7d26c7f7431716ba107ed9594b
-  languageName: node
-  linkType: hard
-
-"@agentville/web-plugin@workspace:*, @agentville/web-plugin@workspace:packages/agentville-web":
+"@agent-isles/web-plugin@workspace:*, @agent-isles/web-plugin@workspace:packages/agent-isles-web":
   version: 0.0.0-use.local
-  resolution: "@agentville/web-plugin@workspace:packages/agentville-web"
+  resolution: "@agent-isles/web-plugin@workspace:packages/agent-isles-web"
   dependencies:
     "@deepseek-ai/cordis": "npm:^4.0.2"
     "@deepseek-ai/dsh-agent-default-model": "npm:0.1.3-alpha.1"
@@ -39,11 +30,11 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@agentville/web@workspace:apps/web":
+"@agent-isles/web@workspace:apps/web":
   version: 0.0.0-use.local
-  resolution: "@agentville/web@workspace:apps/web"
+  resolution: "@agent-isles/web@workspace:apps/web"
   dependencies:
-    "@agentville/web-plugin": "workspace:*"
+    "@agent-isles/web-plugin": "workspace:*"
     "@deepseek-ai/cordis": "npm:4.0.2"
     "@deepseek-ai/cordis-plugin-group": "npm:1.0.2"
     "@deepseek-ai/cordis-plugin-include": "npm:1.0.7"
@@ -184,6 +175,15 @@ __metadata:
     "@deepseek-ai/schemastery": "npm:3.18.2"
   languageName: unknown
   linkType: soft
+
+"@agentclientprotocol/sdk@npm:1.4.0":
+  version: 1.4.0
+  resolution: "@agentclientprotocol/sdk@npm:1.4.0"
+  peerDependencies:
+    zod: ^3.25.0 || ^4.0.0
+  checksum: 10c0/d2bc6a9e94cd064d8df1a7c37fc44381a767cfeeda663ba8531164980505c29426b88a50b1a5781a8b4b4304e8756ac557e98d7d26c7f7431716ba107ed9594b
+  languageName: node
+  linkType: hard
 
 "@anthropic-ai/sdk@npm:0.91.1":
   version: 0.91.1

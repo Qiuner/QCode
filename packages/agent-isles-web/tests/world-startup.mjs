@@ -34,7 +34,7 @@ export async function measureWorldStartup(browser, url, { fullMaterials = false,
       }
     })
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 })
-    const frame = page.frameLocator('iframe[title="Agentville 小镇"]')
+    const frame = page.frameLocator('iframe[title="agent-isles 小镇"]')
     await frame.locator('#gate[hidden]').waitFor({ state: 'attached', timeout: 120000 })
     const world = page.frames().find(item => new URL(item.url()).pathname.startsWith('/world/'))
     await world.waitForFunction(() => window.neighborState?.stage === 'ready', null, { timeout: 120000 })

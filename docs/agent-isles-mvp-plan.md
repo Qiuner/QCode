@@ -1,4 +1,4 @@
-# Agentville 网页优先 MVP
+# agent-isles 网页优先 MVP
 
 ## 目标
 
@@ -36,7 +36,7 @@
 | 阿澜 File Keeper | 列出真实目录、读取指定相对路径 |
 
 - 同一 Workspace 下各居民使用独立 Session；关闭面板不取消任务，切回恢复会话。
-- 当前项目保存在 `agentville.active-workspace.v1`，居民映射保存在 `agentville.resident-sessions.v1`。
+- 当前项目保存在 `agent-isles.active-workspace.v1`，居民映射保存在 `agent-isles.resident-sessions.v1`；更名前的浏览器键只用于兼容读取。
 - 草稿按项目和居民隔离；异步返回通过操作序号防止覆盖后来的选择。
 - 通过 `beginSubmission` 和 `ISession.prompt` 调用真实 Harness，展示回复和工具调用。
 - `turn/end completed` 只显示“本轮已结束”，不宣称测试通过；错误与中断显示未完成。
@@ -45,9 +45,9 @@
 
 ## 验证与限制
 
-- `corepack yarn build:web` 检查类型和构建；`node --test packages/agentville-web/tests/resident-model.test.mjs` 验证事件投影。
+- `corepack yarn build:web` 检查类型和构建；`node --test packages/agent-isles-web/tests/resident-model.test.mjs` 验证事件投影。
 - `corepack yarn build:world` 包含资源导入和中文字体覆盖检查；Godot 居民测试位于 `games/mosslight/tests/residents.gd`。
-- 浏览器实测使用忽略的 `agentville-runtime-test/` 文件夹，验证 Coder 创建并读回文件、Teacher 读取讲解、File Keeper 列目录。
+- 浏览器实测使用忽略的 `agent-isles-runtime-test/` 文件夹，验证 Coder 创建并读回文件、Teacher 读取讲解、File Keeper 列目录。
 - Teacher 和 File Keeper 的只读行为目前依靠提示，尚未强制限制工具权限，不能当作权限隔离。
 - 文件管理员暂时通过模型和文件工具展示结果，尚无独立文件树预览器。
 - 恢复项目和居民映射后，未打开会话的完整事件状态需要恢复会话才可显示。

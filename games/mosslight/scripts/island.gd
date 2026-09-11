@@ -80,11 +80,11 @@ var dialogue_name: Label
 var dialogue_text: Label
 var dialogue_left := 0.0
 var garden: Node3D
-var agentville_message_handler: JavaScriptObject
-var agentville_bridge: JavaScriptObject
-var agentville_connected := false
-var agentville_workspace_id := ""
-var agentville_session_id := ""
+var agent_isles_message_handler: JavaScriptObject
+var agent_isles_bridge: JavaScriptObject
+var agent_isles_connected := false
+var agent_isles_workspace_id := ""
+var agent_isles_session_id := ""
 var embedded_mode := false
 var region_barriers: Array[StaticBody3D] = []
 var region_signs: Array[Label3D] = []
@@ -113,7 +113,7 @@ func _ready() -> void:
 	camera.add_child(first_person_feedback)
 	first_person_feedback.visible = false
 	_build_ui()
-	_setup_agentville_bridge()
+	_setup_agent_isles_bridge()
 	garden = GARDEN_INVENTORY.new()
 	add_child(garden)
 	_apply_embedded_hud()
@@ -172,30 +172,32 @@ func _apply_embedded_hud() -> void:
 		garden.bag_hint.visible = not embedded_mode
 
 
-func _setup_agentville_bridge() -> void:
+func _setup_agent_isles_bridge() -> void:
 	if not OS.has_feature("web"):
 		return
-	agentville_bridge = JavaScriptBridge.get_interface("agentvilleWorldBridge")
-	if agentville_bridge == null:
+	agent_isles_bridge = JavaScriptBridge.get_interface("agentIslesWorldBridge")
+	if agent_isles_bridge == null:
+		agent_isles_bridge = JavaScriptBridge.get_interface("agentvilleWorldBridge")
+	if agent_isles_bridge == null:
 		return
-	agentville_message_handler = JavaScriptBridge.create_callback(_on_agentville_message)
-	agentville_bridge.attachGodot(agentville_message_handler)
+	agent_isles_message_handler = JavaScriptBridge.create_callback(_on_agent_isles_message)
+	agent_isles_bridge.attachGodot(agent_isles_message_handler)
 
 
-func _emit_agentville(type: String, payload: Dictionary) -> void:
-	if not OS.has_feature("web") or agentville_bridge == null:
+func _emit_agent_isles(type: String, payload: Dictionary) -> void:
+	if not OS.has_feature("web") or agent_isles_bridge == null:
 		return
-	agentville_bridge.emit(type, payload)
+	agent_isles_bridge.emit(type, payload)
 
 
-func _on_agentville_message(arguments: Array) -> void:
+func _on_agent_isles_message(arguments: Array) -> void:
 	if arguments.is_empty():
 		return
 	var parsed: Variant = JSON.parse_string(str(arguments[0]))
 	if typeof(parsed) != TYPE_DICTIONARY:
 		return
 	var message := parsed as Dictionary
-	if message.get("source") != "agentville-host" or int(message.get("version", 0)) != 1:
+	if message.get("source") not in ["agent-isles-host", "agentville-host"] or int(message.get("version", 0)) != 1:
 		return
 	if message.get("type") == "world:neighbors-started":
 		regions_loading = true
@@ -228,19 +230,19 @@ func _on_agentville_message(arguments: Array) -> void:
 		return
 	if message.get("type") != "world:init":
 		return
-	agentville_connected = true
+	agent_isles_connected = true
 	var payload: Dictionary = message.get("payload", {})
-	agentville_session_id = str(payload.get("sessionId", ""))
+	agent_isles_session_id = str(payload.get("sessionId", ""))
 	for resident: Dictionary in payload.get("residents", []):
 		residents.set_agent_status(str(resident.get("id", "")), str(resident.get("status", "idle")))
 	var workspace: Variant = payload.get("workspace")
 	if typeof(workspace) != TYPE_DICTIONARY:
-		agentville_workspace_id = ""
+		agent_isles_workspace_id = ""
 		return
-	var previous_workspace_id := agentville_workspace_id
-	agentville_workspace_id = str((workspace as Dictionary).get("workspaceId", ""))
+	var previous_workspace_id := agent_isles_workspace_id
+	agent_isles_workspace_id = str((workspace as Dictionary).get("workspaceId", ""))
 	var workspace_title := str((workspace as Dictionary).get("title", ""))
-	if not workspace_title.is_empty() and agentville_workspace_id != previous_workspace_id:
+	if not workspace_title.is_empty() and agent_isles_workspace_id != previous_workspace_id:
 		_show_toast("已连接工作区：%s" % workspace_title, 4.0)
 
 
@@ -688,8 +690,8 @@ func _interact() -> void:
 		if npc != null:
 			var starting_conversation := talking_to != npc
 			talking_to = npc
-			if agentville_connected:
-				var work_dialogue: Dictionary = residents.agentville_talk(npc, not agentville_workspace_id.is_empty())
+			if agent_isles_connected:
+				var work_dialogue: Dictionary = residents.agent_isles_talk(npc, not agent_isles_workspace_id.is_empty())
 				dialogue_name.text = work_dialogue.name
 				dialogue_text.text = work_dialogue.text
 			else:
@@ -699,8 +701,8 @@ func _interact() -> void:
 			dialogue_panel.visible = true
 			toast.visible = false
 			if starting_conversation:
-				_emit_agentville("resident:selected", {"residentId": npc.get_meta("agentville_id")})
-				if agentville_connected:
+				_emit_agent_isles("resident:selected", {"residentId": npc.get_meta("agent_isles_id")})
+				if agent_isles_connected:
 					Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 

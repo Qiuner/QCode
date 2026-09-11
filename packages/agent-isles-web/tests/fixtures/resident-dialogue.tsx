@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { createRoot } from 'react-dom/client'
-import { AgentvilleWorld } from '../../src/client/AgentvilleWorld.js'
+import { AgentIslesWorld } from '../../src/client/AgentIslesWorld.js'
 import { WORLD_STYLES } from '../../src/client/styles.js'
 
 const control = { pick: 'ok', configured: true, calls: [] as string[], aborted: false, finish: undefined as (() => void) | undefined }
@@ -40,8 +40,8 @@ function Fixture() {
       setItems([{ workspaceId: 'test-project', title: 'Test Project', path, sessionIds: [] }])
       return 'test-project'
     },
-  } as unknown as React.ComponentProps<typeof AgentvilleWorld>
-  return <><style>{WORLD_STYLES}</style><AgentvilleWorld {...props} /></>
+  } as unknown as React.ComponentProps<typeof AgentIslesWorld>
+  return <><style>{WORLD_STYLES}</style><AgentIslesWorld {...props} /></>
 }
 
 createRoot(document.getElementById('root')!).render(<Fixture />)

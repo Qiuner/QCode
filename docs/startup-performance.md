@@ -28,7 +28,7 @@
 - 浏览器 Performance：`world-start`、`godot-scene-ready`、`world-playable`、`godot-neighbors-ready`。
 - 原生 Godot：`--headless --path games/mosslight --script res://tools/profile_startup.gd`；追加 `-- --stream-neighbors` 对照主岛。
 - 分区测试：`--headless --path games/mosslight --script res://tests/region_loading.gd -- --stream-neighbors`。
-- Web 测试：构建后运行 `node --test packages/agentville-web/tests/*.test.mjs`。
+- Web 测试：构建后运行 `node --test packages/agent-isles-web/tests/*.test.mjs`。
 
 ## 后续重点
 
@@ -105,7 +105,7 @@
 | 主岛开放后的最长长任务 | 8.401 / 8.477 / 8.518 | 7.027 / 8.013 / 6.740 | 8.477 → 7.027，减少约 17.1% |
 | `getProgramParameter` 累计等待 | 40.557 / 40.155 / 40.186 | 37.678 / 38.658 / 36.608 | 减少约 6.2% |
 
-复测辅助函数为 `packages/agentville-web/tests/world-startup.mjs` 的 `measureWorldStartup(browser, authenticatedUrl, options)`；调用方提供 Playwright、新浏览器进程与本机认证 URL。`fullMaterials: true` 只在测试拦截的启动 HTML 中传入基线参数，不改变服务端导出文件。该辅助函数测量真实首帧、邻区开放、长任务和编译等待，不能用热刷新替代上述冷启动流程。
+复测辅助函数为 `packages/agent-isles-web/tests/world-startup.mjs` 的 `measureWorldStartup(browser, authenticatedUrl, options)`；调用方提供 Playwright、新浏览器进程与本机认证 URL。`fullMaterials: true` 只在测试拦截的启动 HTML 中传入基线参数，不改变服务端导出文件。该辅助函数测量真实首帧、邻区开放、长任务和编译等待，不能用热刷新替代上述冷启动流程。
 
 精确碰撞离线化也做了小规模试验：主岛 531,618 个三角形现场生成约 1.24 秒，读取预保存的压缩碰撞资源仍需约 0.85 秒，并新增约 4.13 MB 资源文件。该文件大小不是额外 HTTP 传输量的实测值。收益不足以抵消包体及构建复杂度，未加入正式构建；后续应单独评估简化相机碰撞网格，而非仅序列化原始网格。
 

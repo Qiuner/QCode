@@ -10,7 +10,7 @@ import { ModelSettings } from './ModelSettings.js'
 import { ModelConfigurationRequired, type ModelSettingsActions } from './model-settings.js'
 import { RESIDENT_PORTRAITS } from './resident-portraits.js'
 
-export interface AgentvilleWorldInjected {
+export interface AgentIslesWorldInjected {
   models: ModelSettingsActions
   residentForSession(workspaceId: string, sessionId: string): ResidentId | undefined
   sessionForResident(workspaceId: string, residentId: ResidentId): string | undefined
@@ -25,11 +25,13 @@ export interface AgentvilleWorldInjected {
   readRecentSession(id: string, signal: AbortSignal): Promise<ReturnType<typeof projectResidentEvents>>
 }
 
-type Props = PropsRuntime<'shell.overlay'> & AgentvilleWorldInjected
-const PROJECT_KEY = 'agentville.active-workspace.v1'
-const DRAFTS_KEY = 'agentville.resident-drafts.v1'
+type Props = PropsRuntime<'shell.overlay'> & AgentIslesWorldInjected
+const PROJECT_KEY = 'agent-isles.active-workspace.v1'
+const DRAFTS_KEY = 'agent-isles.resident-drafts.v1'
+const LEGACY_PROJECT_KEY = 'agentville.active-workspace.v1'
+const LEGACY_DRAFTS_KEY = 'agentville.resident-drafts.v1'
 
-function RecentWork({ id, updatedAt, running, read }: { id: string; updatedAt: number; running: boolean; read: AgentvilleWorldInjected['readRecentSession'] }) {
+function RecentWork({ id, updatedAt, running, read }: { id: string; updatedAt: number; running: boolean; read: AgentIslesWorldInjected['readRecentSession'] }) {
   const [recent, setRecent] = useState<Awaited<ReturnType<typeof read>>>()
   const [error, setError] = useState('')
   useEffect(() => {
@@ -71,7 +73,7 @@ function SessionResult({ binding }: { binding: SessionBinding }) {
   </div>
 }
 
-export function AgentvilleWorld(props: Props) {
+export function AgentIslesWorld(props: Props) {
   const iframe = useRef<HTMLIFrameElement>(null)
   const [worldUrl] = useState(() => worldFrameUrl(location.href))
   const [ready, setReady] = useState(false)
@@ -94,10 +96,14 @@ export function AgentvilleWorld(props: Props) {
   const [restoreAttempt, setRestoreAttempt] = useState(0)
   const [guideView, setGuideView] = useState<'welcome' | 'projects' | 'path' | 'residents' | 'options'>('welcome')
   const conversation = useRef<HTMLElement>(null)
-  const [projectId, setProjectId] = useState<string | null>(() => { try { return localStorage.getItem(PROJECT_KEY) } catch { return null } })
+  const [projectId, setProjectId] = useState<string | null>(() => {
+    try { return localStorage.getItem(PROJECT_KEY) ?? localStorage.getItem(LEGACY_PROJECT_KEY) }
+    catch { return null }
+  })
   const [path, setPath] = useState('')
   const [drafts, setDrafts] = useState<Record<string, string>>(() => {
-    try { return readResidentDrafts(localStorage.getItem(DRAFTS_KEY)) } catch { return {} }
+    try { return readResidentDrafts(localStorage.getItem(DRAFTS_KEY) ?? localStorage.getItem(LEGACY_DRAFTS_KEY)) }
+    catch { return {} }
   })
   const [draftStorageError, setDraftStorageError] = useState(false)
   useEffect(() => {
@@ -201,8 +207,8 @@ export function AgentvilleWorld(props: Props) {
 
   useEffect(() => {
     const frame = document.querySelector<HTMLElement>('[data-shell-overlay]')?.parentElement
-    frame?.setAttribute('data-agentville-town', '')
-    return () => { frame?.removeAttribute('data-agentville-town') }
+    frame?.setAttribute('data-agent-isles-town', '')
+    return () => { frame?.removeAttribute('data-agent-isles-town') }
   }, [])
 
   useEffect(() => {
@@ -219,7 +225,7 @@ export function AgentvilleWorld(props: Props) {
   const worldState = JSON.stringify({ workspace: workspace ? { workspaceId: workspace.workspaceId, title: workspace.title } : null, sessionId: bindingId ?? null, residents })
   useEffect(() => {
     if (!ready) return
-    iframe.current?.contentWindow?.postMessage({ source: 'agentville-host', version: WORLD_BRIDGE_VERSION, type: 'world:init', payload: JSON.parse(worldState) }, worldUrl.origin)
+    iframe.current?.contentWindow?.postMessage({ source: 'agent-isles-host', version: WORLD_BRIDGE_VERSION, type: 'world:init', payload: JSON.parse(worldState) }, worldUrl.origin)
   }, [ready, worldState])
 
   function useProject(id: string) {
@@ -273,11 +279,11 @@ export function AgentvilleWorld(props: Props) {
   }
 
   function openWorldGuide() {
-    iframe.current?.contentWindow?.postMessage({ source: 'agentville-host', version: WORLD_BRIDGE_VERSION, type: 'world:show-guide' }, worldUrl.origin)
+    iframe.current?.contentWindow?.postMessage({ source: 'agent-isles-host', version: WORLD_BRIDGE_VERSION, type: 'world:show-guide' }, worldUrl.origin)
   }
 
   return <div className="town-shell" data-conversation={resident && !showModels ? '' : undefined} data-regions-pending={regions.stage !== 'ready' ? '' : undefined}>
-    <iframe ref={iframe} src={worldUrl.href} title="Agentville 小镇" onLoad={() => setReady(true)} />
+    <iframe ref={iframe} src={worldUrl.href} title="agent-isles 小镇" onLoad={() => setReady(true)} />
     {!selected && !showModels && <button className="town-work-entry" onClick={() => choose('coordinator')}>{workspace ? `${workspace.title} · 工作记录` : '项目与工作记录'}</button>}
     {regions.stage !== 'ready' && <section className="town-regions" data-stage={regions.stage} aria-label="区域加载状态">
       <strong>溪间庭院 · 晴沙绿洲</strong>
@@ -285,7 +291,7 @@ export function AgentvilleWorld(props: Props) {
       {regions.stage === 'failed'
         ? <button type="button" onClick={() => {
           setRegions({ stage: 'downloading', detail: '正在重新连接…' })
-          iframe.current?.contentWindow?.postMessage({ source: 'agentville-host', version: WORLD_BRIDGE_VERSION, type: 'world:retry-neighbors' }, worldUrl.origin)
+          iframe.current?.contentWindow?.postMessage({ source: 'agent-isles-host', version: WORLD_BRIDGE_VERSION, type: 'world:retry-neighbors' }, worldUrl.origin)
         }}>重新加载区域</button>
         : <progress aria-label="邻近区域正在加载" />}
     </section>}

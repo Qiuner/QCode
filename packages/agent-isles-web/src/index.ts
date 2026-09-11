@@ -32,7 +32,7 @@ export async function serveWorld(req: IncomingMessage, res: ServerResponse, worl
     return
   }
   let pathname: string
-  try { pathname = decodeURIComponent(new URL(req.url ?? '/', 'http://agentville.local').pathname) }
+  try { pathname = decodeURIComponent(new URL(req.url ?? '/', 'http://agent-isles.local').pathname) }
   catch { end(res, 400); return }
   if (pathname === WORLD_ROUTE) {
     res.writeHead(308, { location: `${WORLD_ROUTE}/` })
@@ -98,26 +98,38 @@ export async function serveWorld(req: IncomingMessage, res: ServerResponse, worl
 
 /** Host half: mount the Godot export beside the existing Harness API and SPA. */
 export function apply(ctx: Context & ModelTestServices): void {
+  const home = resolve(process.env.DSH_HOME ?? '.agent-isles-home')
+  const residentStateHandler = createResidentStateHandler(
+    resolve(home, 'agent-isles-state.json'),
+    resolve(home, 'agentville-state.json'),
+  )
+  const modelTestHandler = createModelTestHandler(ctx)
   ctx.effect(() => ctx.webServer.register({
-    kind: 'exact', path: '/agentville/resident-state',
-    handler: createResidentStateHandler(resolve(process.env.DSH_HOME ?? '.agentville-home', 'agentville-state.json')),
-  }), 'agentville-web: resident recovery')
+    kind: 'exact', path: '/agent-isles/resident-state',
+    handler: residentStateHandler,
+  }), 'agent-isles-web: resident recovery')
   ctx.effect(() => ctx.webServer.register({
-    kind: 'exact', path: '/agentville/model-test', handler: createModelTestHandler(ctx),
-  }), 'agentville-web: model connection test')
-  const configuredRoot = process.env.AGENTVILLE_WORLD_ROOT
+    kind: 'exact', path: '/agentville/resident-state', handler: residentStateHandler,
+  }), 'agent-isles-web: legacy resident recovery route')
+  ctx.effect(() => ctx.webServer.register({
+    kind: 'exact', path: '/agent-isles/model-test', handler: modelTestHandler,
+  }), 'agent-isles-web: model connection test')
+  ctx.effect(() => ctx.webServer.register({
+    kind: 'exact', path: '/agentville/model-test', handler: modelTestHandler,
+  }), 'agent-isles-web: legacy model test route')
+  const configuredRoot = process.env.AGENT_ISLES_WORLD_ROOT ?? process.env.AGENTVILLE_WORLD_ROOT
   const worldRoot = resolve(process.cwd(), configuredRoot ?? 'games/mosslight/build/web')
   ctx.effect(() => ctx.webServer.register({
     kind: 'prefix',
     path: WORLD_ROUTE,
     handler: (req, res) => serveWorld(req, res, worldRoot),
-  }), 'agentville-web: world assets')
+  }), 'agent-isles-web: world assets')
   ctx.effect(() => ctx.webServer.register({
     kind: 'exact',
     path: '/workbench',
     handler: (_req, res) => {
-      res.writeHead(302, { location: '/?agentville=workbench' })
+      res.writeHead(302, { location: '/?agent-isles=workbench' })
       res.end()
     },
-  }), 'agentville-web: workbench entry')
+  }), 'agent-isles-web: workbench entry')
 }
