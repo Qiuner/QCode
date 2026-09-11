@@ -90,6 +90,7 @@ var region_signs: Array[Label3D] = []
 var regions_loading := false
 var regions_error := false
 var regions_installing := false
+var distance_haze: ShaderMaterial
 
 
 func _ready() -> void:
@@ -97,6 +98,7 @@ func _ready() -> void:
 	_setup_input()
 	_build_world()
 	_build_player()
+	_build_distance_haze()
 	environment_details = ENVIRONMENT_DETAILS.new()
 	add_child(environment_details)
 	residents = ISLAND_RESIDENTS.new()
@@ -136,6 +138,24 @@ func _is_embedded_web() -> bool:
 	if not OS.has_feature("web"):
 		return false
 	return bool(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('embed') === '1'"))
+
+
+func _build_distance_haze() -> void:
+	var overlay := MeshInstance3D.new()
+	overlay.name = "DistanceHaze"
+	var quad := QuadMesh.new()
+	quad.size = Vector2(2, 2)
+	overlay.mesh = quad
+	overlay.position.z = -1
+	overlay.extra_cull_margin = 16384
+	overlay.ignore_occlusion_culling = true
+	overlay.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	distance_haze = ShaderMaterial.new()
+	distance_haze.shader = preload("res://assets/distance_haze.gdshader")
+	distance_haze.render_priority = 100
+	distance_haze.set_shader_parameter("focus_position", player.global_position)
+	overlay.material_override = distance_haze
+	camera.add_child(overlay)
 
 
 func _apply_embedded_hud() -> void:
@@ -734,6 +754,8 @@ func _update_view_hint() -> void:
 
 
 func _process(delta: float) -> void:
+	distance_haze.set_shader_parameter("focus_position", player.global_position)
+	distance_haze.set_shader_parameter("clear_radius", 10.0 if view_mode == ViewMode.OVERVIEW else 7.0)
 	if game_paused:
 		return
 	var captured := Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
