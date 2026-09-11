@@ -1,6 +1,11 @@
 extends Node3D
 ## Summer courtyard adapted from xi4u, MIT (c) 2026 AC. See assets/xi4u-LICENSE.txt.
 
+const ECHO_OBJECTS = preload("res://scripts/echo_objects.gd")
+const LOOKOUT := Vector3(-9.5, 1.8, -6.5)
+const PLANK_SOURCE := Vector3(7.4, 0, .4)
+const MUSHROOM_SOURCE := Vector3(-8.5, 0, 6.8)
+
 var time := 0.0
 var fish: Array[MeshInstance3D] = []
 var currents: Array[MeshInstance3D] = []
@@ -109,6 +114,68 @@ func _ready() -> void:
 		add_child(current)
 		currents.append(current)
 	advance(0, false)
+	_build_echo_walk()
+
+
+func _build_echo_walk() -> void:
+	for kind: String in ["plank", "mushroom"]:
+		var source := ECHO_OBJECTS.create(kind, false)
+		source.position = (PLANK_SOURCE if kind == "plank" else MUSHROOM_SOURCE) + Vector3.UP * (ECHO_OBJECTS.SIZES[kind].y / 2 + .02)
+		if kind == "plank":
+			source.rotation.y = PI / 2
+		add_child(source)
+	# A west-bank lookout can be reached with a crate, a bounce, or a plank bridge.
+	_lookout_block(LOOKOUT - Vector3(0, .9, 0), Vector3(3.2, 1.8, 2.4), Color("859782"))
+	for i in range(12):
+		ECHO_OBJECTS.part(self, BoxMesh.new(), LOOKOUT + Vector3((i - 5.5) * .263, .025, 0), Vector3(.25, .05, 2.4), Color("b99465") if i % 2 else Color("c7a578"))
+	# Keep the south and east edges open for climbing and landing.
+	for z in [-7.55, -6.55, -5.45]:
+		_lookout_block(Vector3(-11.0, 2.23, z), Vector3(.10, .85, .10), Color("677e6e"))
+	_lookout_block(Vector3(-11.0, 2.58, -6.5), Vector3(.10, .10, 2.2), Color("677e6e"))
+	_lookout_block(Vector3(-9.5, .9, -2.35), Vector3(1.6, 1.8, 1.1), Color("859782"))
+	var ramp := StaticBody3D.new()
+	ramp.name = "LookoutApproach"
+	ramp.collision_layer = 3
+	var collision := CollisionShape3D.new()
+	var wedge := ConvexPolygonShape3D.new()
+	var vertices := PackedVector3Array()
+	for x in [-10.3, -8.7]:
+		vertices.append_array(PackedVector3Array([Vector3(x, -.05, 1.6), Vector3(x, -.05, -1.8), Vector3(x, 1.8, -1.8)]))
+	wedge.points = vertices
+	collision.shape = wedge
+	ramp.add_child(collision)
+	add_child(ramp)
+	for i in range(12):
+		var depth := 3.4 / 12
+		ECHO_OBJECTS.part(self, BoxMesh.new(), Vector3(-9.5, (i + .5) * 1.8 / 12, 1.6 - (i + .5) * depth), Vector3(1.6, .12, depth), Color("b99465") if i % 2 else Color("c7a578"))
+	var sign := Label3D.new()
+	sign.text = "听风台"
+	sign.font = preload("res://assets/fonts/MosslightUI.ttf")
+	sign.font_size = 44
+	sign.pixel_size = .009
+	sign.modulate = Color("fff0ce")
+	sign.outline_modulate = Color("405b4c")
+	sign.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	sign.position = LOOKOUT + Vector3(0, .65, -.6)
+	add_child(sign)
+
+
+func _lookout_block(at: Vector3, size: Vector3, color: Color) -> void:
+	var body := StaticBody3D.new()
+	body.collision_layer = 3
+	body.position = at
+	var collision := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = size
+	collision.shape = box
+	body.add_child(collision)
+	ECHO_OBJECTS.part(body, BoxMesh.new(), Vector3.ZERO, size, color)
+	add_child(body)
+
+
+func at_lookout(point: Vector3) -> bool:
+	var local := to_local(point) - LOOKOUT
+	return absf(local.x) < 1.5 and absf(local.z) < 1.1 and local.y > -.1 and local.y < .5
 
 func add_barrier(at: Vector3, size: Vector3) -> void:
 	var body := StaticBody3D.new()

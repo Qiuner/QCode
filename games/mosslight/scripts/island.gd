@@ -22,6 +22,7 @@ const FIRST_PERSON_FEEDBACK = preload("res://scripts/first_person_feedback.gd")
 const ISLAND_RESIDENTS = preload("res://scripts/island_residents.gd")
 const GARDEN_INVENTORY = preload("res://scripts/garden_inventory.gd")
 const WEB_RENDERING = preload("res://scripts/web_rendering.gd")
+const ECHO_OBJECTS = preload("res://scripts/echo_objects.gd")
 enum ViewMode { OVERVIEW, THIRD_PERSON, FIRST_PERSON }
 
 var player: CharacterBody3D
@@ -32,6 +33,9 @@ var echoes: Array[StaticBody3D] = []
 var motes: Array[MeshInstance3D] = []
 var learned := false
 var echo_active := false
+var learned_echoes: Array[String] = []
+var selected_echo := "crate"
+var echo_rotation := 0.0
 var facing := Vector3(0, 0, -1)
 var elapsed := 0.0
 var preview: MeshInstance3D
@@ -270,6 +274,7 @@ func _setup_input() -> void:
 		"mute": [KEY_M], "close_game": [KEY_ESCAPE], "nature_motion": [KEY_N],
 		"camera_motion": [KEY_B],
 		"inventory": [KEY_I], "equip_tool": [KEY_G],
+		"cycle_echo": [KEY_C], "rotate_echo": [KEY_T],
 		"cycle_view": [KEY_V], "overview": [KEY_1], "third_person": [KEY_2],
 		"first_person": [KEY_3], "sprint": [KEY_SHIFT]
 	}
@@ -495,6 +500,9 @@ func _add_solid(at: Vector3, size: Vector3, label: String) -> StaticBody3D:
 
 func _make_crate(at: Vector3, is_echo: bool) -> StaticBody3D:
 	var body := _add_solid(at + Vector3(0, .45, 0), CRATE_SIZE, "Echo" if is_echo else "Original")
+	body.set_meta("echo_kind", "crate")
+	if not is_echo:
+		body.add_to_group("echo_sources")
 	var art := CRATE_SCENE.instantiate() as Node3D
 	art.position.y = -.45
 	body.add_child(art)
@@ -580,7 +588,7 @@ func _physics_process(delta: float) -> void:
 	var speed := SPEED * (1.55 if Input.is_action_pressed("sprint") else 1.0)
 	player.velocity.x = move_toward(player.velocity.x, direction.x * speed, delta * 26)
 	player.velocity.z = move_toward(player.velocity.z, direction.z * speed, delta * 26)
-	if not player.is_on_floor():
+	if not player.is_on_floor() or player.velocity.y > 0:
 		player.velocity.y -= GRAVITY * delta
 	elif Input.is_action_just_pressed("jump"):
 		player.velocity.y = JUMP
@@ -591,6 +599,13 @@ func _physics_process(delta: float) -> void:
 	var was_grounded := player.is_on_floor()
 	var fall_speed := maxf(0, -player.velocity.y)
 	player.move_and_slide()
+	if player.velocity.y <= 0:
+		for i in range(player.get_slide_collision_count()):
+			var contact := player.get_slide_collision(i)
+			if contact.get_normal().y > .7 and contact.get_collider().has_meta("bounce_speed"):
+				player.velocity.y = contact.get_collider().get_meta("bounce_speed")
+				_tone(660, .16, .12)
+				break
 	if view_mode == ViewMode.FIRST_PERSON:
 		first_person_feedback.advance(delta, player.position - previous_position,
 			player.is_on_floor(), fall_speed if not was_grounded else 0.0, camera_motion)
@@ -634,7 +649,7 @@ func _physics_process(delta: float) -> void:
 		_update_preview()
 	if Input.is_action_just_pressed("interact"):
 		_interact()
-	if Input.is_action_just_pressed("echo") and learned:
+	if Input.is_action_just_pressed("echo"):
 		use_echo()
 	if Input.is_action_just_pressed("undo_echo") and not echoes.is_empty():
 		var last: StaticBody3D = echoes.pop_back()
@@ -644,18 +659,19 @@ func _physics_process(delta: float) -> void:
 
 
 func set_echo_active(value: bool) -> void:
-	echo_active = value and learned
+	echo_active = value and knows_echo(selected_echo)
 	preview.visible = false
 	placement_valid = false
 	if echo_active:
 		garden.equipped = false
 		garden.refresh()
+		preview.mesh = ECHO_OBJECTS.preview_mesh(selected_echo)
 		_update_preview()
 	_update_hud()
 
 
 func use_echo() -> void:
-	if game_paused or agent_isles_panel_open or not learned:
+	if game_paused or agent_isles_panel_open or not knows_echo(selected_echo):
 		return
 	if not echo_active:
 		set_echo_active(true)
@@ -664,42 +680,86 @@ func use_echo() -> void:
 		place_echo()
 
 
+func knows_echo(kind: String) -> bool:
+	return learned if kind == "crate" else learned_echoes.has(kind)
+
+
+func select_echo(kind: String) -> void:
+	if not knows_echo(kind):
+		return
+	selected_echo = kind
+	echo_rotation = PI / 2 if absf(facing.z) > absf(facing.x) else 0.0
+	set_echo_active(true)
+
+
+func _nearby_echo_source() -> StaticBody3D:
+	var nearest: StaticBody3D
+	var distance := 2.6
+	for source: StaticBody3D in get_tree().get_nodes_in_group("echo_sources"):
+		if knows_echo(source.get_meta("echo_kind")):
+			continue
+		var separation := player.global_position.distance_to(source.global_position)
+		if separation >= distance:
+			continue
+		var ray := PhysicsRayQueryParameters3D.create(player.global_position + Vector3.UP * .7, source.global_position, 1, [player.get_rid(), source.get_rid()])
+		if not get_world_3d().direct_space_state.intersect_ray(ray).is_empty():
+			continue
+		nearest = source
+		distance = separation
+	return nearest
+
+
 func _update_preview() -> void:
 	if not echo_active:
 		preview.visible = false
 		placement_valid = false
 		return
-	var candidate := player.position + facing * 1.65
+	var size: Vector3 = ECHO_OBJECTS.SIZES[selected_echo]
+	var rotation := echo_rotation if selected_echo == "plank" else 0.0
+	var basis := Basis(Vector3.UP, rotation)
+	var candidate := player.position + facing * (2.3 if selected_echo == "plank" else 1.65)
 	candidate.x = snappedf(candidate.x, .5)
 	candidate.z = snappedf(candidate.z, .5)
-	var ray := PhysicsRayQueryParameters3D.create(
-		Vector3(candidate.x, player.position.y + 2.0, candidate.z),
-		Vector3(candidate.x, -1, candidate.z))
-	ray.collision_mask = 1
-	ray.exclude = [player.get_rid()]
-	var hit := get_world_3d().direct_space_state.intersect_ray(ray)
+	var samples: Array[Vector3] = [candidate]
+	if selected_echo == "plank":
+		var end := basis.x * (size.x / 2 - .15)
+		samples.append_array([candidate - end, candidate + end])
+	var heights: Array[float] = []
+	for sample: Vector3 in samples:
+		var ray := PhysicsRayQueryParameters3D.create(
+			Vector3(sample.x, player.position.y + 2.0, sample.z), Vector3(sample.x, -1, sample.z), 1, [player.get_rid()])
+		var hit := get_world_3d().direct_space_state.intersect_ray(ray)
+		heights.append(hit.position.y if not hit.is_empty() and _echo_surface_allowed(hit.position) else -INF)
+	var height: float = heights.max()
 	placement_valid = false
 	preview.visible = not photo_mode
-	if hit.is_empty():
+	if not is_finite(height):
 		preview.visible = false
 		return
-	preview_position = hit.position + Vector3(0, .012, 0)
-	preview.position = preview_position + Vector3(0, .45, 0)
+	preview_position = Vector3(candidate.x, height + .012, candidate.z)
+	preview.position = preview_position + Vector3(0, size.y / 2, 0)
+	preview.rotation.y = rotation
 	var shape := BoxShape3D.new()
-	shape.size = CRATE_SIZE - Vector3(.06, .05, .06)
+	shape.size = size - Vector3(.06, .02, .06)
 	var query := PhysicsShapeQueryParameters3D.new()
 	query.collision_mask = 1
 	query.shape = shape
-	query.transform = Transform3D(Basis.IDENTITY, preview.position)
+	query.transform = Transform3D(basis, preview.position)
 	var overlaps := get_world_3d().direct_space_state.intersect_shape(query, 4)
-	var on_meadow := absf(candidate.x) < 11.7 and absf(candidate.z) < 9.6
-	var on_desert := absf(candidate.x - DESERT_ORIGIN.x) < 11.7 and absf(candidate.z) < 9.6
-	var on_bridge := candidate.x >= 11.7 and candidate.x <= 18.3 and absf(candidate.z - 3) < .95
-	var on_west_bridge := candidate.x <= -11.7 and candidate.x >= -18.3 and absf(candidate.z - 3) < .95
-	var on_streamside: bool = streamside != null and streamside.allows_echo(preview_position)
-	placement_valid = overlaps.is_empty() and (on_meadow or on_desert or on_bridge or on_west_bridge or on_streamside)
+	var supported := absf(heights[0] - height) < .12
+	if selected_echo == "plank":
+		supported = supported or (absf(heights[1] - height) < .12 and absf(heights[2] - height) < .12)
+	placement_valid = overlaps.is_empty() and supported
 	placement_valid = placement_valid and preview_position.y <= player.position.y + 1.05
 	preview_material.set_shader_parameter("tint", Color(.55, .95, .82, .30) if placement_valid else Color(.96, .40, .32, .30))
+
+
+func _echo_surface_allowed(point: Vector3) -> bool:
+	var on_meadow := absf(point.x) < 11.7 and absf(point.z) < 9.6
+	var on_desert := absf(point.x - DESERT_ORIGIN.x) < 11.7 and absf(point.z) < 9.6
+	var on_bridge := point.x >= 11.7 and point.x <= 18.3 and absf(point.z - 3) < .95
+	var on_west_bridge := point.x <= -11.7 and point.x >= -18.3 and absf(point.z - 3) < .95
+	return on_meadow or on_desert or on_bridge or on_west_bridge or (streamside != null and streamside.allows_echo(point))
 
 
 func place_echo() -> bool:
@@ -709,7 +769,16 @@ func place_echo() -> bool:
 	if echoes.size() == MAX_ECHOES:
 		var oldest: StaticBody3D = echoes.pop_front()
 		oldest.queue_free()
-	var echo := _make_crate(preview_position, true)
+	var echo: StaticBody3D
+	if selected_echo == "crate":
+		echo = _make_crate(preview_position, true)
+	else:
+		echo = ECHO_OBJECTS.create(selected_echo, true)
+		echo.position = preview_position + Vector3(0, ECHO_OBJECTS.SIZES[selected_echo].y / 2, 0)
+		echo.rotation.y = echo_rotation if selected_echo == "plank" else 0.0
+		add_child(echo)
+		if web_lightweight:
+			WEB_RENDERING.apply(echo)
 	echoes.append(echo)
 	_tone(520, .20, .16)
 	return true
@@ -721,11 +790,19 @@ func _interact() -> void:
 	if regions_error and absf(player.position.x) > 9.5 and absf(player.position.z - 3) < 2:
 		_request_neighbor_regions()
 		return
-	if player.position.distance_to(SOURCE) < 2.6 and not learned:
-		learned = true
-		set_echo_active(true)
+	var source := _nearby_echo_source()
+	if source != null:
+		var kind: String = source.get_meta("echo_kind")
+		if kind == "crate":
+			learned = true
+		else:
+			learned_echoes.append(kind)
+		select_echo(kind)
 		_tone(880, .4, .20)
-		_show_toast("已学会「木箱回响」！按 F 放置，右键收起。", 7)
+		var tip := "踩上去可以弹得更高。" if kind == "mushroom" else "按 T 转向，可以架桥或搭在木箱上。" if kind == "plank" else ""
+		_show_toast("已学会「%s回响」！%s F 放置 · C 切换 · 右键收起" % [ECHO_OBJECTS.NAMES[kind], tip], 8)
+	elif streamside != null and streamside.at_lookout(player.global_position):
+		_show_toast("听风台 · 树梢就在身旁，溪水从脚下流过。歇一会儿，再去别处走走吧。", 7)
 	else:
 		var npc: StaticBody3D = residents.nearest(player)
 		if npc != null:
@@ -885,6 +962,14 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event.is_action_pressed("cycle_view"):
 		set_view_mode(((view_mode + 1) % 3) as ViewMode)
+	elif event.is_action_pressed("cycle_echo"):
+		var unlocked: Array = ECHO_OBJECTS.ORDER.filter(func(kind: String): return knows_echo(kind))
+		if not unlocked.is_empty():
+			select_echo(unlocked[(unlocked.find(selected_echo) + 1) % unlocked.size()])
+			_show_toast("%s回响 · F 放置 · C 切换 · 右键收起" % ECHO_OBJECTS.NAMES[selected_echo], 3)
+	elif event.is_action_pressed("rotate_echo") and echo_active and selected_echo == "plank":
+		echo_rotation = fposmod(echo_rotation + PI / 2, PI)
+		_update_preview()
 	elif event.is_action_pressed("equip_tool"):
 		garden.toggle_equipped()
 	elif event.is_action_pressed("overview"):
@@ -1004,7 +1089,7 @@ func _build_ui() -> void:
 	game_hud.offset_top = -112
 	game_hud.offset_bottom = -34
 	echo_label = _label("01   未知回响", Vector2(22, 12), 21, Color("fae6b7"), game_hud)
-	_label("WASD 移动    空格 跳跃    E 互动    F 拿出 / 放置    右键 收起    Q 撤回", Vector2(400, 15), 18, Color("eef2df"), game_hud)
+	_label("WASD 移动    空格 跳跃    E 互动    F 拿出 / 放置    C 回响    T 转向    右键 收起    Q 撤回", Vector2(400, 15), 16, Color("eef2df"), game_hud)
 	_label("Shift 奔跑    滚轮 缩放    V 视角    Tab 隐藏界面    N 动态    M 静音    R 重开    Esc 暂停", Vector2(400, 45), 14, Color("a5c4b9"), game_hud)
 	_label("回响之杖  /  最多保留 3 个造物", Vector2(22, 45), 13, Color("a5c4b9"), game_hud)
 	game_hud.visible = not embedded_mode
@@ -1085,9 +1170,12 @@ func _label(text: String, at: Vector2, font_size: int, color: Color, parent: Con
 
 
 func _update_hud() -> void:
-	echo_label.text = "01   木箱回响    %d / 3" % echoes.size() if learned else "01   未知回响"
-	if not learned and player.position.distance_to(SOURCE) < 2.6:
-		prompt.text = "[ E ]  记住这只木箱的模样"
+	echo_label.text = "%s回响    %d / 3" % [ECHO_OBJECTS.NAMES[selected_echo], echoes.size()] if knows_echo(selected_echo) else "未知回响"
+	var source := _nearby_echo_source()
+	if source != null:
+		prompt.text = "[ E ]  学习%s回响" % ECHO_OBJECTS.NAMES[source.get_meta("echo_kind")]
+	elif streamside != null and streamside.at_lookout(player.global_position):
+		prompt.text = "[ E ]  在听风台看看风景"
 	else:
 		var npc: StaticBody3D = residents.nearest(player)
 		prompt.text = "[ E ]  与%s交谈" % npc.get_meta("display_name") if npc != null else ""
@@ -1097,7 +1185,9 @@ func _update_hud() -> void:
 	if not region_barriers.is_empty() and absf(player.position.x) > 9.5 and absf(player.position.z - 3) < 2:
 		prompt.text = "[ E ]  重新加载邻近区域" if regions_error else "邻近区域正在加载…"
 	if echo_active:
-		prompt.text += ("\n" if not prompt.text.is_empty() else "") + "[ F ] 放置木箱 · [ Q ] 撤回 · 右键收起"
+		prompt.text += ("\n" if not prompt.text.is_empty() else "") + "F 放置%s · C 切换 · Q 撤回 · 右键收起" % ECHO_OBJECTS.NAMES[selected_echo]
+		if selected_echo == "plank":
+			prompt.text += " · T 转向"
 
 
 func _show_toast(text: String, seconds: float) -> void:
