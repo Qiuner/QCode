@@ -7,7 +7,7 @@ Node.js `^22.19.0` 或 `>=24.0.0`，通过 Corepack 使用 Yarn `4.18.0`。
 | 目录 | 职责 |
 | --- | --- |
 | `apps/web/` | 启动 DSH Web profile |
-| `apps/desktop/` | 未来轻量 Windows Launcher，当前未实现 |
+| `apps/desktop/` | Windows Launcher 与本地预览版打包、验证 |
 | `packages/agent-isles-web/` | agent-isles Host/Client Web 插件 |
 | `games/mosslight/` | Blender 与 Godot 世界 |
 | `deepseek-harness/` | 固定版本的上游 Git submodule |
@@ -23,6 +23,13 @@ Node.js `^22.19.0` 或 `>=24.0.0`，通过 Corepack 使用 Yarn `4.18.0`。
 - 提交标题使用 `type(scope): 中文说明 / English summary` 格式的 Conventional Commits。
 - 每个提交只包含一组逻辑一致的变更；不同性质的改动必须分别暂存和提交。
 - 提交前检查 staged diff，排除无关文件、生成物、调试输出和未说明的格式化。
+
+## 施工文档维护
+
+- `docs/construction-plan.md` 是项目交付状态的总索引，只保留简要状态、交付范围和专项文档链接；专项施工文档记录阶段、验收证据和限制，README 记录使用方式，不重复维护项目进度。
+- 功能落地、验收结果或已知限制发生变化时，必须在本次交付中检查并同步总索引与相关专项施工文档；没有专项文档时，证据和限制记录在总索引对应条目，不为简单改动强建文档。
+- 状态统一为“待实施、实施中、已实现待验收、已验收”；部分完成必须写明已实现范围和剩余工作。只有约定验收全部通过才标为“已验收”，未执行的验收不得标为通过。
+- 提交前检查代码与施工文档状态是否一致，区分本次实际验证与历史验证；架构文档不承载施工进度和构建流水账。
 
 ## 常用命令
 
