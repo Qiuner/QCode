@@ -22,6 +22,7 @@ for (const item of readdirSync(path.join(root, 'node_modules'), { withFileTypes:
 for (const file of ['package.json', 'cordis.patch.yml', 'lib']) copy(`packages/agent-isles-web/${file}`, `node_modules/@agent-isles/web-plugin/${file}`)
 copy('packages/agent-isles-web/cordis.patch.yml')
 copy('apps/web/src/launch.mjs')
+copy('apps/web/src/supervise.mjs')
 copy('apps/desktop/boot.mjs')
 copy('games/mosslight/build/web')
 const web = JSON.parse(readFileSync(path.join(root, 'apps/web/package.json'), 'utf8'))
