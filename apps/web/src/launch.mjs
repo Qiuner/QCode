@@ -22,7 +22,7 @@ const child = spawn(process.execPath, [dshBin, 'web', '--patch', overlay, ...pro
 })
 
 child.once('error', (error) => {
-  console.error(`agentville web failed to start: ${error.message}`)
+  console.error(`agent-isles web failed to start: ${error.message}`)
   process.exitCode = 1
 })
 

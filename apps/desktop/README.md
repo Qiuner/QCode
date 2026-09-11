@@ -1,4 +1,4 @@
-# Agentville Windows Launcher（预留）
+# agent-isles Windows Launcher（预留）
 
 此目录预留给未来的轻量 Windows Launcher，目前没有桌面应用实现。
 

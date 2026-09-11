@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#649c8c">
-  <title>Agentville</title>
+  <title>agent-isles</title>
   <link rel="icon" type="image/webp" href="cover.webp">
   <style>
     :root { color-scheme: light; font-family: "Segoe UI", "Microsoft YaHei", sans-serif; color: #172d29; background: #649c8c; }
@@ -56,7 +56,7 @@
     <canvas id="canvas" width="1600" height="1000" tabindex="0" aria-label="苔光之屿游戏画面，使用 WASD 移动、空格跳跃">当前浏览器不支持画布，请使用新版 Chrome、Edge 或 Firefox。</canvas>
     <section id="gate" aria-label="进入游戏">
       <img class="art" src="cover.webp" alt="溪间庭院、苔光之屿和晴沙绿洲，由石桥相连的三个世界地块" fetchpriority="high">
-      <h1>Agentville</h1>
+      <h1>agent-isles</h1>
       <div class="entry">
         <button id="start">进入世界</button>
         <div id="status" role="status" aria-live="polite"></div>
@@ -107,7 +107,7 @@
         window.agentvilleWorldBridge.emit('world:regions', window.neighborState);
       }
       if (message.type === 'world:init' && message.payload?.workspace) {
-        document.title = `${message.payload.workspace.title} · Agentville`;
+        document.title = `${message.payload.workspace.title} · agent-isles`;
       }
       if (godotMessageHandler) godotMessageHandler(JSON.stringify(message));
       else pendingHostMessages.push(message);

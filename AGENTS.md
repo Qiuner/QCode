@@ -1,4 +1,4 @@
-# Agentville 仓库约束
+# agent-isles 仓库约束
 
 Node.js `^22.19.0` 或 `>=24.0.0`，通过 Corepack 使用 Yarn `4.18.0`。
 

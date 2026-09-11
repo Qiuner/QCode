@@ -1,6 +1,6 @@
 <div align="center">
 
-# Agentville
+# agent-isles
 
 **让 AI 住进你的项目，在真实创作中陪你学习。**
 
