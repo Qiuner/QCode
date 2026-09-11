@@ -4,7 +4,11 @@ const CAN = preload("res://assets/watering_can.glb")
 const CAN_ICON = preload("res://assets/can_icon.svg")
 const FLOWER_ICON = preload("res://assets/flower_icon.svg")
 const CAN_HOME := Vector3(-6.1, .07, .1)
-const CAPACITY := 6
+const GRID_COLUMNS := 6
+const GRID_ROWS := 4
+const CAPACITY := GRID_COLUMNS * GRID_ROWS
+const CELL_SIZE := 72
+const CELL_GAP := 7
 const WATER_CAPACITY := 3
 const GROW_SECONDS := 5.0
 var game: Node3D
@@ -12,16 +16,21 @@ var items: Array[Dictionary] = []
 var equipped := false
 var water := 0
 var opened := false
-var selected := 0
+var selected := -1
+var moving_index := -1
 var world_can: Node3D
 var held_can: Node3D
 var eye_can: Node3D
 var plots: Array[Dictionary] = []
 var overlay: Control
 var slots: Array[Button] = []
+var item_layer: Control
+var item_buttons: Array[Button] = []
 var description: Label
 var heading: Label
 var equip_button: Button
+var equipped_slot: Button
+var arrange_hint: Label
 var bag_hint: Label
 var splash: Array[MeshInstance3D] = []
 var splash_origin := Vector3.ZERO
@@ -105,10 +114,67 @@ func add_item(id: String, count: int = 1) -> bool:
 			if id == "watering_can" or item.count + count > 99:
 				return false
 			item.count += count
+			refresh()
 			return true
-	if items.size() >= CAPACITY or count > (1 if id == "watering_can" else 99):
+	if count > (1 if id == "watering_can" else 99):
 		return false
-	items.append({"id": id, "count": count})
+	var size := item_size(id)
+	var origin := find_free_origin(size)
+	if origin.x < 0:
+		return false
+	items.append({"id": id, "count": count, "origin": origin, "size": size})
+	if selected < 0:
+		selected = items.size() - 1
+	refresh()
+	return true
+
+
+func item_size(id: String) -> Vector2i:
+	return Vector2i(2, 2) if id == "watering_can" else Vector2i.ONE
+
+
+func occupied_cells() -> int:
+	var total := 0
+	for item: Dictionary in items:
+		var size: Vector2i = item.get("size", item_size(item.id))
+		total += size.x * size.y
+	return total
+
+
+func can_place(size: Vector2i, origin: Vector2i, ignore_index: int = -1) -> bool:
+	if origin.x < 0 or origin.y < 0 or origin.x + size.x > GRID_COLUMNS or origin.y + size.y > GRID_ROWS:
+		return false
+	var proposed := Rect2i(origin, size)
+	for i in range(items.size()):
+		if i == ignore_index:
+			continue
+		var item: Dictionary = items[i]
+		var item_origin: Vector2i = item.get("origin", Vector2i.ZERO)
+		var item_dimensions: Vector2i = item.get("size", item_size(item.id))
+		if proposed.intersects(Rect2i(item_origin, item_dimensions)):
+			return false
+	return true
+
+
+func find_free_origin(size: Vector2i, ignore_index: int = -1) -> Vector2i:
+	for y in range(GRID_ROWS - size.y + 1):
+		for x in range(GRID_COLUMNS - size.x + 1):
+			var origin := Vector2i(x, y)
+			if can_place(size, origin, ignore_index):
+				return origin
+	return Vector2i(-1, -1)
+
+
+func move_item(index: int, origin: Vector2i) -> bool:
+	if index < 0 or index >= items.size():
+		return false
+	var size: Vector2i = items[index].get("size", item_size(items[index].id))
+	if not can_place(size, origin, index):
+		return false
+	items[index].origin = origin
+	selected = index
+	moving_index = -1
+	refresh()
 	return true
 
 
@@ -235,6 +301,7 @@ func toggle_equipped() -> void:
 
 func set_open(value: bool) -> void:
 	opened = value
+	moving_index = -1
 	game.set_game_paused(value)
 	game.pause_panel.visible = false
 	overlay.visible = value
@@ -242,9 +309,47 @@ func set_open(value: bool) -> void:
 		game._show_toast("", 0)
 		game.prompt.text = ""
 		refresh()
-		(slots[min(selected, CAPACITY-1)] as Button).grab_focus()
+		(slots[0] as Button).grab_focus()
 	else:
 		get_viewport().gui_release_focus()
+
+
+func _style(background: Color, border: Color, border_width: int = 1, radius: int = 8) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = background
+	style.border_color = border
+	style.set_border_width_all(border_width)
+	style.set_corner_radius_all(radius)
+	return style
+
+
+func _section(parent: Control, at: Vector2, dimensions: Vector2) -> Panel:
+	var section := Panel.new()
+	section.position = at
+	section.size = dimensions
+	section.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	section.add_theme_stylebox_override("panel", _style(Color("183f3a"), Color("55776a"), 1, 10))
+	parent.add_child(section)
+	return section
+
+
+func _cell_pressed(index: int) -> void:
+	selected = -1
+	if moving_index < 0:
+		arrange_hint.text = "先选择一件物品，再选择目标格。"
+		refresh()
+		return
+	var origin := Vector2i(index % GRID_COLUMNS, index / GRID_COLUMNS)
+	if move_item(moving_index, origin):
+		arrange_hint.text = "已经收好。继续选择物品可以再次整理。"
+	else:
+		arrange_hint.text = "这里放不下，换一个空位试试。"
+
+
+func _item_pressed(index: int) -> void:
+	selected = index
+	moving_index = -1 if moving_index == index else index
+	refresh()
 
 
 func _build_inventory() -> void:
@@ -260,74 +365,144 @@ func _build_inventory() -> void:
 	overlay.mouse_filter = Control.MOUSE_FILTER_STOP
 	game.ui.add_child(overlay)
 	var shade := ColorRect.new()
-	shade.color = Color(.025, .075, .075, .65)
+	shade.color = Color(.025, .07, .065, .76)
 	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	shade.mouse_filter = Control.MOUSE_FILTER_STOP
 	overlay.add_child(shade)
-	var panel: Panel = game._panel(Vector2.ZERO, Vector2(980, 530), Color("193c3a"))
+	var panel: Panel = game._panel(Vector2.ZERO, Vector2(1240, 680), Color("123934"))
 	panel.reparent(overlay)
 	panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	panel.set_anchors_preset(Control.PRESET_CENTER)
-	panel.offset_left = -490
-	panel.offset_right = 490
-	panel.offset_top = -265
-	panel.offset_bottom = 265
-	game._label("旅人的背包", Vector2(32, 24), 34, Color("fff0cb"), panel)
-	heading = game._label("", Vector2(34, 75), 17, Color("aacbbb"), panel)
+	panel.offset_left = -620
+	panel.offset_right = 620
+	panel.offset_top = -340
+	panel.offset_bottom = 340
+	game._label("旅人行囊", Vector2(32, 24), 34, Color("fff0cb"), panel)
+	heading = game._label("", Vector2(34, 72), 17, Color("b9d2c3"), panel)
+
+	var equipment := _section(panel, Vector2(32, 118), Vector2(220, 474))
+	game._label("随身装备", Vector2(20, 18), 18, Color("e8c67a"), equipment)
+	equipped_slot = Button.new()
+	equipped_slot.position = Vector2(20, 58)
+	equipped_slot.size = Vector2(180, 174)
+	equipped_slot.expand_icon = true
+	equipped_slot.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	equipped_slot.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+	equipped_slot.add_theme_constant_override("icon_max_width", 72)
+	equipped_slot.add_theme_font_size_override("font_size", 15)
+	equipped_slot.pressed.connect(toggle_equipped)
+	equipment.add_child(equipped_slot)
+	for i in range(2):
+		var locked := Panel.new()
+		locked.position = Vector2(20, 252 + i * 88)
+		locked.size = Vector2(180, 70)
+		locked.add_theme_stylebox_override("panel", _style(Color("143731"), Color("35574f"), 1, 7))
+		equipment.add_child(locked)
+		game._label("尚未发现" if i == 0 else "旅途中解锁", Vector2(18, 20), 14, Color("719489"), locked)
+
+	var grid_panel := _section(panel, Vector2(272, 118), Vector2(494, 474))
+	game._label("行囊空间", Vector2(20, 18), 18, Color("e8c67a"), grid_panel)
+	arrange_hint = game._label("选择物品，再点击空格放下。", Vector2(20, 49), 14, Color("91b8aa"), grid_panel)
+	var grid_origin := Vector2(18, 82)
 	for i in range(CAPACITY):
 		var button := Button.new()
-		button.position = Vector2(32+(i%3)*160, 124+floori(float(i)/3)*164)
-		button.size = Vector2(146, 146)
-		button.add_theme_font_size_override("font_size", 18)
-		button.expand_icon = true
-		button.add_theme_constant_override("icon_max_width", 54)
-		button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		button.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
-		var style := StyleBoxFlat.new()
-		style.bg_color = Color("28504a")
-		style.set_corner_radius_all(12)
-		style.content_margin_top = 12
-		style.content_margin_bottom = 12
-		button.add_theme_stylebox_override("normal", style)
-		button.pressed.connect(func(): selected = i; refresh())
-		panel.add_child(button)
+		button.position = grid_origin + Vector2((i % GRID_COLUMNS) * (CELL_SIZE + CELL_GAP), (i / GRID_COLUMNS) * (CELL_SIZE + CELL_GAP))
+		button.size = Vector2(CELL_SIZE, CELL_SIZE)
+		button.focus_mode = Control.FOCUS_ALL
+		button.add_theme_stylebox_override("normal", _style(Color("214b44"), Color("3b655b"), 1, 5))
+		button.add_theme_stylebox_override("hover", _style(Color("295950"), Color("7da692"), 1, 5))
+		button.add_theme_stylebox_override("pressed", _style(Color("315f54"), Color("e4c374"), 2, 5))
+		var cell_index := i
+		button.pressed.connect(func(): _cell_pressed(cell_index))
+		grid_panel.add_child(button)
 		slots.append(button)
-	description = game._label("", Vector2(555, 133), 22, Color("fff0cb"), panel)
-	description.size = Vector2(385, 230)
+	item_layer = Control.new()
+	item_layer.position = grid_origin
+	item_layer.size = Vector2(GRID_COLUMNS * CELL_SIZE + (GRID_COLUMNS - 1) * CELL_GAP, GRID_ROWS * CELL_SIZE + (GRID_ROWS - 1) * CELL_GAP)
+	item_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	grid_panel.add_child(item_layer)
+
+	var detail_panel := _section(panel, Vector2(786, 118), Vector2(422, 474))
+	game._label("物品详情", Vector2(24, 18), 18, Color("e8c67a"), detail_panel)
+	description = game._label("", Vector2(24, 68), 21, Color("fff0cb"), detail_panel)
+	description.size = Vector2(374, 270)
 	description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	equip_button = Button.new()
-	equip_button.position = Vector2(555, 370)
-	equip_button.size = Vector2(385, 56)
+	equip_button.position = Vector2(24, 365)
+	equip_button.size = Vector2(374, 58)
+	equip_button.add_theme_font_size_override("font_size", 17)
+	equip_button.add_theme_stylebox_override("normal", _style(Color("d7b461"), Color("f4dda3"), 1, 7))
+	equip_button.add_theme_stylebox_override("hover", _style(Color("e4c374"), Color("fff0cb"), 1, 7))
+	equip_button.add_theme_color_override("font_color", Color("173b36"))
 	equip_button.pressed.connect(toggle_equipped)
-	panel.add_child(equip_button)
+	detail_panel.add_child(equip_button)
 	var close := Button.new()
-	close.text = "继续探索   I / Esc"
-	close.position = Vector2(720, 33)
-	close.size = Vector2(220, 46)
+	close.text = "继续探索    I / Esc"
+	close.position = Vector2(976, 28)
+	close.size = Vector2(232, 48)
+	close.add_theme_font_size_override("font_size", 16)
+	close.add_theme_stylebox_override("normal", _style(Color("17332f"), Color("496b60"), 1, 7))
+	close.add_theme_stylebox_override("hover", _style(Color("22483f"), Color("8eae9c"), 1, 7))
 	close.pressed.connect(func(): set_open(false))
 	panel.add_child(close)
-	game._label("选择物品查看详情 · G 快速拿出 / 收起水壶 · 背包打开时游戏暂停", Vector2(32, 480), 16, Color("aacbbb"), panel)
+	game._label("点击物品拿起 · 点击空格放下 · G 快速装备水壶 · 整理时游戏暂停", Vector2(34, 626), 16, Color("91b8aa"), panel)
 	overlay.visible = false
 
 
+func _rebuild_item_buttons() -> void:
+	for child in item_layer.get_children():
+		item_layer.remove_child(child)
+		child.queue_free()
+	item_buttons.clear()
+	for i in range(items.size()):
+		var item: Dictionary = items[i]
+		var origin: Vector2i = item.get("origin", Vector2i.ZERO)
+		var size: Vector2i = item.get("size", item_size(item.id))
+		var button := Button.new()
+		button.position = Vector2(origin.x * (CELL_SIZE + CELL_GAP), origin.y * (CELL_SIZE + CELL_GAP))
+		button.size = Vector2(size.x * CELL_SIZE + (size.x - 1) * CELL_GAP, size.y * CELL_SIZE + (size.y - 1) * CELL_GAP)
+		button.icon = CAN_ICON if item.id == "watering_can" else FLOWER_ICON
+		button.expand_icon = true
+		button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		button.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+		button.add_theme_constant_override("icon_max_width", 64 if size.x > 1 else 36)
+		button.add_theme_font_size_override("font_size", 14 if size.x > 1 else 12)
+		button.text = "铜嘴水壶\n2 × 2  ·  %d / 3" % water if item.id == "watering_can" else "× %d" % item.count
+		button.tooltip_text = "点击放回原位" if moving_index == i else "点击拿起整理"
+		var active := moving_index == i
+		var selected_item := selected == i
+		var fill := Color("305e54") if item.id == "watering_can" else Color("486451")
+		var border := Color("f2cc72") if active else (Color("d7b461") if selected_item else Color("719889"))
+		button.add_theme_stylebox_override("normal", _style(fill, border, 3 if active else 2, 7))
+		button.add_theme_stylebox_override("hover", _style(fill.lightened(.08), Color("ffe29a"), 3, 7))
+		button.add_theme_stylebox_override("pressed", _style(fill.darkened(.08), Color("fff0cb"), 3, 7))
+		var item_index := i
+		button.pressed.connect(func(): _item_pressed(item_index))
+		item_layer.add_child(button)
+		item_buttons.append(button)
+
+
 func refresh() -> void:
-	heading.text = "随身收纳   %d / %d 格    ·    小雏菊可叠放至 99" % [items.size(), CAPACITY]
+	heading.text = "已使用 %d / %d 格   ·   大件物品会占用多个格子" % [occupied_cells(), CAPACITY]
 	bag_hint.text = "I 背包 · G 拿出 / 收起\n" + ("水壶 %d / 3  ·  %s" % [water, "手持" if equipped else "已收纳"] if not world_can.visible else "小屋旁有一只水壶")
-	for i in range(CAPACITY):
-		var button := slots[i]
-		button.icon = null
-		button.text = "空格"
-		if i < items.size():
-			var item := items[i]
-			button.icon = CAN_ICON if item.id == "watering_can" else FLOWER_ICON
-			button.text = "水壶 %d / 3\n%s" % [water, "已装备" if equipped else "已收纳"] if item.id == "watering_can" else "小雏菊 × %d" % item.count
-		button.modulate = Color("fff0ba") if i == selected else Color.WHITE
+	if item_layer != null:
+		_rebuild_item_buttons()
+	var has_can := false
+	for item: Dictionary in items:
+		if item.id == "watering_can":
+			has_can = true
+	equipped_slot.icon = CAN_ICON if equipped else null
+	equipped_slot.text = "手持工具\n铜嘴水壶  %d / 3" % water if equipped else ("手持工具\n点击装备水壶" if has_can else "手持工具\n空")
+	equipped_slot.disabled = not has_can
+	equipped_slot.add_theme_stylebox_override("normal", _style(Color("284f47") if equipped else Color("143731"), Color("e4c374") if equipped else Color("35574f"), 2 if equipped else 1, 8))
 	equip_button.visible = false
-	if selected >= items.size():
-		description.text = "空的物品格\n\n在小屋旁拾起水壶，到池塘接水，再去菜畦旁的花圃浇花。"
+	if moving_index >= 0:
+		arrange_hint.text = "已拿起：%s。选择一个能容纳它的空位。" % ("铜嘴水壶" if items[moving_index].id == "watering_can" else "小雏菊")
+	if selected < 0 or selected >= items.size():
+		description.text = "整理你的行囊\n\n不同物品会占用不同大小的空间。先点击一件物品拿起，再点击空格重新放置。\n\n水壶占 2 × 2 格，小雏菊占 1 × 1 格。"
 	elif items[selected].id == "watering_can":
-		description.text = "铜嘴水壶\n\n清水  %d / 3\n\n拿在手上时，靠近池塘按 E 接满水；靠近花苗按 E 浇水，每次消耗一格。" % water
+		description.text = "铜嘴水壶\n工具 · 2 × 2 格\n\n清水  %d / 3\n\n拿在手上时，靠近池塘按 E 接满水；靠近花苗按 E 浇水，每次消耗一格。" % water
 		equip_button.visible = true
 		equip_button.text = "收回背包" if equipped else "拿在手上"
 	else:
-		description.text = "小雏菊 × %d\n\n亲手浇灌的小花。收获后自动叠放在背包中。\n\n目前作为采集成果保存，尚不能出售或赠送。" % items[selected].count
+		description.text = "小雏菊 × %d\n采集物 · 1 × 1 格\n\n亲手浇灌的小花。相同花朵会自动叠放，最多可收纳 99 朵。\n\n目前作为旅途成果保存，尚不能出售或赠送。" % items[selected].count
