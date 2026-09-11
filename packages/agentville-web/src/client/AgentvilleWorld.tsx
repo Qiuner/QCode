@@ -8,6 +8,7 @@ import { WORLD_BRIDGE_VERSION, isWorldToHostMessage, worldFrameUrl, type Residen
 import { RESIDENTS, projectResidentEvents, readResidentDrafts, residentEventStatus } from './resident-model.js'
 import { ModelSettings } from './ModelSettings.js'
 import { ModelConfigurationRequired, type ModelSettingsActions } from './model-settings.js'
+import { RESIDENT_PORTRAITS } from './resident-portraits.js'
 
 export interface AgentvilleWorldInjected {
   models: ModelSettingsActions
@@ -51,7 +52,7 @@ export function AgentvilleWorld(props: Props) {
   const [worldUrl] = useState(() => worldFrameUrl(location.href))
   const [ready, setReady] = useState(false)
   const [showModels, setShowModels] = useState(false)
-  const [modelState, setModelState] = useState({ ready: false, detail: '正在读取模型配置…' })
+  const [modelState, setModelState] = useState<{ ready: boolean | null; detail: string }>({ ready: null, detail: '正在读取模型配置…' })
   useEffect(() => {
     if (showModels) return
     let active = true
@@ -63,7 +64,11 @@ export function AgentvilleWorld(props: Props) {
     return () => { active = false }
   }, [showModels])
   const [regions, setRegions] = useState<RegionLoadState>({ stage: 'waiting', detail: '等待主岛就绪' })
-  const [selected, setSelected] = useState<ResidentId | null>('coordinator')
+  const [selected, setSelected] = useState<ResidentId | null>(() => {
+    try { return localStorage.getItem(PROJECT_KEY) ? null : 'coordinator' } catch { return 'coordinator' }
+  })
+  const [guideView, setGuideView] = useState<'welcome' | 'projects' | 'path' | 'residents' | 'options'>('welcome')
+  const conversation = useRef<HTMLElement>(null)
   const [projectId, setProjectId] = useState<string | null>(() => { try { return localStorage.getItem(PROJECT_KEY) } catch { return null } })
   const [path, setPath] = useState('')
   const [drafts, setDrafts] = useState<Record<string, string>>(() => {
@@ -108,12 +113,24 @@ export function AgentvilleWorld(props: Props) {
 
   function choose(id: ResidentId) {
     setShowModels(false)
+    setGuideView('welcome')
     const next = workspace || id === 'coordinator' ? id : 'coordinator'
     if (next === selected) return
     ++operation.current
     setSelected(next)
     setError('')
   }
+
+  function closeConversation() {
+    ++operation.current
+    setSelected(null)
+    setShowModels(false)
+    iframe.current?.focus()
+  }
+
+  useEffect(() => {
+    if (selected && !showModels) conversation.current?.focus({ preventScroll: true })
+  }, [selected, showModels, guideView])
 
   useEffect(() => {
     const ticket = ++operation.current
@@ -151,6 +168,7 @@ export function AgentvilleWorld(props: Props) {
   }, [ready, worldState])
 
   function useProject(id: string) {
+    setGuideView('welcome')
     if (id === projectId) return
     ++operation.current
     setProjectId(id)
@@ -158,14 +176,15 @@ export function AgentvilleWorld(props: Props) {
     setBindingId(undefined); setError('')
   }
 
-  async function bind(pick: boolean) {
+  async function bind(folder?: string) {
+    if (busy || folder !== undefined && !folder.trim()) return
     const ticket = operation.current
     setBusy(true); setError('')
     try {
-      const folder = pick ? await props.pickDirectory() : path.trim()
+      folder ??= await props.pickDirectory() ?? undefined
       if (folder && ticket === operation.current) {
         const id = await props.bindWorkspace(folder)
-        if (ticket === operation.current) { setBusy(false); useProject(id); setPath(folder) }
+        if (ticket === operation.current) { setBusy(false); useProject(id); setPath(folder); setGuideView('welcome') }
       }
     } catch (reason) { if (ticket === operation.current) setError(reason instanceof Error ? reason.message : String(reason)) }
     finally { if (ticket === operation.current) setBusy(false) }
@@ -192,7 +211,7 @@ export function AgentvilleWorld(props: Props) {
     iframe.current?.contentWindow?.postMessage({ source: 'agentville-host', version: WORLD_BRIDGE_VERSION, type: 'world:show-guide' }, worldUrl.origin)
   }
 
-  return <div className="town-shell" data-regions-pending={regions.stage !== 'ready' ? '' : undefined}>
+  return <div className="town-shell" data-conversation={resident && !showModels ? '' : undefined} data-regions-pending={regions.stage !== 'ready' ? '' : undefined}>
     <iframe ref={iframe} src={worldUrl.href} title="Agentville 小镇" onLoad={() => setReady(true)} />
     {regions.stage !== 'ready' && <section className="town-regions" data-stage={regions.stage} aria-label="区域加载状态">
       <strong>溪间庭院 · 晴沙绿洲</strong>
@@ -204,36 +223,40 @@ export function AgentvilleWorld(props: Props) {
         }}>重新加载区域</button>
         : <progress aria-label="邻近区域正在加载" />}
     </section>}
-    {showModels ? <ModelSettings actions={props.models} close={() => setShowModels(false)} /> : resident && <aside className="town-panel" aria-label={resident.name}>
-      <header><h2>{resident.name}</h2><button type="button" title="关闭居民面板" aria-label="关闭居民面板" onClick={() => { ++operation.current; setSelected(null) }}>×</button></header>
-      <p>{resident.greeting}</p>
+    {showModels ? <ModelSettings actions={props.models} close={() => setShowModels(false)} /> : resident && <aside ref={conversation} tabIndex={-1} className="town-panel town-conversation" aria-label={resident.name} onKeyDown={event => {
+      if (event.key === 'Escape') { event.preventDefault(); closeConversation() }
+    }}>
+      <header><img className="town-portrait" src={RESIDENT_PORTRAITS[resident.id]} alt="" /><div><small>{selected === 'coordinator' ? '小镇接待' : selected === 'coder' ? '制作功能' : selected === 'teacher' ? '一起学习' : '查阅文件'}</small><h2>{resident.name.split(' · ')[0]}</h2></div><button type="button" title="关闭居民面板" aria-label="关闭居民面板" onClick={closeConversation}>×</button></header>
+      <div className="town-conversation-body">
       {selected === 'coordinator' ? <>
-        <nav className="town-guide-tools" aria-label="小镇设置与帮助">
-          <button type="button" onClick={() => setShowModels(true)}>模型设置</button>
-          <button type="button" aria-haspopup="dialog" onClick={openWorldGuide}>操作帮助</button>
-          <a href="/workbench">高级工作台 ↗</a>
-        </nav>
-        <h3>1 · 安顿你的项目</h3>
-        {workspace && <p className="town-path">{workspace.title}<br />{workspace.path}</p>}
-        <details open={!workspace}><summary>{workspace ? '更换项目' : '选择项目'}</summary>
-        <button type="button" disabled={busy} onClick={() => { void bind(true) }}>选择项目文件夹</button>
-        <form onSubmit={event => { event.preventDefault(); void bind(false) }}><label htmlFor="town-folder">项目文件夹路径</label><input id="town-folder" value={path} onChange={event => setPath(event.target.value)} placeholder="D:\Projects\MyProject" /><button disabled={busy || !path.trim()}>绑定这个文件夹</button></form>
-        {workspaces.length > 0 && <><label htmlFor="town-projects">已有项目</label><select id="town-projects" value={workspace?.workspaceId ?? ''} disabled={busy} onChange={event => useProject(event.target.value)}><option value="" disabled>选择项目</option>{workspaces.map(item => <option key={item.workspaceId} value={item.workspaceId}>{item.title}</option>)}</select></>}
-        </details>
-        <h3>2 · 准备模型</h3>
-        <p role="status">{modelState.detail}</p>
-        {!modelState.ready && <button onClick={() => setShowModels(true)}>配置模型与密钥</button>}
-        <h3>3 · 从一个小功能开始</h3>
-        <p>{workspace ? '告诉芽芽想做什么、希望看到什么结果。她会在当前项目中实现并说明验证情况。' : '先选择项目文件夹，再把想法交给居民。'}</p>
-        {workspace && <div className="town-introductions">{RESIDENTS.filter(item => item.id !== 'coordinator').map(item => {
+        {guideView === 'welcome' && <>
+          <p className="town-dialogue-line">{!workspace ? '欢迎来到小镇！要把哪个项目安顿在这里？' : modelState.ready === null ? `「${workspace.title}」已经安顿好了。我看看大家准备好了没有。` : !modelState.ready ? `「${workspace.title}」已经安顿好了。再接通模型，大家就能开始工作。` : `「${workspace.title}」已经安顿好了。芽芽可以帮你把想法做出来，要见见她吗？`}</p>
+          <div className="town-dialogue-choices">
+            {!workspace ? <button className="town-primary" disabled={busy} onClick={() => { void bind() }}>选择文件夹</button> : !modelState.ready ? <button className="town-primary" disabled={modelState.ready === null} onClick={() => setShowModels(true)}>{modelState.ready === null ? '正在准备…' : '连接模型'}</button> : <button className="town-primary" onClick={() => choose('coder')}>找芽芽聊聊</button>}
+            <button onClick={closeConversation}>先逛逛</button>
+            {workspace && <button onClick={() => setGuideView('residents')}>认识其他居民</button>}
+          </div>
+        </>}
+        {guideView === 'projects' && <>
+          <p className="town-dialogue-line">这次要安顿一个新项目，还是继续之前的？</p>
+          <div className="town-dialogue-choices"><button className="town-primary" disabled={busy} onClick={() => { void bind() }}>选择文件夹</button><button onClick={() => setGuideView('path')}>输入文件夹路径</button></div>
+          {workspaces.length > 0 && <label className="town-project-select">已有项目<select value={workspace?.workspaceId ?? ''} disabled={busy} onChange={event => useProject(event.target.value)}><option value="" disabled>选择项目</option>{workspaces.map(item => <option key={item.workspaceId} value={item.workspaceId}>{item.title}</option>)}</select></label>}
+        </>}
+        {guideView === 'path' && <>
+          <p className="town-dialogue-line">把项目文件夹的路径告诉我。</p>
+          <form onSubmit={event => { event.preventDefault(); void bind(path.trim()) }}><label htmlFor="town-folder">文件夹路径</label><input id="town-folder" value={path} onChange={event => setPath(event.target.value)} placeholder="D:\Projects\MyProject" /><button disabled={busy || !path.trim()}>安顿在这里</button></form>
+        </>}
+        {guideView === 'residents' && workspace && <><p className="town-dialogue-line">你想和谁聊聊？</p><div className="town-dialogue-choices">{RESIDENTS.filter(item => item.id !== 'coordinator').map(item => {
           const id = props.sessionForResident(workspace.workspaceId, item.id)
           const summary = id ? sessionState.byId[id as SessionId] : undefined
           const savedDraft = drafts[`${workspace.workspaceId}:${item.id}`]
           const continuing = !!savedDraft || !!summary && !summary.blank
-          return <div key={item.id}><button onClick={() => choose(item.id)}>{continuing ? `继续与${item.name.split(' · ')[0]}的会话` : item.id === 'coder' ? '找芽芽制作功能' : item.id === 'teacher' ? '找苔伯学习项目' : '找阿澜查看文件'}</button>{continuing && <small> · {savedDraft ? '有未发送的草稿' : summary?.running ? '正在工作' : '查看记录并继续'}</small>}</div>
-        })}</div>}
-        <p>关闭面板后，靠近居民按 E 就能再聊。已发送的任务会继续执行。</p>
+          return <button key={item.id} onClick={() => choose(item.id)}>{continuing ? `继续找${item.name.split(' · ')[0]}` : item.id === 'coder' ? '找芽芽制作功能' : item.id === 'teacher' ? '找苔伯学习项目' : '找阿澜查看文件'}{continuing && <small>{savedDraft ? '有草稿' : summary?.running ? '正在工作' : '继续会话'}</small>}</button>
+        })}</div></>}
+        {guideView === 'options' && <><p className="town-dialogue-line">还有什么需要我帮忙的？</p><nav className="town-dialogue-choices" aria-label="小镇设置与帮助"><button onClick={() => setGuideView('projects')}>管理项目</button><button onClick={() => setShowModels(true)}>模型设置</button><button aria-haspopup="dialog" onClick={() => { closeConversation(); openWorldGuide() }}>操作帮助</button><a href="/workbench">高级工作台 ↗</a></nav></>}
+        <footer className="town-dialogue-footer">{guideView === 'welcome' ? <><button className="town-text-action" onClick={() => setGuideView('projects')}>{workspace ? '更换项目' : '已有项目 / 输入路径'}</button><button className="town-text-action" onClick={() => setGuideView('options')}>还有件事…</button></> : <button className="town-text-action" onClick={() => { setGuideView('welcome'); setError('') }}>返回对话</button>}</footer>
       </> : <>
+        <p className="town-dialogue-line">{resident.greeting}</p>
         <nav className="town-guide-tools" aria-label="会话导航"><button onClick={() => choose('coordinator')}>返回向导</button><button onClick={() => setShowModels(true)}>模型设置</button></nav>
         <details className="town-path"><summary>当前项目：{workspace?.title}</summary><p>{workspace?.path}</p></details>
         {interaction && <div className="town-approval" role="status"><strong>需要你的确认</strong>{approval ? <>
@@ -253,6 +276,7 @@ export function AgentvilleWorld(props: Props) {
       </>}
       {busy && <p role="status">正在处理…</p>}
       {error && <p role="alert">{error}</p>}
+      </div>
     </aside>}
   </div>
 }
