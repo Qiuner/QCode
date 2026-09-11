@@ -70,6 +70,19 @@ function SessionResult({ binding }: { binding: SessionBinding }) {
 }
 
 export function AgentIslesWorld(props: Props) {
+  const [workbench, setWorkbench] = useState(() => location.pathname === '/workbench' || new URLSearchParams(location.search).get('agent-isles') === 'workbench')
+  const islandUrl = useRef(workbench ? '/' : location.pathname + location.search + location.hash)
+  function switchSurface(next: boolean) {
+    if (next === workbench) return
+    if (next) islandUrl.current = location.pathname + location.search + location.hash
+    history.pushState(null, '', next ? '/workbench' : islandUrl.current)
+    setWorkbench(next)
+  }
+  useEffect(() => {
+    const onPopState = () => setWorkbench(location.pathname === '/workbench' || new URLSearchParams(location.search).get('agent-isles') === 'workbench')
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
+  }, [])
   const [composerTarget, setComposerTarget] = useState<HTMLDivElement | null>(null)
   const [previewTarget, setPreviewTarget] = useState<HTMLDivElement | null>(null)
   const [expandedWork, setExpandedWork] = useState(false)
@@ -211,9 +224,12 @@ export function AgentIslesWorld(props: Props) {
 
   useEffect(() => {
     const frame = document.querySelector<HTMLElement>('[data-shell-overlay]')?.parentElement
-    frame?.setAttribute('data-agent-isles-town', '')
+    if (!workbench) frame?.setAttribute('data-agent-isles-town', '')
     return () => { frame?.removeAttribute('data-agent-isles-town') }
-  }, [])
+  }, [workbench])
+  useEffect(() => {
+    if (!workbench && bindingId) props.focusSession(bindingId)
+  }, [workbench, bindingId])
 
   useEffect(() => {
     const listener = (event: MessageEvent) => {
@@ -227,7 +243,7 @@ export function AgentIslesWorld(props: Props) {
     return () => window.removeEventListener('message', listener)
   }, [workspace, selected, loadingProjects, recoveryFailed, followingKeeper, tutorial.run?.id, tutorial.run?.paused])
 
-  const worldState = JSON.stringify({ workspace: workspace ? { workspaceId: workspace.workspaceId, title: workspace.title } : null, sessionId: bindingId ?? null, panelOpen: playable && (selected !== null || showModels), residents })
+  const worldState = JSON.stringify({ workspace: workspace ? { workspaceId: workspace.workspaceId, title: workspace.title } : null, sessionId: bindingId ?? null, panelOpen: workbench || playable && (selected !== null || showModels), residents })
   useEffect(() => {
     if (!ready) return
     iframe.current?.contentWindow?.postMessage({ source: 'agent-isles-host', version: WORLD_BRIDGE_VERSION, type: 'world:init', payload: JSON.parse(worldState) }, worldUrl.origin)
@@ -307,7 +323,12 @@ export function AgentIslesWorld(props: Props) {
   const tutorialPanel = tutorial.run && props.tutorials && props.submitTutorial && ['coder', 'file_keeper'].includes(selected ?? '')
     ? <TutorialPanel previewTarget={workOpen ? previewTarget : null} composerTarget={workOpen ? composerTarget : null} key={tutorial.run.id} tutorial={tutorial} actions={props.tutorials} project={workspace} pick={() => props.pickDirectory()} bindProject={async id => { useProject(id); await props.refreshProjects?.(id); await props.saveProject(id); setSelected('coder') }} submit={props.submitTutorial} move={moveKeeper} modelSettings={reason => { if (reason instanceof ModelConfigurationRequired) setShowModels(true) }} leave={() => { skipAutoProject.current = true; setProjectId(null); try { localStorage.removeItem(PROJECT_KEY) } catch {} closeConversation() }} /> : null
 
-  return <div className="town-shell" data-workspace={workOpen ? expandedWork ? 'expanded' : 'open' : undefined} data-conversation={playable && resident && !showModels ? '' : undefined} data-regions-pending={regions.stage !== 'ready' ? '' : undefined}>
+  return <>{workbench && <button className="town-return-island" onClick={() => switchSurface(false)}>← 返回小岛</button>}<div className="town-shell" style={workbench ? { display: 'none' } : undefined} onClickCapture={event => {
+    const anchor = (event.target as Element).closest('a[href="/workbench"]')
+    if (!anchor || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return
+    event.preventDefault()
+    switchSurface(true)
+  }} data-workspace={workOpen ? expandedWork ? 'expanded' : 'open' : undefined} data-conversation={playable && resident && !showModels ? '' : undefined} data-regions-pending={regions.stage !== 'ready' ? '' : undefined}>
     <iframe ref={iframe} src={worldUrl.href} title="agent-isles 小镇" onLoad={() => setReady(true)} />
     {playable && <>
     {props.tutorials && tutorial.run && tutorial.run.step !== 'complete' && !selected && !showModels && <section className="town-tutorial-goal" aria-label="当前学习目标"><strong>{followingKeeper ? '跟阿澜去：找到带标记的阿澜，靠近按 E' : tutorial.run.paused ? '教程已暂停' : tutorial.run.submission && pending.has(tutorial.run.submission.sessionId as SessionId) ? '芽芽需要你的决定，返回对话查看请求' : FIRST_TUTORIAL.steps[tutorial.run.step]}</strong><button onClick={() => { moveKeeper('cancel'); setSelected('coder') }}>继续学习 / 直接操作</button></section>}
@@ -411,10 +432,10 @@ export function AgentIslesWorld(props: Props) {
       {picking ? <div><p role="status">等待系统文件夹选择窗口…</p><button onClick={() => pickerAbort.current?.abort()}>取消选择</button></div> : busy && <p role="status">正在处理…</p>}
       {error && <p role="alert">{error}</p>}
       </div>
-      {workOpen && bindingId && <NativeChat key={bindingId} sessionId={bindingId} />}
+      {workOpen && bindingId && !workbench && <NativeChat key={bindingId} sessionId={bindingId} />}
       <div className="town-composer" ref={setComposerTarget} />
       <div className="town-preview-pane" ref={setPreviewTarget} />
     </aside>}
     </>}
-  </div>
+  </div></>
 }

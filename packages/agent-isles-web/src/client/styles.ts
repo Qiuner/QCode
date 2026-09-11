@@ -1,4 +1,5 @@
 export const WORLD_STYLES = `
+.town-return-island { position: fixed; top: 8px; left: 50%; transform: translateX(-50%); z-index: 50; padding: 7px 14px; border: 1px solid #bccbbb; border-radius: 8px; background: #fcfdf8; color: #203c37; cursor: pointer; }
 .town-shell .town-tutorial { display: grid; gap: 10px; padding: 14px; border: 1px solid #b5bca0; border-radius: 12px; background: #fff9e9; color: #29483e; }
 .town-shell .town-tutorial > header { display: flex; gap: 12px; align-items: center; justify-content: space-between; }
 .town-shell .town-tutorial textarea, .town-shell .town-tutorial input, .town-shell .town-tutorial select { width: 100%; min-width: 0; box-sizing: border-box; padding: 8px; font: inherit; border: 1px solid #869b8f; border-radius: 6px; color: #29483e; background: white; }

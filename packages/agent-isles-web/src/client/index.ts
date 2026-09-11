@@ -55,8 +55,6 @@ function writeResidentSession(workspaceId: string, residentId: ResidentId, sessi
 
 /** Replace the generic Web profile branding while retaining its layout and conversation UI. */
 export function apply(ctx: Omit<ClientContext, 'sessions'> & { sessions: ISessions }): void {
-  const search = new URLSearchParams(window.location.search)
-  const workbench = search.get('agent-isles') === 'workbench' || window.location.pathname === '/workbench'
   const selecting = new Map<string, Promise<string>>()
   let saved: ResidentState = { sessions: {} }
   const stateRequest = async (update?: { projectId: string; residentId?: ResidentId; sessionId?: string }): Promise<ResidentState> => {
@@ -131,8 +129,6 @@ export function apply(ctx: Omit<ClientContext, 'sessions'> & { sessions: ISessio
   }
 
   ctx.effect(() => applyDocumentBranding(document), 'agent-isles-web: document branding')
-
-  if (workbench) return
 
   ctx.slots.inject('settings.onboarding', () => ctx.slots.register({
     name: 'settings.onboarding', id: 'deepseek-official', priority: -100, order: 0,
