@@ -99,6 +99,13 @@
         document.getElementById('guide').showModal();
         return;
       }
+      if (message.type === 'world:retry-neighbors') {
+        window.loadNeighborRegions();
+        return;
+      }
+      if (message.type === 'world:init' && window.neighborState) {
+        window.agentvilleWorldBridge.emit('world:regions', window.neighborState);
+      }
       if (message.type === 'world:init' && message.payload?.workspace) {
         document.title = `${message.payload.workspace.title} · Agentville`;
       }
@@ -109,6 +116,83 @@
 
     const config = $GODOT_CONFIG;
     const engine = new Engine(config);
+    let loadingNeighbors = false;
+    let neighborInstallTimeout;
+    window.neighborState = { stage: 'waiting', detail: '等待主岛就绪' };
+    function reportNeighbors(stage, detail) {
+      window.neighborState = { stage, detail };
+      window.agentvilleWorldBridge.emit('world:regions', window.neighborState);
+    }
+    window.finishNeighborRegions = (ok) => {
+      clearTimeout(neighborInstallTimeout);
+      loadingNeighbors = false;
+      reportNeighbors(ok ? 'ready' : 'failed', ok ? '邻近区域已开放' : '区域资源无法展开，请重新加载');
+    };
+    window.prepareNeighborRegion = (name) => {
+      clearTimeout(neighborInstallTimeout);
+      neighborInstallTimeout = setTimeout(() => window.finishNeighborRegions(false), 45000);
+      reportNeighbors('installing', `正在准备${name}的场景与画面…`);
+    };
+    window.loadNeighborRegions = async () => {
+      if (loadingNeighbors || window.neighborState.stage === 'ready') return;
+      const retry = window.neighborState.stage === 'failed';
+      loadingNeighbors = true;
+      reportNeighbors('downloading', '正在下载区域…');
+      setTimeout(() => godotMessageHandler?.(JSON.stringify({
+        source: 'agentville-host', version: AGENTVILLE_BRIDGE_VERSION, type: 'world:neighbors-started'
+      })), 0);
+      let type = 'world:neighbors-failed';
+      let failure = '';
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 45000);
+        try {
+          const response = await fetch('neighbors.pck', { signal: controller.signal, cache: retry || attempt ? 'reload' : 'default' });
+          if (!response.ok) throw new Error(`服务器返回 HTTP ${response.status}`);
+          const reader = response.body.getReader();
+          const chunks = [];
+          let received = 0;
+          let lastReported = 0;
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            chunks.push(value);
+            received += value.length;
+            if (received - lastReported >= 524288) {
+              reportNeighbors('downloading', `已接收 ${(received / 1048576).toFixed(1)} MB${attempt ? ' · 重试中' : ''}`);
+              lastReported = received;
+            }
+          }
+          const data = new Uint8Array(received);
+          let offset = 0;
+          for (const chunk of chunks) { data.set(chunk, offset); offset += chunk.length; }
+          if (data.length < 100 || data[0] !== 71 || data[1] !== 68 || data[2] !== 80 || data[3] !== 67) {
+            throw new Error('区域文件不完整或格式错误');
+          }
+          engine.copyToFS('/neighbors.pck', data);
+          type = 'world:neighbors-downloaded';
+          reportNeighbors('installing', '下载完成，正在展开区域…');
+          break;
+        } catch (error) {
+          failure = error.name === 'AbortError' ? '连接超时' : (error instanceof TypeError ? '网络连接中断' : error.message);
+          console.error('Agentville region download failed:', error);
+          if (attempt === 0) {
+            reportNeighbors('downloading', `${failure}，正在重试…`);
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        } finally { clearTimeout(timeout); }
+      }
+      if (type === 'world:neighbors-failed') {
+        loadingNeighbors = false;
+        reportNeighbors('failed', `${failure}，区域尚未开放`);
+      } else {
+        neighborInstallTimeout = setTimeout(() => window.finishNeighborRegions(false), 45000);
+      }
+      // Defer re-entry into Godot until the current WASM callback has returned.
+      setTimeout(() => godotMessageHandler?.(JSON.stringify({
+        source: 'agentville-host', version: AGENTVILLE_BRIDGE_VERSION, type
+      })), 0);
+    };
     const canvas = document.getElementById('canvas');
     // Some embedded browsers reject pointer lock; dragging remains available.
     const requestPointerLock = canvas.requestPointerLock?.bind(canvas);
@@ -146,6 +230,7 @@
       start.textContent = '正在加载';
       progress.hidden = false;
       status.textContent = '正在加载世界';
+      performance.mark('world-start');
       try {
         const missing = Engine.getMissingFeatures({ threads: false });
         if (missing.length) throw new Error(missing.join(', '));
@@ -160,6 +245,8 @@
           onExit(code) { reportFailure(new Error(`Game stopped with code ${code}`)); }
         });
         started = true;
+        performance.mark('world-playable');
+        performance.measure('world-startup', 'world-start', 'world-playable');
         gate.hidden = true;
         canvas.focus();
         document.getElementById('connection').textContent = '';

@@ -18,6 +18,11 @@ export const WORLD_STYLES = `
 .town-roster button { display: grid; text-align: left; min-width: 120px; background: #f5faf4f5; }
 .town-roster button[aria-pressed='true'] { border-color: #267b69; background: #d4e9df; }
 .town-roster small { color: #5f726a; }
+.town-regions { position: absolute; left: 20px; bottom: 104px; width: min(320px, calc(100% - 40px)); padding: 12px 14px; border-left: 3px solid #b78325; border-radius: 4px; background: #f5faf4f5; box-shadow: 0 3px 14px #17392c20; }
+.town-regions p { margin: 4px 0 8px; overflow-wrap: anywhere; }
+.town-regions progress { position: static; display: block; width: 100%; height: 4px; accent-color: #267b69; }
+.town-regions[data-stage='failed'] { border-color: #b5463c; }
+.town-regions [role='alert'] { color: #9d342c; }
 .town-panel { position: absolute; right: 20px; top: 84px; bottom: 110px; width: min(410px, calc(100% - 40px)); overflow: auto; padding: 18px; border: 1px solid #aac3b5; border-radius: 8px; background: #f7faf5f7; box-shadow: 0 8px 30px #17392c30; }
 .town-panel > header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .town-panel h2 { font-size: 18px; margin: 0; }
@@ -40,6 +45,8 @@ export const WORLD_STYLES = `
   .town-panel { right: 12px; width: calc(100% - 24px); top: 92px; bottom: 164px; padding: 14px; }
   .town-roster { left: 12px; right: 12px; bottom: 12px; max-width: none; display: grid; grid-template-columns: 1fr 1fr; }
   .town-roster button { min-width: 0; }
+  .town-regions { left: 12px; bottom: 156px; width: calc(100% - 24px); padding: 10px 12px; }
+  .town-shell[data-regions-pending] .town-panel { bottom: 300px; }
 }
 [data-agentville-shell] {
   --agentville-panel-width: clamp(420px, 34vw, 520px);

@@ -58,6 +58,15 @@
 
 ## 下一阶段
 
+### 首屏与运行性能
+
+- Web 首包只含主岛，`neighbors.pck` 包含晴沙绿洲和溪间庭院，在主岛可用后后台下载。未加载的桥口有碰撞保护，失败时在桥头按 E 重试；桌面版仍直接加载三个区域。
+- 导出阶段生成 Brotli/gzip 文件；Host 根据 Accept-Encoding 选择有效的压缩版本，使用流式响应降低大文件请求的内存占用。
+- 静态文件通过 ETag 重新验证，未变化返回 304；更新后不继续使用旧版压缩文件。首次传输仍受网络、WASM 编译与 GPU 着色器初始化影响。
+- 浏览器 Performance 标记 `world-start`、`godot-scene-ready`、`world-playable`、`godot-neighbors-ready` 区分下载、场景就绪、首帧与邻区完成；不能把场景 ready 日志当成可操作首帧。
+- `tools/profile_startup.gd -- --stream-neighbors` 测量主岛加载与节点数量；不带参数对照完整场景。
+- 居民列表只倒序查找最后一轮状态，不在每次输入或流式输出时重建所有历史消息；当前回复投影按事件快照缓存。
+
 1. 为所有居民建立独立状态投影，而不是只从当前 Session 推导状态。
 2. 将 `localStorage` 中的居民 Session 映射迁移到持久化运行时。
 3. 扩展世界桥接协议，加入进度、审批、错误和通知事件。

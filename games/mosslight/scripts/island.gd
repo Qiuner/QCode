@@ -12,9 +12,9 @@ const GRAVITY := 20.0
 const CRATE_SCENE = preload("res://assets/echo_crate.glb")
 const HERO_SCENE = preload("res://assets/lumi.glb")
 const WORLD_SCENE = preload("res://assets/island.glb")
-const DESERT_SCENE = preload("res://scenes/desert.tscn")
+const DESERT_PATH := "res://scenes/desert.tscn"
 const DESERT_ORIGIN := Vector3(30, 0, 0)
-const STREAMSIDE_SCENE = preload("res://scenes/streamside.tscn")
+const STREAMSIDE_PATH := "res://scenes/streamside.tscn"
 const STREAMSIDE_ORIGIN := Vector3(-30, 0, 0)
 const GROUND_SHADE = preload("res://assets/ground_shade.glb")
 const ENVIRONMENT_DETAILS = preload("res://scripts/environment_details.gd")
@@ -85,6 +85,11 @@ var agentville_connected := false
 var agentville_workspace_id := ""
 var agentville_session_id := ""
 var embedded_mode := false
+var region_barriers: Array[StaticBody3D] = []
+var region_signs: Array[Label3D] = []
+var regions_loading := false
+var regions_error := false
+var regions_installing := false
 
 
 func _ready() -> void:
@@ -122,6 +127,9 @@ func _ready() -> void:
 		ui.visible = false
 		screenshot_frames = 12
 	print("MOSSLIGHT_READY: Blender assets loaded; island, traveler and echo systems ready.")
+	if OS.has_feature("web"):
+		JavaScriptBridge.eval("performance.mark('godot-scene-ready')")
+		get_tree().create_timer(2.0).timeout.connect(_request_neighbor_regions)
 
 
 func _is_embedded_web() -> bool:
@@ -163,6 +171,35 @@ func _on_agentville_message(arguments: Array) -> void:
 		return
 	var message := parsed as Dictionary
 	if message.get("source") != "agentville-host" or int(message.get("version", 0)) != 1:
+		return
+	if message.get("type") == "world:neighbors-started":
+		regions_loading = true
+		regions_error = false
+		_update_region_signs()
+		return
+	if message.get("type") == "world:neighbors-downloaded":
+		if regions_installing:
+			return
+		regions_installing = true
+		var installed := ProjectSettings.load_resource_pack("/neighbors.pck", false)
+		if installed:
+			installed = await _install_neighbor_regions(true)
+		regions_installing = false
+		regions_loading = false
+		regions_error = not installed
+		_update_region_signs()
+		JavaScriptBridge.eval("window.finishNeighborRegions(%s)" % ("true" if installed else "false"))
+		if installed:
+			print("MOSSLIGHT_REGIONS_READY")
+			JavaScriptBridge.eval("performance.mark('godot-neighbors-ready')")
+		else:
+			_show_toast("邻近区域暂未加载，靠近桥头可重试。", 5)
+		return
+	if message.get("type") == "world:neighbors-failed":
+		regions_loading = false
+		regions_error = true
+		_update_region_signs()
+		_show_toast("邻近区域暂未加载，靠近桥头可重试。", 5)
 		return
 	if message.get("type") != "world:init":
 		return
@@ -225,12 +262,41 @@ func _build_world() -> void:
 		var p: Array = item.position
 		var s: Array = item.size
 		_add_solid(Vector3(p[0], p[1], p[2]), Vector3(s[0], s[1], s[2]), item.name)
-	desert = DESERT_SCENE.instantiate()
-	desert.position = DESERT_ORIGIN
-	add_child(desert)
-	streamside = STREAMSIDE_SCENE.instantiate()
-	streamside.position = STREAMSIDE_ORIGIN
-	add_child(streamside)
+	if OS.has_feature("web") or "--stream-neighbors" in OS.get_cmdline_user_args():
+		# Bridges stay closed until their walking surfaces and collisions are ready.
+		for x in [-12.0, 12.0]:
+			var barrier := _add_solid(Vector3(x, 1, 3), Vector3(.35, 8, 3.2), "RegionLoadingBoundary")
+			region_barriers.append(barrier)
+			for z in [-1.25, 1.25]:
+				var post := MeshInstance3D.new()
+				var post_mesh := BoxMesh.new()
+				post_mesh.size = Vector3(.16, 1.4, .16)
+				post.mesh = post_mesh
+				post.position = Vector3(0, -.3, z)
+				post.material_override = _material(Color("715540"), .9)
+				barrier.add_child(post)
+			for y in [-.4, .1]:
+				var rail := MeshInstance3D.new()
+				var rail_mesh := BoxMesh.new()
+				rail_mesh.size = Vector3(.12, .18, 2.7)
+				rail.mesh = rail_mesh
+				rail.position.y = y
+				rail.material_override = _material(Color("d3a44c"), .9)
+				barrier.add_child(rail)
+			var sign := Label3D.new()
+			sign.font = preload("res://assets/fonts/MosslightUI.ttf")
+			sign.font_size = 42
+			sign.pixel_size = .01
+			sign.position.y = 1.25
+			sign.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+			sign.no_depth_test = true
+			sign.render_priority = 110
+			sign.set_meta("region_name", "溪间庭院" if x < 0 else "晴沙绿洲")
+			barrier.add_child(sign)
+			region_signs.append(sign)
+		_update_region_signs()
+	else:
+		_install_neighbor_regions()
 	# Invisible coastline fences keep the land's rounded visual edge forgiving.
 	_add_solid(Vector3(-12.25, 0, -4.3), Vector3(.2, 4, 11.6), "coastline")
 	_add_solid(Vector3(-12.25, 0, 7.3), Vector3(.2, 4, 5.6), "coastline")
@@ -317,6 +383,55 @@ func _build_world() -> void:
 		mote.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		add_child(mote)
 		motes.append(mote)
+
+
+func _install_neighbor_regions(staged: bool = false) -> bool:
+	if desert == null:
+		if staged:
+			JavaScriptBridge.eval("window.prepareNeighborRegion('晴沙绿洲')")
+			await get_tree().process_frame
+		var desert_scene := load(DESERT_PATH) as PackedScene
+		if desert_scene == null:
+			return false
+		desert = desert_scene.instantiate()
+		desert.position = DESERT_ORIGIN
+		add_child(desert)
+		if staged:
+			await RenderingServer.frame_post_draw
+			await get_tree().process_frame
+	if streamside == null:
+		if staged:
+			JavaScriptBridge.eval("window.prepareNeighborRegion('溪间庭院')")
+			await get_tree().process_frame
+		var streamside_scene := load(STREAMSIDE_PATH) as PackedScene
+		if streamside_scene == null:
+			return false
+		streamside = streamside_scene.instantiate()
+		streamside.position = STREAMSIDE_ORIGIN
+		add_child(streamside)
+		if staged:
+			await RenderingServer.frame_post_draw
+			await get_tree().process_frame
+	for barrier: StaticBody3D in region_barriers:
+		barrier.queue_free()
+	region_barriers.clear()
+	region_signs.clear()
+	return true
+
+
+func _update_region_signs() -> void:
+	for sign: Label3D in region_signs:
+		sign.text = str(sign.get_meta("region_name")) + ("\n暂未开放 · 加载失败" if regions_error else "\n区域准备中")
+		sign.modulate = Color("ffb6a3") if regions_error else Color("fff2cb")
+
+
+func _request_neighbor_regions() -> void:
+	if regions_loading or (desert != null and streamside != null):
+		return
+	regions_loading = true
+	regions_error = false
+	_update_region_signs()
+	JavaScriptBridge.eval("window.loadNeighborRegions()")
 
 
 func _add_solid(at: Vector3, size: Vector3, label: String) -> StaticBody3D:
@@ -492,7 +607,7 @@ func _update_preview() -> void:
 	var on_desert := absf(candidate.x - DESERT_ORIGIN.x) < 11.7 and absf(candidate.z) < 9.6
 	var on_bridge := candidate.x >= 11.7 and candidate.x <= 18.3 and absf(candidate.z - 3) < .95
 	var on_west_bridge := candidate.x <= -11.7 and candidate.x >= -18.3 and absf(candidate.z - 3) < .95
-	var on_streamside: bool = streamside.allows_echo(preview_position)
+	var on_streamside: bool = streamside != null and streamside.allows_echo(preview_position)
 	placement_valid = overlaps.is_empty() and (on_meadow or on_desert or on_bridge or on_west_bridge or on_streamside)
 	placement_valid = placement_valid and preview_position.y <= player.position.y + 1.05
 	preview_material.albedo_color = Color(.55, .95, .82, .30) if placement_valid else Color(.96, .40, .32, .30)
@@ -513,6 +628,9 @@ func place_echo() -> bool:
 
 func _interact() -> void:
 	if game_paused or garden.interact():
+		return
+	if regions_error and absf(player.position.x) > 9.5 and absf(player.position.z - 3) < 2:
+		_request_neighbor_regions()
 		return
 	if player.position.distance_to(SOURCE) < 2.6 and not learned:
 		learned = true
@@ -628,8 +746,10 @@ func _process(delta: float) -> void:
 	if nature_motion:
 		nature_time += delta
 	environment_details.advance(delta, player.position, nature_motion)
-	desert.advance(delta, nature_motion)
-	streamside.advance(delta, nature_motion)
+	if desert != null:
+		desert.advance(delta, nature_motion)
+	if streamside != null:
+		streamside.advance(delta, nature_motion)
 	garden.advance(delta)
 	residents.advance(delta, player.position, nature_motion, not photo_mode)
 	if talking_to != null:
@@ -871,6 +991,8 @@ func _update_hud() -> void:
 	var garden_target: Dictionary = garden.target()
 	if not garden_target.is_empty():
 		prompt.text = garden_target.hint
+	if not region_barriers.is_empty() and absf(player.position.x) > 9.5 and absf(player.position.z - 3) < 2:
+		prompt.text = "[ E ]  重新加载邻近区域" if regions_error else "邻近区域正在加载…"
 
 
 func _show_toast(text: String, seconds: float) -> void:

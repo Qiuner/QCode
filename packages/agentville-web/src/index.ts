@@ -1,4 +1,6 @@
-import { readFile, stat } from 'node:fs/promises'
+import { stat } from 'node:fs/promises'
+import { createReadStream } from 'node:fs'
+import { pipeline } from 'node:stream/promises'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { extname, relative, resolve, sep } from 'node:path'
 import type { Context } from '@deepseek-ai/cordis'
@@ -23,12 +25,14 @@ function end(res: ServerResponse, status: number, body = ''): void {
   res.end(body)
 }
 
-async function serveWorld(req: IncomingMessage, res: ServerResponse, worldRoot: string): Promise<void> {
+export async function serveWorld(req: IncomingMessage, res: ServerResponse, worldRoot: string): Promise<void> {
   if (req.method !== 'GET' && req.method !== 'HEAD') {
     end(res, 405)
     return
   }
-  const pathname = decodeURIComponent(new URL(req.url ?? '/', 'http://agentville.local').pathname)
+  let pathname: string
+  try { pathname = decodeURIComponent(new URL(req.url ?? '/', 'http://agentville.local').pathname) }
+  catch { end(res, 400); return }
   if (pathname === WORLD_ROUTE) {
     res.writeHead(308, { location: `${WORLD_ROUTE}/` })
     res.end()
@@ -42,18 +46,49 @@ async function serveWorld(req: IncomingMessage, res: ServerResponse, worldRoot: 
     return
   }
   try {
-    if (!(await stat(target)).isFile()) {
+    const source = await stat(target)
+    if (!source.isFile()) {
       end(res, 404)
       return
     }
-    const body = await readFile(target)
-    res.writeHead(200, {
-      'cache-control': extname(target) === '.html' ? 'no-cache' : 'public, max-age=3600',
-      'content-length': body.byteLength,
+    let file = target
+    let info = source
+    let encoding: string | undefined
+    const accepted = new Map((req.headers['accept-encoding'] ?? '').split(',').map(value => {
+      const [name, ...parameters] = value.trim().toLowerCase().split(';')
+      const quality = parameters.map(item => item.trim()).find(item => item.startsWith('q='))
+      const q = quality ? Number(quality.slice(2)) : 1
+      return [name, Number.isFinite(q) && q >= 0 && q <= 1 ? q : 0] as const
+    }))
+    const candidates = ['br', 'gzip'].map(name => ({ name, q: accepted.get(name) ?? accepted.get('*') ?? 0 }))
+      .filter(item => item.q > 0).sort((a, b) => b.q - a.q)
+    for (const candidate of candidates) {
+      const compressed = `${target}.${candidate.name === 'br' ? 'br' : 'gz'}`
+      const compressedInfo = await stat(compressed).catch(error => {
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT') return undefined
+        throw error
+      })
+      if (compressedInfo?.isFile() && compressedInfo.mtimeMs >= source.mtimeMs) {
+        file = compressed; info = compressedInfo; encoding = candidate.name
+        break
+      }
+    }
+    const etag = `"${info.size.toString(16)}-${info.mtimeMs.toString(16)}-${encoding ?? 'identity'}"`
+    const headers = {
+      'cache-control': 'no-cache',
+      vary: 'Accept-Encoding',
+      etag,
       'content-type': MIME[extname(target).toLowerCase()] ?? 'application/octet-stream',
-    })
-    res.end(req.method === 'HEAD' ? undefined : body)
+      ...(encoding ? { 'content-encoding': encoding } : {}),
+    }
+    if (req.headers['if-none-match']?.split(',').some(value => value.trim().replace(/^W\//, '') === etag || value.trim() === '*')) {
+      res.writeHead(304, headers); res.end(); return
+    }
+    res.writeHead(200, { ...headers, 'content-length': info.size })
+    if (req.method === 'HEAD') res.end()
+    else await pipeline(createReadStream(file), res)
   } catch (error) {
+    if (res.headersSent || res.destroyed) { res.destroy(); return }
     const code = (error as NodeJS.ErrnoException).code
     end(res, code === 'ENOENT' || code === 'ENOTDIR' ? 404 : 500,
       code === 'ENOENT' ? 'Godot Web export is missing. Run yarn build:world.' : '')

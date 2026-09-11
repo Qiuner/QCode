@@ -4,7 +4,7 @@ import type { SessionBinding } from '@deepseek-ai/dsh-api-session-controller/cli
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import type {} from '@deepseek-ai/dsh-client-ui-session/client'
 import type {} from '@deepseek-ai/dsh-client-ui-workspace/client'
-import { WORLD_BRIDGE_VERSION, isWorldToHostMessage, worldFrameUrl, type ResidentId } from './world-bridge.js'
+import { WORLD_BRIDGE_VERSION, isWorldToHostMessage, worldFrameUrl, type ResidentId, type RegionLoadState } from './world-bridge.js'
 import { RESIDENTS, projectResidentEvents, residentEventStatus } from './resident-model.js'
 import { ModelSettings } from './ModelSettings.js'
 import { ModelConfigurationRequired, type ModelSettingsActions } from './model-settings.js'
@@ -55,6 +55,7 @@ export function AgentvilleWorld(props: Props) {
     }).catch(() => { /* The settings panel exposes connection errors on demand. */ })
     return () => { active = false }
   }, [])
+  const [regions, setRegions] = useState<RegionLoadState>({ stage: 'waiting', detail: '等待主岛就绪' })
   const [selected, setSelected] = useState<ResidentId | null>('coordinator')
   const [projectId, setProjectId] = useState<string | null>(() => { try { return localStorage.getItem(PROJECT_KEY) } catch { return null } })
   const [path, setPath] = useState('')
@@ -121,6 +122,7 @@ export function AgentvilleWorld(props: Props) {
     const listener = (event: MessageEvent) => {
       if (event.origin !== worldUrl.origin || event.source !== iframe.current?.contentWindow || !isWorldToHostMessage(event.data)) return
       if (event.data.type === 'world:ready') setReady(true)
+      if (event.data.type === 'world:regions') setRegions(event.data.payload)
       if (event.data.type === 'resident:selected') choose(event.data.payload.residentId)
     }
     window.addEventListener('message', listener)
@@ -175,10 +177,20 @@ export function AgentvilleWorld(props: Props) {
     iframe.current?.contentWindow?.postMessage({ source: 'agentville-host', version: WORLD_BRIDGE_VERSION, type: 'world:show-guide' }, worldUrl.origin)
   }
 
-  return <div className="town-shell">
+  return <div className="town-shell" data-regions-pending={regions.stage !== 'ready' ? '' : undefined}>
     <iframe ref={iframe} src={worldUrl.href} title="Agentville 小镇" onLoad={() => setReady(true)} />
     <header className="town-top"><div><strong>Agentville</strong><span>{workspace ? `当前项目：${workspace.title}` : '尚未绑定项目'}</span></div><nav className="town-actions" aria-label="世界工具"><button className="town-help-button" type="button" title="查看世界操作" aria-label="查看世界操作" aria-haspopup="dialog" onClick={openWorldGuide}>?</button><a href="/workbench" title="打开高级工作台">高级工作台 ↗</a></nav></header>
     <nav className="town-roster" aria-label="小镇居民">{residents.map(item => <button type="button" key={item.id} aria-pressed={selected === item.id} onClick={() => choose(item.id)}><strong>{item.displayName}</strong><small>{STATUS[item.status]}</small></button>)}</nav>
+    {regions.stage !== 'ready' && <section className="town-regions" data-stage={regions.stage} aria-label="区域加载状态">
+      <strong>溪间庭院 · 晴沙绿洲</strong>
+      <p role={regions.stage === 'failed' ? 'alert' : 'status'}>{regions.detail}</p>
+      {regions.stage === 'failed'
+        ? <button type="button" onClick={() => {
+          setRegions({ stage: 'downloading', detail: '正在重新连接…' })
+          iframe.current?.contentWindow?.postMessage({ source: 'agentville-host', version: WORLD_BRIDGE_VERSION, type: 'world:retry-neighbors' }, worldUrl.origin)
+        }}>重新加载区域</button>
+        : <progress aria-label="邻近区域正在加载" />}
+    </section>}
     {showModels ? <ModelSettings actions={props.models} close={() => setShowModels(false)} /> : resident && <aside className="town-panel" aria-label={resident.name}>
       <header><h2>{resident.name}</h2><button type="button" title="关闭居民面板" aria-label="关闭居民面板" onClick={() => { ++operation.current; setSelected(null) }}>×</button></header>
       <p>{resident.greeting}</p>

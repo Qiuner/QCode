@@ -15,10 +15,14 @@ if ($LASTEXITCODE -ne 0) { throw 'Godot resource import failed.' }
 if ($LASTEXITCODE -ne 0) { throw 'UI font coverage check failed. Regenerate it with tools/subset_font.py.' }
 & $Godot --headless --path $project --export-release Web (Join-Path $output 'index.html')
 if ($LASTEXITCODE -ne 0) { throw 'Web export failed. Install the matching Web export templates first.' }
+& $Godot --headless --path $project --export-pack Neighbors (Join-Path $output 'neighbors.pck')
+if ($LASTEXITCODE -ne 0) { throw 'Neighbor regions export failed.' }
 Copy-Item -LiteralPath (Join-Path $project 'web\cover.webp') -Destination $output
 Copy-Item -LiteralPath (Join-Path $project 'web\_headers') -Destination $output
 Copy-Item -LiteralPath (Join-Path $project 'assets\fonts\OFL.txt') -Destination (Join-Path $output 'font-license.txt')
 Copy-Item -LiteralPath (Join-Path $project 'assets\xi4u-LICENSE.txt') -Destination $output
+& node (Join-Path $PSScriptRoot 'compress_web.mjs') $output
+if ($LASTEXITCODE -ne 0) { throw 'Web asset compression failed.' }
 Compress-Archive -Path (Join-Path $output '*') -DestinationPath (Join-Path $project 'build\mosslight-web.zip') -Force
 Write-Host "Web export ready: $output"
 Write-Host 'Serve this folder over HTTP(S), or run Play-Web.cmd.'
