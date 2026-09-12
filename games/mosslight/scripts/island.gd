@@ -304,6 +304,7 @@ func _setup_input() -> void:
 		"walk_left": [KEY_A, KEY_LEFT], "walk_right": [KEY_D, KEY_RIGHT],
 		"walk_up": [KEY_W, KEY_UP], "walk_down": [KEY_S, KEY_DOWN],
 		"jump": [KEY_SPACE], "interact": [KEY_E], "echo": [KEY_F],
+		"recall": [KEY_U],
 		"undo_echo": [KEY_Q], "reset_island": [KEY_R], "photo": [KEY_TAB],
 		"mute": [KEY_M], "close_game": [KEY_ESCAPE], "nature_motion": [KEY_N],
 		"camera_motion": [KEY_B],
@@ -1003,6 +1004,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if game_paused:
 		return
+	if event.is_action_pressed("recall") and sanctuary_computer.can_remote_grab():
+		sanctuary_computer.remote_grab()
+		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT and echo_active:
 		set_echo_active(false)
 		get_viewport().set_input_as_handled()
@@ -1235,6 +1239,9 @@ func _update_hud() -> void:
 		return
 	if sanctuary_computer != null and sanctuary_computer.can_grab():
 		prompt.text = "[ E ]  让 Qiuner 接你上台"
+		return
+	if sanctuary_computer != null and sanctuary_computer.can_remote_grab():
+		prompt.text = "[ U ]  召回到中央计算机"
 		return
 	var source := _nearby_echo_source()
 	if source != null:

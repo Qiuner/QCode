@@ -36,6 +36,13 @@ func run() -> void:
 			round_segments = round_segments and is_equal_approx(segment.basis.x.length(), 1.0) and is_equal_approx(segment.basis.z.length(), 1.0)
 	check(round_segments, "curved segments retain circular cross sections")
 	check(not computer.grab(), "distant players are not grabbed")
+	game.player.position = Vector3(18, .05, 3)
+	game.player.velocity = Vector3.ZERO
+	await tick(3)
+	check(computer.can_remote_grab(), "distant players can request remote recall")
+	check(computer.remote_grab(), "remote recall starts from a distant location")
+	await tick(300)
+	check(not computer.remote_active and game.player.position.distance_to(computer.LANDING) < .12, "remote recall returns player to the computer")
 	for mode in [game.ViewMode.OVERVIEW, game.ViewMode.THIRD_PERSON, game.ViewMode.FIRST_PERSON]:
 		game.set_view_mode(mode)
 		await approach()

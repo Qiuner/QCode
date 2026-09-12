@@ -13,8 +13,11 @@ const CARRY_TIME := 1.0
 const LOWER_TIME := .65
 const RELEASE_TIME := .50
 const TRANSPORT_END := REACH_TIME + LIFT_TIME + CARRY_TIME + LOWER_TIME
+const REMOTE_CALL_TIME := 1.25
 
 var active := false
+var remote_active := false
+var remote_time := 0.0
 var time := 0.0
 var idle_time := 0.0
 var start := Vector3.ZERO
@@ -119,6 +122,27 @@ func can_grab() -> bool:
 	# Only the open front approach is reachable; the ruins and cottage stay out of range.
 	return absf(point.x - ORIGIN.x) < 1.65 and point.z > -3.65 and point.z < -.7 and absf(point.y) < .25
 
+func can_remote_grab() -> bool:
+	return not active and not remote_active and not game.game_paused and not game.agent_isles_panel_open and not game.garden.opened and game.player.global_position.distance_to(LANDING) > 4.0
+
+func remote_grab() -> bool:
+	if not can_remote_grab():
+		return false
+	var query := PhysicsShapeQueryParameters3D.new()
+	query.shape = game.player.get_child(0).shape
+	query.transform = Transform3D(Basis.IDENTITY, LANDING + Vector3(0, .70, 0))
+	query.collision_mask = 1
+	query.exclude = [game.player.get_rid()]
+	if not get_world_3d().direct_space_state.intersect_shape(query).is_empty():
+		game._show_toast("中央平台被占用了，请先清出位置。", 3)
+		return false
+	remote_active = true
+	remote_time = 0.0
+	game.player.velocity = Vector3.ZERO
+	game.set_echo_active(false)
+	game._show_toast("Qiuner 正在发出召回信号…", 2)
+	return true
+
 
 func grab() -> bool:
 	if not can_grab():
@@ -156,6 +180,28 @@ func grab() -> bool:
 
 func advance(delta: float) -> void:
 	if game.game_paused or game.agent_isles_panel_open or game.garden.opened:
+		return
+	if remote_active:
+		remote_time += delta
+		game.player.velocity = Vector3.ZERO
+		# Keep the claws aimed at the player's world position while the signal
+		# crosses the neighboring maps. The segmented arms can span the loaded
+		# bridge/region seam without teleporting the player.
+		var tracking := clampf(remote_time / REMOTE_CALL_TIME, 0, 1)
+		signal_pivot.scale = Vector3.ONE * (1.0 + sin(remote_time * 10.0) * .08 + tracking * .12)
+		_pose(smoothstep(0, 1, tracking))
+		if remote_time >= REMOTE_CALL_TIME:
+			remote_active = false
+			active = true
+			time = 0.0
+			start = game.player.global_position
+			released = false
+			grab_tips.clear()
+			grab_rotations.clear()
+			for hand: Node3D in hands:
+				grab_tips.append(hand.position)
+				grab_rotations.append(hand.quaternion)
+			game._tone(620, .20, .12)
 		return
 	if not active:
 		if game.nature_motion:
