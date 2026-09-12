@@ -108,11 +108,9 @@ export const WORLD_STYLES = `
 .town-reply { margin: 12px 0; overflow-wrap: anywhere; }
 .town-tutorial-hint { margin: 8px 0; font-size: 13px; }
 .town-tutorial-hint > summary { color: #52694f; }
-.town-chat-menu { position: relative; flex: none; }
-.town-chat-menu > summary { list-style: none; }
-.town-chat-menu nav { position: absolute; right: 0; top: 100%; z-index: 30; display: grid; gap: 6px; width: 230px; padding: 12px; background: #fcfdf8; border: 1px solid #bccbbb; border-radius: 8px; box-shadow: 0 6px 24px #203c3722; }
+.town-chat-menu { position: fixed; inset: auto; margin: 0; width: min(230px, calc(100vw - 16px)); max-height: 60svh; overflow-y: auto; padding: 12px; color: #203c37; background: #fcfdf8; border: 1px solid #bccbbb; border-radius: 8px; box-shadow: 0 6px 24px #203c3722; }
+.town-chat-menu:popover-open { display: grid; gap: 6px; }
 .town-chat-menu small { overflow-wrap: anywhere; white-space: normal; }
-[data-agent-isles-town] [data-shell-overlay]:has(.town-chat-menu[open]) { z-index: 23; }
 .town-studio:has(.town-native-chat-seat) .town-results { margin: 0; }
 .town-studio:has(.town-native-chat-seat) .town-results:empty { display: none; }
 .town-native-chat-seat { flex: 1; min-height: 160px; }

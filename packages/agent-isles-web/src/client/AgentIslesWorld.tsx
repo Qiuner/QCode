@@ -402,16 +402,26 @@ export function AgentIslesWorld(props: Props) {
     </section>}
 
     {showModels ? <ModelSettings actions={props.models} close={() => setShowModels(false)} /> : resident && <aside ref={conversation} tabIndex={-1} className={`town-panel town-conversation${workOpen ? ' town-studio' : ''}${selected === 'coordinator' && guideView === 'records' ? ' town-work-panel' : ''}`} aria-label={guideView === 'records' ? '工作记录' : resident.name} onKeyDown={event => {
-      if (event.key === 'Escape') { event.preventDefault(); closeConversation() }
+      if (event.key === 'Escape') {
+        const menu = conversation.current?.querySelector<HTMLElement>('.town-chat-menu:popover-open')
+        if (menu) { event.preventDefault(); event.stopPropagation(); menu.hidePopover(); return }
+        event.preventDefault(); closeConversation()
+      }
     }}>
       <header>{guideView !== 'records' && <img className="town-portrait" src={RESIDENT_PORTRAITS[resident.id]} alt="" />}<div><small>{guideView === 'records' ? workspace?.title ?? '项目工作' : selected === 'coordinator' ? '小镇接待' : selected === 'coder' ? '和你一起做作品' : selected === 'teacher' ? '一起学习' : '查阅文件'}</small><h2>{guideView === 'records' ? '工作记录' : resident.name.split(' · ')[0]}</h2></div><button type="button" title="回到小岛，正在进行的任务会继续" aria-label="回到小岛" onClick={closeConversation}>回到小岛 ×</button></header>
-      {workOpen && <div className="town-studio-toolbar"><span>{workspace?.title}</span><details className="town-chat-menu"><summary aria-label="作品选项">作品选项</summary><nav aria-label="作品选项">
+      {workOpen && <div className="town-studio-toolbar"><span>{workspace?.title}</span><button type="button" {...{ popovertarget: 'town-work-options' }} onClick={event => {
+        const box = event.currentTarget.getBoundingClientRect()
+        const menu = document.getElementById('town-work-options')
+        if (menu) { menu.style.top = `${box.bottom + 4}px`; menu.style.right = `${Math.max(8, window.innerWidth - box.right)}px` }
+      }}>作品选项</button><nav id="town-work-options" className="town-chat-menu" {...{ popover: 'auto' }} aria-label="作品选项" onClick={event => {
+        if ((event.target as Element).closest('button, a')) event.currentTarget.hidePopover()
+      }}>
         <button onClick={() => setExpandedWork(value => !value)}>{expandedWork ? '收窄工作区' : '展开工作区'}</button>
         <button onClick={() => choose('coordinator')}>返回向导</button>
         <button onClick={() => setShowModels(true)}>模型设置</button>
         <a href="/workbench">会话日志与轨迹 ↗</a>
         <small>项目位置：{workspace?.path}</small>
-      </nav></details></div>}
+      </nav></div>}
       <div className="town-conversation-body">
       {selected === 'coordinator' ? <>
         {tutorial.error && <p role="alert">{tutorial.error}<button onClick={() => void tutorial.reload()}>重试读取教程</button></p>}
