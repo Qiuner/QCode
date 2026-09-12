@@ -1,4 +1,18 @@
 export const WORLD_STYLES = `
+.town-shell.town-notification-layer { position: fixed; inset: 0; z-index: 45; pointer-events: none; }
+.town-notifications { position: absolute; left: 20px; bottom: 20px; z-index: 35; pointer-events: auto; max-width: calc(100vw - 40px); }
+.town-shell .town-notification-toggle { display: flex; align-items: center; gap: 6px; min-width: 44px; height: 44px; justify-content: center; border-radius: 50%; box-shadow: 0 2px 10px #17392c22; }
+.town-notification-toast, .town-notification-list { width: min(320px, calc(100vw - 40px)); background: #f4f8f3; border: 1px solid #b6c7b8; border-radius: 8px; box-shadow: 0 4px 20px #17392c25; margin-bottom: 8px; }
+.town-notification-list { position: absolute; bottom: 48px; left: 0; max-height: 55svh; overflow: auto; padding: 10px; }
+.town-notification-toast, .town-notification-item, .town-notification-list header { display: flex; align-items: center; gap: 4px; }
+.town-notification-list header { justify-content: space-between; }
+.town-notification-item { border-top: 1px solid #d9e0d4; }
+.town-shell .town-notifications button { border: 0; }
+.town-notification-item > button:first-child, .town-notification-toast > button:first-child { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; text-align: left; }
+.town-notifications img { width: 36px; height: 42px; object-fit: contain; flex: none; }
+.town-notifications small { display: block; color: #637460; font-size: 11px; }
+.town-notifications span { overflow-wrap: anywhere; }
+.town-shell[data-conversation] .town-notifications { bottom: auto; top: 80px; }
 .town-connection-notice { position: absolute; top: 8px; left: 16px; z-index: 40; padding: 8px 12px; background: #fff3db; border: 1px solid #d8b775; border-radius: 8px; color: #57431e; }
 .town-return-island { position: fixed; top: 8px; left: 50%; transform: translateX(-50%); z-index: 50; padding: 7px 14px; border: 1px solid #bccbbb; border-radius: 8px; background: #fcfdf8; color: #203c37; cursor: pointer; }
 .town-shell .town-tutorial { display: grid; gap: 10px; padding: 14px; border: 1px solid #b5bca0; border-radius: 12px; background: #fff9e9; color: #29483e; }
@@ -7,12 +21,12 @@ export const WORLD_STYLES = `
 .town-shell .town-tutorial textarea { min-height: 90px; resize: vertical; }
 .town-shell .town-tutorial button { min-height: 36px; padding: 6px 10px; }
 .town-shell .town-tutorial-preview { position: static; width: 100%; height: 320px; border: 1px solid #869b8f; background: white; }
-.town-shell .town-tutorial-goal { position: absolute; top: 68px; left: 16px; max-width: min(340px, calc(100% - 32px)); display: grid; gap: 8px; padding: 12px; background: #fff9e9; color: #29483e; border-radius: 10px; pointer-events: auto; z-index: 4; }
+.town-shell .town-tutorial-goal { position: absolute; top: 78px; left: 20px; width: min(290px, calc(100% - 40px)); pointer-events: auto; z-index: 4; }
 [data-agent-isles-town] > :not([data-shell-overlay]) { visibility: hidden; pointer-events: none; }
 .town-shell { position: absolute; inset: 0; pointer-events: auto; color: #203c37; font: 14px/1.5 "Segoe UI", "Microsoft YaHei", sans-serif; }
 .town-shell * { box-sizing: border-box; letter-spacing: 0; }
 .town-shell > iframe { width: 100%; height: 100%; border: 0; }
-.town-work-entry { position: absolute; top: 20px; left: 20px; max-width: calc(100% - 110px); display: flex; flex-wrap: wrap; gap: 8px; z-index: 5; }
+.town-work-entry { position: absolute; top: 20px; left: 20px; max-width: calc(100% - 90px); display: flex; align-items: center; gap: 4px; z-index: 5; }
 .town-project-menu { position: relative; min-width: 0; max-width: 100%; }
 .town-project-list { position: absolute; top: calc(100% + 8px); left: 0; width: min(320px, calc(100vw - 40px)); max-height: calc(100svh - 100px); overflow-y: auto; padding: 12px; border: 1px solid #aac3b5; border-radius: 10px; background: #fcfdf8; box-shadow: 0 8px 30px #17392c30; }
 .town-project-items, .town-project-actions { display: grid; gap: 6px; margin-top: 10px; }
@@ -22,14 +36,29 @@ export const WORLD_STYLES = `
 .town-project-list button small { flex: none; }
 .town-shell .town-project-list button[aria-current] { background: #e1eee5; font-weight: 600; }
 .town-work-entry button { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; box-shadow: 0 4px 16px #183a3922; }
-[aria-label='居民工作记录'] .town-dialogue-choices { display: grid; grid-template-columns: 1fr; }
-[aria-label='居民工作记录'] button { text-align: left; white-space: normal; overflow-wrap: anywhere; }
-[aria-label='居民工作记录'] small { display: block; }
+[aria-label='居民创作记录'] .town-dialogue-choices { display: grid; grid-template-columns: 1fr; }
+[aria-label='居民创作记录'] button { text-align: left; white-space: normal; overflow-wrap: anywhere; }
+[aria-label='居民创作记录'] small { display: block; }
 .town-guide-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 .town-shell a { color: #235950; }
 .town-shell button { font: inherit; cursor: pointer; min-height: 36px; border: 1px solid #a8c0b7; border-radius: 6px; padding: 7px 12px; color: #203c37; background: #f4f8f3; }
 .town-shell button:hover { background: #e1eee5; }
 .town-shell button:disabled { opacity: .55; cursor: not-allowed; }
+.town-work-entry .town-project-trigger { display: flex; align-items: center; gap: 9px; height: 44px; padding: 6px 10px 6px 6px; border: 0; border-radius: 8px; background: #f4f8f3e8; box-shadow: 0 2px 10px #17392c12; }
+.town-project-trigger img { width: 28px; height: 28px; flex: none; }
+.town-project-trigger span { overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+.town-project-trigger svg { flex: none; }
+.town-work-entry .town-journal-trigger { position: relative; display: grid; place-items: center; width: 44px; height: 44px; flex: none; padding: 0; border: 0; border-radius: 50%; background: #f4f8f3e8; box-shadow: 0 2px 10px #17392c12; }
+.town-journal-status { position: absolute; top: 7px; right: 7px; width: 7px; height: 7px; border: 1px solid #f4f8f3; border-radius: 50%; background: #3d8b73; }
+.town-journal-status[data-pending='true'] { background: #c77a32; }
+.town-project-location { font-size: 12px; color: #637460; overflow-wrap: anywhere; }
+.town-shell .town-tutorial-goal button { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 58px; padding: 6px 10px 6px 4px; text-align: left; border: 0; border-radius: 8px; background: #f4f8f3e8; box-shadow: 0 2px 10px #17392c12; }
+.town-tutorial-goal img { width: 42px; height: 46px; object-fit: contain; flex: none; }
+.town-tutorial-goal button > span { min-width: 0; flex: 1; }
+.town-tutorial-goal small { display: block; font-size: 11px; color: #637460; }
+.town-tutorial-goal strong { display: block; font-size: 13px; font-weight: 500; overflow-wrap: anywhere; }
+.town-tutorial-goal svg { flex: none; color: #637460; }
+.town-work-entry button:focus-visible, .town-tutorial-goal button:focus-visible { outline: 2px solid #286d59; outline-offset: 3px; }
 .town-help-reveal { position: absolute; top: 0; right: 0; z-index: 2; width: 112px; height: 84px; display: flex; align-items: flex-start; justify-content: flex-end; padding: 20px; }
 .town-help-reveal button { width: 40px; height: 40px; min-height: 40px; padding: 0; border-radius: 50%; font-size: 22px; background: #f7faf5f2; box-shadow: 0 3px 12px #17392c20; opacity: 0; pointer-events: none; }
 .town-help-reveal:hover button, .town-help-reveal button:focus-visible { opacity: 1; pointer-events: auto; }
@@ -141,6 +170,19 @@ export const WORLD_STYLES = `
 .town-studio:has(.town-native-chat-seat) .town-results { margin: 0; }
 .town-studio:has(.town-native-chat-seat) .town-results:empty { display: none; }
 .town-native-chat-seat { flex: 1; min-height: 160px; }
+.town-history { position: absolute; inset: 12px 12px 12px auto; width: 320px; display: flex; flex-direction: column; pointer-events: auto; background: #fcfdf8; color: #263c35; border: 1px solid #cad5cd; border-radius: 6px; }
+.town-history header, .town-history footer { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; min-height: 44px; }
+.town-history button { display: inline-flex; align-items: center; gap: 8px; padding: 8px; border: 0; background: transparent; color: inherit; cursor: pointer; font: inherit; }
+.town-history button:disabled { opacity: .5; cursor: default; }
+.town-history-sidebar { flex: 1; min-height: 0; }
+.town-history-chat { position: absolute; right: calc(100% + 12px); top: 0; bottom: 0; width: min(560px, calc(100vw - 368px)); display: flex; flex-direction: column; background: #fcfdf8; border: 1px solid #cad5cd; border-radius: 6px; }
+@media (max-width: 760px) {
+  .town-history { width: min(320px, calc(100vw - 24px)); }
+  .town-history[data-chat] { width: calc(100vw - 24px); }
+  .town-history[data-chat] .town-history-sidebar { flex: none; width: 0; height: 0; overflow: hidden; }
+  .town-history[data-chat] > header, .town-history[data-chat] > footer { display: none; }
+  .town-history-chat { position: static; width: 100%; height: 100%; border: 0; }
+}
 .town-composer:empty { display: none; }
 .town-composer { flex: none; padding: 12px 20px 16px; border-top: 1px solid #d9e0d4; background: #fcfdf8; max-height: 38svh; overflow-y: auto; }
 .town-composer form, .town-tutorial-input { display: grid; gap: 8px; margin: 0; }

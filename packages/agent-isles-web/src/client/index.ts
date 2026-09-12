@@ -25,7 +25,7 @@ import { FIRST_TUTORIAL } from '../tutorial-types.js'
 import type { ISessions } from '@deepseek-ai/dsh-api-session-controller/client'
 import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
 
-export const inject = ['connection', 'slots', 'sessions', 'workspaces', 'uiWorkspace', 'uiConversation', 'remote', 'remote.settings', 'remote.credentials', 'remote.llm', 'remote.session', 'remote.directoryPicker']
+export const inject = ['connection', 'slots', 'sessions', 'workspaces', 'uiWorkspace', 'uiConversation', 'layout', 'remote', 'remote.settings', 'remote.credentials', 'remote.llm', 'remote.session', 'remote.directoryPicker']
 
 const RESIDENT_SESSION_KEY = 'agent-isles.resident-sessions.v1'
 const RESIDENT_NAMES: Readonly<Record<ResidentId, string>> = {
@@ -79,6 +79,7 @@ export function apply(ctx: Omit<ClientContext, 'sessions' | 'connection'> & { se
     return (Object.keys(RESIDENT_NAMES) as ResidentId[]).find(id => sessionForResident(workspaceId, id) === sessionId)
   }
   const selectResident = (residentId: ResidentId, workspaceId: string): Promise<string> => {
+    if (residentId === 'teacher') return Promise.reject(new Error('苔伯通过项目与历史对话管理界面操作，不创建模型会话。'))
     const key = `${workspaceId}:${residentId}`
     const active = selecting.get(key)
     if (active !== undefined) return active
@@ -218,6 +219,7 @@ export function apply(ctx: Omit<ClientContext, 'sessions' | 'connection'> & { se
         },
         getBinding: id => ctx.sessions.binding(id as SessionId),
         focusSession: id => ctx.sessions.open(id as SessionId),
+        toggleSidebar: () => ctx.layout.toggleSidebar(),
         sessionForResident,
         pickDirectory: async signal => {
           const result = await ctx.remote.directoryPicker.pick(signal)
