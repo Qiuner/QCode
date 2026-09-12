@@ -7,3 +7,4 @@ dist/
 agent*-runtime-test/
 lib/
 *.tsbuildinfo
+.birdview/
