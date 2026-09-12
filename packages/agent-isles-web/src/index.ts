@@ -10,6 +10,7 @@ import { createModelTestHandler, type ModelTestServices } from './model-test.js'
 import { createResidentStateHandler } from './resident-state.js'
 import * as tutorial from './tutorial.js'
 import { createBrowserEntry } from './browser-entry.js'
+import * as projectFiles from './project-files.js'
 
 export const inject = ['webServer', 'llm', 'agentDefaultModel']
 
@@ -102,6 +103,7 @@ export async function serveWorld(req: IncomingMessage, res: ServerResponse, worl
 /** Host half: mount the Godot export beside the existing Harness API and SPA. */
 export function apply(ctx: Context & ModelTestServices): void {
   ctx.plugin(tutorial)
+  ctx.plugin(projectFiles)
   for (const file of ['favicon.ico', 'favicon-16x16.png', 'favicon-32x32.png', 'apple-touch-icon.png', 'android-chrome-192x192.png', 'android-chrome-512x512.png', 'site.webmanifest']) {
     ctx.effect(() => ctx.webServer.register({
       kind: 'exact', path: `/agent-isles/brand/${file}`,

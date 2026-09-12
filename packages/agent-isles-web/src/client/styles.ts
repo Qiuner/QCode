@@ -57,6 +57,28 @@ export const WORLD_STYLES = `
 .town-shell :is(button,a,input,textarea,select):focus-visible { outline: 2px solid #1b8171; outline-offset: 3px; }
 .town-conversation { top: auto; bottom: 28px; left: 50%; right: auto; transform: translateX(-50%); width: min(720px, calc(100% - 40px)); max-height: min(480px, 54svh); padding: 0; display: flex; flex-direction: column; overflow: hidden; background: #fcfdf8; border: 1px solid #bed0bf; box-shadow: 0 10px 36px #183a3933; }
 .town-conversation:focus { outline: none; }
+.town-files { position: absolute; z-index: 6; inset: 16px 16px 16px auto; width: min(820px, calc(100% - 32px)); display: flex; flex-direction: column; background: #fafcfb; color: #263b37; border: 1px solid #c7d4ce; border-radius: 8px; overflow: hidden; }
+.town-files > header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #dce4df; }
+.town-files h2 { margin: 4px 0 0; font-size: 20px; }
+.town-files h3 { font-size: 15px; }
+.town-files small { color: #65736f; }
+.town-files button { font: inherit; cursor: pointer; color: inherit; background: transparent; border: 0; border-radius: 4px; min-height: 40px; padding: 8px 12px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
+.town-files button:hover, .town-files button[aria-pressed='true'] { background: #e1ece8; }
+.town-files button:disabled { opacity: .4; cursor: default; }
+.town-files button:focus-visible { outline: 2px solid #287a6b; outline-offset: -2px; }
+.town-files > nav, .town-files-path { display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-bottom: 1px solid #dce4df; }
+.town-files > nav > button:last-child { margin-left: auto; }
+.town-files-path span { overflow-wrap: anywhere; min-width: 0; font-size: 13px; }
+.town-files-content { flex: 1; min-height: 0; overflow: auto; padding: 12px 20px; }
+.town-files .town-file-entry { display: flex; justify-content: flex-start; width: 100%; text-align: left; }
+.town-file-entry svg { flex: none; }
+.town-file-entry span { overflow-wrap: anywhere; min-width: 0; }
+.town-files pre { font: 13px/1.6 Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; tab-size: 2; }
+@media (max-width: 600px) {
+  .town-files { inset: 8px; width: auto; }
+  .town-files-content { padding: 12px; }
+  .town-shell .town-conversation.town-keeper-dialogue:not(.town-studio):not(.town-work-panel) { bottom: 80px; }
+}
 .town-work-panel { top: 20px; bottom: 20px; left: auto; right: 20px; transform: none; width: min(440px, calc(100% - 40px)); max-height: none; }
 .town-conversation > header { flex: none; padding: 12px 20px 0; justify-content: flex-start; }
 .town-portrait { width: 64px; height: 64px; object-fit: contain; flex: none; background: #e6eee0; border-radius: 50%; }

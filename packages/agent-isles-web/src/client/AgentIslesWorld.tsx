@@ -12,6 +12,7 @@ import { ModelConfigurationRequired, type ModelSettingsActions } from './model-s
 import { RESIDENT_PORTRAITS } from './resident-portraits.js'
 import { TutorialPanel, useTutorial } from './Tutorial.js'
 import { NativeChat } from './NativeChat.js'
+import { ProjectFiles } from './ProjectFiles.js'
 import { workNarrative } from './work-narrative.js'
 import { type TutorialActions, type TutorialRun } from '../tutorial-types.js'
 
@@ -113,6 +114,7 @@ export function AgentIslesWorld(props: Props) {
   }, [showModels])
   const [regions, setRegions] = useState<RegionLoadState>({ stage: 'waiting', detail: '等待主岛就绪' })
   const [selected, setSelected] = useState<ResidentId | null>(null)
+  const [fileView, setFileView] = useState<'files' | 'changes' | null>(null)
   const [restoring, setRestoring] = useState(true)
   const [restoreError, setRestoreError] = useState('')
   const [restoreAttempt, setRestoreAttempt] = useState(0)
@@ -206,10 +208,11 @@ export function AgentIslesWorld(props: Props) {
   })
 
   function choose(id: ResidentId) {
+    setFileView(null)
     setProjectMenuOpen(false)
     setShowModels(false)
     setGuideView('welcome')
-    const next = workspace && !loadingProjects && !recoveryFailed || id === 'coordinator' || tutorial.run && !tutorial.run.paused && ['coder', 'file_keeper'].includes(id) && !loadingProjects && !recoveryFailed ? id : 'coordinator'
+    const next = workspace && !loadingProjects && !recoveryFailed || id === 'coordinator' || id === 'file_keeper' || tutorial.run && !tutorial.run.paused && ['coder', 'file_keeper'].includes(id) && !loadingProjects && !recoveryFailed ? id : 'coordinator'
     if (id === 'file_keeper' && followingKeeper) { setFollowingKeeper(false); moveKeeper('cancel') }
     if (next === selected) return
     ++operation.current
@@ -218,6 +221,7 @@ export function AgentIslesWorld(props: Props) {
   }
 
   function closeConversation() {
+    setFileView(null)
     pickerAbort.current?.abort()
     ++operation.current
     setSelected(null)
@@ -227,12 +231,12 @@ export function AgentIslesWorld(props: Props) {
 
   useEffect(() => {
     if (playable && selected && !showModels) conversation.current?.focus({ preventScroll: true })
-  }, [playable, selected, showModels, guideView])
+  }, [playable, selected, showModels, guideView, fileView])
 
   useEffect(() => {
     const ticket = ++operation.current
     setBindingId(undefined); setError(''); setBusy(false); setPicking(false)
-    if (!workspace || !selected || selected === 'coordinator' || loadingProjects || recoveryFailed || tutorial.run && !tutorial.run.paused && ['idea', 'folder'].includes(tutorial.run.step)) return
+    if (!workspace || !selected || selected === 'coordinator' || selected === 'file_keeper' || loadingProjects || recoveryFailed || tutorial.run && !tutorial.run.paused && ['idea', 'folder'].includes(tutorial.run.step)) return
     setBusy(true)
     void props.selectResident(selected, workspace.workspaceId).then(id => {
       if (ticket === operation.current) { props.focusSession(id); setBindingId(id) }
@@ -271,6 +275,7 @@ export function AgentIslesWorld(props: Props) {
   }, [ready, worldState])
 
   function useProject(id: string) {
+    setFileView(null)
     setProjectMenuOpen(false)
     skipAutoProject.current = false
     setGuideView('welcome')
@@ -341,7 +346,7 @@ export function AgentIslesWorld(props: Props) {
       iframe.current?.contentWindow?.postMessage({ source: 'agent-isles-host', version: WORLD_BRIDGE_VERSION, type: 'tutorial:keeper', payload: { encounterId: 'reset', action: 'cancel', reducedMotion: true } }, worldUrl.origin)
     }
   }, [tutorial.run?.id, tutorial.run?.paused, tutorial.run?.step, workspace?.workspaceId])
-  const workOpen = playable && !showModels && !!resident && selected !== 'coordinator' && !(tutorial.run && !tutorial.run.paused && tutorial.run.step === 'folder')
+  const workOpen = playable && !showModels && !!resident && selected !== 'coordinator' && selected !== 'file_keeper' && !(tutorial.run && !tutorial.run.paused && tutorial.run.step === 'folder')
   const tutorialSession = (selected === 'coder' ? bindingId ?? tutorial.run?.submission?.sessionId : tutorial.run?.submission?.sessionId) as SessionId | undefined
   const tutorialRunning = !!(tutorialSession && sessionState.byId[tutorialSession]?.running)
   const tutorialWaiting = !!(tutorialSession && pending.has(tutorialSession))
@@ -395,7 +400,7 @@ export function AgentIslesWorld(props: Props) {
         : <progress aria-label="邻近区域正在加载" />}
     </section>}
 
-    {showModels ? <ModelSettings actions={props.models} close={() => setShowModels(false)} /> : resident && <aside ref={conversation} tabIndex={-1} className={`town-panel town-conversation${workOpen ? ' town-studio' : ''}${selected === 'coordinator' && guideView === 'records' ? ' town-work-panel' : ''}`} aria-label={guideView === 'records' ? '工作记录' : resident.name} onKeyDown={event => {
+    {showModels ? <ModelSettings actions={props.models} close={() => setShowModels(false)} /> : selected === 'file_keeper' && fileView && workspace ? <ProjectFiles key={workspace.workspaceId} projectId={workspace.workspaceId} title={workspace.title} initialView={fileView} close={() => setFileView(null)} /> : resident && <aside ref={conversation} tabIndex={-1} className={`town-panel town-conversation${selected === 'file_keeper' ? ' town-keeper-dialogue' : ''}${workOpen ? ' town-studio' : ''}${selected === 'coordinator' && guideView === 'records' ? ' town-work-panel' : ''}`} aria-label={guideView === 'records' ? '工作记录' : resident.name} onKeyDown={event => {
       if (event.key === 'Escape') {
         const menu = conversation.current?.querySelector<HTMLElement>('.town-chat-menu:popover-open')
         if (menu) { event.preventDefault(); event.stopPropagation(); menu.hidePopover(); return }
@@ -461,6 +466,19 @@ export function AgentIslesWorld(props: Props) {
         })}</div></>}
         {guideView === 'options' && <><p className="town-dialogue-line">还有什么需要我帮忙的？</p><nav className="town-dialogue-choices" aria-label="小镇设置与帮助"><button onClick={() => setGuideView('projects')}>管理项目</button><button onClick={() => setShowModels(true)}>模型设置</button><button aria-haspopup="dialog" onClick={() => { closeConversation(); openWorldGuide() }}>操作帮助</button><a href="/workbench">高级工作台 ↗</a></nav></>}
         <footer className="town-dialogue-footer">{guideView === 'welcome' ? <><button className="town-text-action" onClick={() => setGuideView('projects')}>{workspace ? '更换项目' : '已有项目 / 输入路径'}</button><button className="town-text-action" onClick={() => setGuideView('options')}>还有件事…</button></> : <button className="town-text-action" onClick={() => { setGuideView('welcome'); setError('') }}>返回对话</button>}</footer>
+      </> : selected === 'file_keeper' ? <>
+        {tutorial.run && !tutorial.run.paused && tutorial.run.step === 'folder' ? tutorialPanel : <>
+          <p className="town-dialogue-line">{workspace ? `「${workspace.title}」的文件都在这里。你想看看文件，还是最近的修改？` : '先选好项目，我就能带你看看里面的文件。'}</p>
+          <div className="town-dialogue-choices">
+            {workspace && !loadingProjects && !recoveryFailed && <><button onClick={() => setFileView('files')}>浏览文件</button><button onClick={() => setFileView('changes')}>查看修改</button></>}
+            <button onClick={() => { choose('coordinator'); setGuideView('projects') }}>{workspace ? '更换项目' : '选择项目'}</button>
+            <button onClick={closeConversation}>下次再来</button>
+          </div>
+          {workspace && props.sessionForResident(workspace.workspaceId, 'file_keeper') && <footer className="town-dialogue-footer"><button className="town-text-action" onClick={() => {
+            const id = props.sessionForResident(workspace.workspaceId, 'file_keeper')
+            if (id) { props.focusSession(id); switchSurface(true) }
+          }}>查看以前的对话</button></footer>}
+        </>}
       </> : <>
         {!tutorialPanel && !workOpen && <p className="town-dialogue-line">{resident.greeting}</p>}
 
@@ -474,8 +492,7 @@ export function AgentIslesWorld(props: Props) {
         {binding && <SessionResult key={bindingId} binding={binding} name={resident.name.split(' · ')[0]} project={workspace?.title} run={selected === 'coder' ? tutorial.run : undefined} waiting={!!interaction} />}
         {tutorialPanel && (workOpen && bindingId ? <details className="town-course-disclosure"><summary>首课进度</summary>{tutorialPanel}</details> : tutorialPanel)}
         {!workOpen && <nav className="town-guide-tools" aria-label="会话导航"><button onClick={() => choose('coordinator')}>返回向导</button><button onClick={() => setShowModels(true)}>模型设置</button></nav>}
-        {selected === 'file_keeper' && <button disabled={busy || !binding} onClick={() => { void send('列出当前项目根目录的文件和子目录，注明各项类型。最多列出 80 项，不要递归扫描。', false) }}>列出项目文件</button>}
-        {!bindingId && (!tutorialPanel || tutorial.run?.paused || tutorial.run?.step === 'complete') && composerTarget && createPortal(<form onSubmit={event => { event.preventDefault(); void send(selected === 'file_keeper' ? `读取这个项目内的文件：${draft}` : draft) }}>
+        {!bindingId && (!tutorialPanel || tutorial.run?.paused || tutorial.run?.step === 'complete') && composerTarget && createPortal(<form onSubmit={event => { event.preventDefault(); void send(draft) }}>
           <label htmlFor="town-request">{selected === 'coder' ? '告诉芽芽你的想法或想改的地方' : selected === 'teacher' ? '你的问题' : '文件相对路径'}</label>
           <textarea id="town-request" rows={3} value={draft} disabled={busy} placeholder={selected === 'coder' ? '例如：给首页加一个待办清单，可以添加和完成事项。请验证这两个操作。' : undefined} onChange={event => setDrafts(value => ({ ...value, [draftKey]: event.target.value }))} />
           {draft && <small>{draftStorageError ? '草稿暂时只能保留在当前页面，刷新前请复制保存。' : '草稿保存在此浏览器，回来可以继续填写。'}</small>}

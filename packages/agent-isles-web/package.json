@@ -59,6 +59,7 @@
     "@deepseek-ai/dsh-session-persistence": "0.1.3-alpha.1",
     "@deepseek-ai/dsh-storage-domain": "0.1.3-alpha.1",
     "@deepseek-ai/dsh-workspace": "0.1.3-alpha.1",
+    "lucide-react": "^1.44.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "zod": "^4.4.3"
