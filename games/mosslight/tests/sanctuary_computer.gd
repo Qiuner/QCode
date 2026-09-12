@@ -36,6 +36,14 @@ func run() -> void:
 			round_segments = round_segments and is_equal_approx(segment.basis.x.length(), 1.0) and is_equal_approx(segment.basis.z.length(), 1.0)
 	check(round_segments, "curved segments retain circular cross sections")
 	check(not computer.grab(), "distant players are not grabbed")
+	game._on_agent_isles_message([JSON.stringify({"source": "agent-isles-host", "version": 1, "type": "world:init", "payload": {"panelOpen": false, "sessionId": "", "residents": [{"id": "coder", "status": "working"}]}})])
+	game._on_agent_isles_message([JSON.stringify({"source": "agent-isles-host", "version": 1, "type": "world:init", "payload": {"panelOpen": false, "sessionId": "", "residents": [{"id": "coder", "status": "completed"}]}})])
+	game.player.position = Vector3(18, .05, 3)
+	game.player.velocity = Vector3.ZERO
+	await tick(310)
+	check(computer.remote_active or computer.active, "completed work starts recall when no panel is opened")
+	computer.remote_active = false
+	computer.active = false
 	game.player.position = Vector3(18, .05, 3)
 	game.player.velocity = Vector3.ZERO
 	await tick(3)

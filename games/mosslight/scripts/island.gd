@@ -94,6 +94,8 @@ var agent_isles_workspace_id := ""
 var agent_isles_session_id := ""
 var embedded_mode := false
 var agent_isles_panel_open := false
+var coder_completion_recall_left := -1.0
+var coder_agent_status := "idle"
 var region_barriers: Array[StaticBody3D] = []
 var region_signs: Array[Label3D] = []
 var regions_loading := false
@@ -286,7 +288,13 @@ func _on_agent_isles_message(arguments: Array) -> void:
 	agent_isles_session_id = str(payload.get("sessionId", ""))
 	for resident: Dictionary in payload.get("residents", []):
 		if resident.get("id") == "coder":
-			sanctuary_computer.set_status(str(resident.get("status", "idle")))
+			var next_status := str(resident.get("status", "idle"))
+			if next_status == "completed" and coder_agent_status != "completed":
+				coder_completion_recall_left = 5.0
+			elif next_status in ["working", "thinking", "approval"]:
+				coder_completion_recall_left = -1.0
+			coder_agent_status = next_status
+			sanctuary_computer.set_status(next_status)
 		residents.set_agent_status(str(resident.get("id", "")), str(resident.get("status", "idle")))
 	var workspace: Variant = payload.get("workspace")
 	if typeof(workspace) != TYPE_DICTIONARY:
@@ -955,6 +963,14 @@ func _process(delta: float) -> void:
 	distance_haze.set_shader_parameter("clear_radius", 10.0 if view_mode == ViewMode.OVERVIEW else 7.0)
 	if game_paused:
 		return
+	if agent_isles_panel_open:
+		coder_completion_recall_left = -1.0
+	elif coder_completion_recall_left >= 0:
+		coder_completion_recall_left -= delta
+		if coder_completion_recall_left <= 0:
+			coder_completion_recall_left = -1.0
+			if sanctuary_computer.can_remote_grab():
+				sanctuary_computer.remote_grab()
 	var captured := Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
 	if mouse_was_captured and not captured and view_mode != ViewMode.OVERVIEW:
 		# Browsers may consume Escape to exit pointer lock before Godot sees the key.
