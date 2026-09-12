@@ -24,6 +24,9 @@ export function NativeChat({ sessionId }: { sessionId: string }) {
         }
         [data-agent-isles-town] [data-slot="conversation.session.header"],
         [data-agent-isles-town] [data-width-handle] { display: none !important; }
+        /* Workspace changes must go through the island project menu. Keep the
+           native composer, model, permission and attachment controls intact. */
+        [data-agent-isles-town] [aria-label="选择工作区"] { display: none !important; }
         [data-agent-isles-town]:not([data-details-collapsed]) [data-slot="details"] {
           display: block !important; position: fixed; z-index: 22;
           top: ${box.top}px; right: ${Math.max(0, window.innerWidth - box.right)}px;

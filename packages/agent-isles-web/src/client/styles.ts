@@ -304,15 +304,29 @@ export const WORLD_STYLES = `
 .agent-isles-resident-copy small { color: #b9d0c2; font-size: 11px; }
 .agent-isles-hero-mark { border-radius: 5px; }
 span:has(.agent-isles-hero-mark) + span { font-size: 0; }
-span:has(.agent-isles-hero-mark) + span::after { content: '和 AI 一起学会创造'; font-size: 26px; }
+span:has(.agent-isles-hero-mark) + span::after { content: '和 Qiuner 一起创作'; font-size: 26px; }
 span:has(.agent-isles-hero-mark) + span + span { font-size: 0; }
-span:has(.agent-isles-hero-mark) + span + span::after { content: 'AI 教育'; font-size: 12px; }
+span:has(.agent-isles-hero-mark) + span + span::after { content: '自由创作'; font-size: 12px; }
 .agent-isles-prompt { display: grid; gap: 7px; margin: 10px 4px 2px; padding-top: 10px; border-top: 1px solid #42665a; }
 .agent-isles-prompt label { color: #c8dacd; font-size: 11px; }
 .agent-isles-prompt textarea { resize: vertical; min-height: 58px; padding: 8px; border: 1px solid #58796d; border-radius: 5px; color: #f7f0dc; background: #102a25cc; font: inherit; font-size: 12px; line-height: 17px; }
 .agent-isles-prompt textarea:focus-visible { outline: 2px solid #e6cc8c; outline-offset: 1px; }
 .agent-isles-prompt button { justify-self: end; min-height: 30px; padding: 0 12px; border: 1px solid #8ab39e; border-radius: 5px; color: #173b35; background: #d8c27f; cursor: pointer; font: inherit; font-size: 12px; font-weight: 600; }
 .agent-isles-prompt button:disabled { cursor: not-allowed; opacity: .5; }
+/* Keep the island shell visually aligned with DSH's active theme. These
+   aliases are supplied by DSH; fallbacks preserve the standalone world. */
+.town-shell { color: var(--dsw-alias-fg-base, #1f2329); font-family: var(--dsw-font-family, system-ui, sans-serif); }
+.town-shell button { color: #1f2329; background: #fff; border-color: #d0d7de; border-radius: 6px; }
+.town-shell button:hover { background: #f6f8fa; }
+.town-studio { background: var(--dsw-alias-bg-base, #fff); border-left-color: var(--dsw-alias-border-l3, #d0d7de); box-shadow: none; }
+.town-studio > header, .town-composer { border-color: var(--dsw-alias-border-l2, #d8dee4); background: var(--dsw-alias-bg-base, #fff); }
+.town-studio-toolbar button, .town-chat-menu { color: #1f2329; background: #fff; border-color: #d0d7de; box-shadow: 0 8px 24px rgb(31 35 41 / 12%); }
+.town-chat-menu:popover-open { gap: 4px; padding: 8px; }
+.town-chat-menu button { border: 0; text-align: left; }
+.town-chat-menu button:hover { background: #f6f8fa; }
+.town-project-list { background: #fff; border-color: #d0d7de; box-shadow: 0 8px 24px rgb(31 35 41 / 12%); }
+.town-project-list button[aria-current] { background: #f6f8fa; }
+.town-shell :is(button,input,textarea,select):focus-visible { outline-color: #0969da; }
 @media (max-width: 800px) {
   [data-agent-isles-shell] { --agent-isles-panel-width: min(420px, 100vw); }
   .agent-isles-topbar div > span { max-width: 65vw; }

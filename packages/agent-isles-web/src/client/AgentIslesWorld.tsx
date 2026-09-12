@@ -199,7 +199,7 @@ export function AgentIslesWorld(props: Props) {
     setShowModels(false)
     setGuideView('welcome')
     if (id === 'coder' && modelState.ready === false) { setShowModels(true); setError('先连接模型，Qiuner 才能开始制作。'); return }
-    const next = workspace && !loadingProjects && !recoveryFailed || id === 'coordinator' || id === 'teacher' || id === 'file_keeper' || tutorial.run && !tutorial.run.paused && ['coder', 'file_keeper'].includes(id) && !loadingProjects && !recoveryFailed ? id : 'coordinator'
+    const next = workspace && !loadingProjects && !recoveryFailed || id === 'coordinator' || id === 'teacher' || id === 'file_keeper' ? id : 'coordinator'
     if (id === 'file_keeper' && followingKeeper) { setFollowingKeeper(false); moveKeeper('cancel') }
     if (next === selected) return
     ++operation.current
@@ -227,10 +227,9 @@ export function AgentIslesWorld(props: Props) {
   }
 
   async function enterCreation() {
-    if (busy || tutorial.busy) return
+    if (busy) return
     setBusy(true); setError('')
     try {
-      if (tutorial.run && !tutorial.run.paused && tutorial.run.step !== 'complete') await tutorial.command('pause')
       moveKeeper('cancel'); setFollowingKeeper(false)
       setGuideView('welcome')
       closeConversation()
@@ -256,14 +255,14 @@ export function AgentIslesWorld(props: Props) {
   useEffect(() => {
     const ticket = ++operation.current
     setBindingId(undefined); setError(''); setBusy(false); setPicking(false)
-    if (!workspace || !selected || selected === 'coordinator' || selected === 'teacher' || selected === 'file_keeper' || loadingProjects || recoveryFailed || tutorial.run && !tutorial.run.paused && ['idea', 'folder'].includes(tutorial.run.step)) return
+    if (!workspace || !selected || selected === 'coordinator' || selected === 'teacher' || selected === 'file_keeper' || loadingProjects || recoveryFailed) return
     setBusy(true)
     void props.selectResident(selected, workspace.workspaceId).then(id => {
       if (ticket === operation.current) { props.focusSession(id); setBindingId(id) }
     }, reason => { if (ticket === operation.current) setError(String(reason.message ?? reason)) })
       .finally(() => { if (ticket === operation.current) setBusy(false) })
     return () => { ++operation.current }
-  }, [selected, workspace?.workspaceId, loadingProjects, recoveryFailed, tutorial.run?.step, tutorial.run?.paused])
+  }, [selected, workspace?.workspaceId, loadingProjects, recoveryFailed])
 
   useEffect(() => () => { pickerAbort.current?.abort() }, [selected])
 
@@ -368,15 +367,14 @@ export function AgentIslesWorld(props: Props) {
       iframe.current?.contentWindow?.postMessage({ source: 'agent-isles-host', version: WORLD_BRIDGE_VERSION, type: 'tutorial:keeper', payload: { encounterId: 'reset', action: 'cancel', reducedMotion: true } }, worldUrl.origin)
     }
   }, [tutorial.run?.id, tutorial.run?.paused, tutorial.run?.step, workspace?.workspaceId])
-  const workOpen = playable && !showModels && !!resident && selected !== 'coordinator' && selected !== 'teacher' && selected !== 'file_keeper' && !(tutorial.run && !tutorial.run.paused && tutorial.run.step === 'folder')
+  const workOpen = playable && !showModels && !!resident && selected !== 'coordinator' && selected !== 'teacher' && selected !== 'file_keeper'
   const activeTutorial = tutorial.run && !tutorial.run.paused ? tutorial.run : undefined
   const tutorialSession = (selected === 'coder' ? bindingId ?? activeTutorial?.submission?.sessionId : activeTutorial?.submission?.sessionId) as SessionId | undefined
   const tutorialRunning = !!(tutorialSession && sessionState.byId[tutorialSession]?.running)
   const tutorialWaiting = !!(tutorialSession && pending.has(tutorialSession))
   const tutorialEntries = tutorialSession ? props.getBinding(tutorialSession)?.eventSource.getSnapshot().entries : undefined
   const tutorialStory = workNarrative({ run: activeTutorial, running: tutorialRunning, pending: tutorialWaiting, failed: tutorialEntries ? residentEventStatus(tutorialEntries) === 'failed' : false, finished: tutorialEntries ? residentEventStatus(tutorialEntries) === 'completed' : false })
-  const tutorialPanel = tutorial.run && !tutorial.run.paused && props.tutorials && props.submitTutorial && ['coder', 'file_keeper'].includes(selected ?? '')
-    ? <TutorialPanel nativeSessionId={workOpen ? bindingId : undefined} running={tutorialRunning} waiting={tutorialWaiting} previewTarget={workOpen ? previewTarget : null} composerTarget={workOpen ? composerTarget : null} key={tutorial.run.id} tutorial={tutorial} actions={props.tutorials} project={workspace} pick={() => props.pickDirectory()} bindProject={async id => { useProject(id); await props.refreshProjects?.(id); await props.saveProject(id); setSelected('coder') }} submit={props.submitTutorial} move={moveKeeper} modelSettings={reason => { if (reason instanceof ModelConfigurationRequired) setShowModels(true) }} leave={() => { skipAutoProject.current = true; setProjectId(null); try { localStorage.removeItem(PROJECT_KEY) } catch {} closeConversation() }} /> : null
+  const tutorialPanel = null
 
   return <>{workbench && <button className="town-return-island" onClick={() => switchSurface(false)}>← 返回小岛</button>}<div className="town-shell" style={workbench ? { display: 'none' } : undefined} onClickCapture={event => {
     const anchor = (event.target as Element).closest('a[href="/workbench"]')
@@ -397,7 +395,6 @@ export function AgentIslesWorld(props: Props) {
       switchSurface(false); useProject(item.projectId); setShowModels(false); setSelected(item.resident); setProjectMenuOpen(false)
     }} />}
     {playable && <>
-    {props.tutorials && tutorial.run && !tutorial.run.paused && tutorial.run.step !== 'complete' && !selected && !showModels && <section className="town-tutorial-goal" aria-label="当前学习目标"><button onClick={() => { moveKeeper('cancel'); setSelected('coder') }}><img src={RESIDENT_PORTRAITS[followingKeeper ? 'file_keeper' : 'coder']} alt="" /><span><small>{followingKeeper ? '阿澜带路' : '和Qiuner继续'}</small><strong>{followingKeeper ? '给作品选个文件夹' : tutorialWaiting ? '看看需要你确认的请求' : tutorialRunning ? '查看Qiuner的制作进展' : tutorialEntries && residentEventStatus(tutorialEntries) === 'failed' ? '看看哪里出错，再一起改' : tutorial.run.step === 'inspect' || tutorial.run.step === 'review' ? '打开作品，亲手试一试' : tutorial.run.submission ? '看看这次做出了什么' : tutorialStory.title}</strong></span><ArrowRight size={16} aria-hidden="true" /></button></section>}
     {!selected && !showModels && <nav className="town-work-entry" aria-label="项目与工作">
       <div className="town-project-menu" ref={projectMenu} onKeyDown={event => {
         if (event.key === 'Escape' && projectMenuOpen) { event.preventDefault(); event.stopPropagation(); setProjectMenuOpen(false); projectTrigger.current?.focus() }
@@ -409,7 +406,6 @@ export function AgentIslesWorld(props: Props) {
           {loadingProjects ? <p role="status">正在恢复项目…</p> : recoveryFailed ? <><p role="alert">{recoveryFailed}</p><button onClick={() => setRestoreAttempt(value => value + 1)}>重试恢复</button></> : <>
             <div className="town-project-items">{workspaces.length ? workspaces.map(item => <button key={item.workspaceId} aria-current={item.workspaceId === projectId ? 'true' : undefined} onClick={() => { useProject(item.workspaceId); projectTrigger.current?.focus() }}><span>{item.title}</span>{item.workspaceId === projectId && <small>当前</small>}</button>) : <p>还没有项目，从一个想法开始吧。</p>}</div>
             <div className="town-project-actions">
-              {props.tutorials && <button disabled={tutorial.busy} onClick={() => { void tutorial.command('start').then(() => { setProjectMenuOpen(false); setSelected('coder') }).catch(() => {}) }}>创建作品</button>}
               <button disabled={busy} onClick={() => { void bind() }}>打开已有项目…</button>
             </div>
           </>}
@@ -461,15 +457,10 @@ export function AgentIslesWorld(props: Props) {
           {loadingProjects && !recoveryFailed ? <p role="status">正在恢复项目和创作手册…</p> : recoveryFailed ? <div role="alert"><p>{recoveryFailed}</p><button onClick={() => { setRestoreAttempt(value => value + 1) }}>重试恢复</button><button onClick={() => window.location.reload()}>重新连接</button></div> : <>
           {!workspace && projectId && <p role="alert">上次项目已不在当前项目列表中，请选择已有项目或重新绑定。原会话不会被自动替换。</p>}
           {guideView === 'records' && <div className="town-handbook">
-            <section><img src={RESIDENT_PORTRAITS.coder} alt="" /><div><h3>跟着学</h3><p>完成第一个作品，练习给文件安家、说清需求、检查结果，再亲手改进。</p>
-              {tutorial.runs.some(run => run.step !== 'complete') ? tutorial.runs.filter(run => run.step !== 'complete').map(run => <button key={run.id} disabled={busy || tutorial.busy} onClick={() => void enterLearning(run)}>继续学习 · {run.projectName}</button>) : <button disabled={!props.tutorials || busy || tutorial.busy} onClick={() => void enterLearning()}>开始学习</button>}
-            </div></section>
-            <section><img src={RESIDENT_PORTRAITS.file_keeper} alt="" /><div><h3>自由创作</h3><p>带上自己的想法或已有项目，和 Qiuner 一起制作，按自己的节奏探索和修改。</p><button disabled={busy || tutorial.busy} onClick={() => void enterCreation()}>开始创作</button></div></section>
-            <p className="town-handbook-note">随时暂停引导，作品与学习进度都会保留。</p>
+            <section><img src={RESIDENT_PORTRAITS.coder} alt="" /><div><h3>自由创作</h3><p>带上自己的想法或已有项目，和 Qiuner 一起制作，按自己的节奏探索和修改。</p><button disabled={busy} onClick={() => void enterCreation()}>开始创作</button></div></section>
           </div>}
           {guideView === 'welcome' && <><p className="town-dialogue-line">{workspace ? `你正在项目「${workspace.title}」里，要继续和Qiuner制作吗？` : '欢迎来到小岛。想做点什么，或先认识这里？'}</p>
           <div className="town-dialogue-choices">
-            {props.tutorials && <button disabled={tutorial.busy || loadingProjects || !!recoveryFailed} onClick={() => { if (tutorial.run) { setSelected('coder'); return }; void tutorial.command('start').then(() => setSelected('coder')).catch(() => {}) }}>{tutorial.run ? '继续第一个作品' : '带我做第一个作品'}</button>}
             {!workspace ? <button className="town-primary" onClick={() => setGuideView('projects')}>我想做一个东西</button> : !modelState.ready ? <button className="town-primary" disabled={modelState.ready === null} onClick={() => setShowModels(true)}>{modelState.ready === null ? '正在准备…' : '连接模型，开始制作'}</button> : <button className="town-primary" onClick={() => choose('coder')}>找Qiuner聊聊</button>}
             <button onClick={closeConversation}>先逛逛</button>
             <button onClick={() => setGuideView('residents')}>带我认识这里</button>
