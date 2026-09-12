@@ -2,9 +2,6 @@ export const WORLD_BRIDGE_VERSION = 1 as const
 
 export function worldFrameUrl(hostHref: string): URL {
   const url = new URL('/world/?embed=1', hostHref)
-  // Separate loopback sites let Chromium keep Godot startup off the host UI thread.
-  if (url.hostname === '127.0.0.1') url.hostname = 'localhost'
-  else if (url.hostname === 'localhost') url.hostname = '127.0.0.1'
   return url
 }
 

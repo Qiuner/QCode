@@ -82,10 +82,10 @@
   <script>
     const AGENT_ISLES_BRIDGE_VERSION = 1;
     const embedded = new URLSearchParams(location.search).get('embed') === '1';
-    const parentUrl = new URL(location.origin);
-    if (embedded && parentUrl.hostname === 'localhost') parentUrl.hostname = '127.0.0.1';
-    else if (embedded && parentUrl.hostname === '127.0.0.1') parentUrl.hostname = 'localhost';
-    const parentOrigin = parentUrl.origin;
+    // The host and iframe must use the same loopback origin after a hard refresh.
+    // Referrer is authoritative when the world is embedded; fall back to same-origin
+    // for standalone previews.
+    const parentOrigin = embedded && document.referrer ? new URL(document.referrer).origin : location.origin;
     if (embedded) document.body.dataset.embedded = '';
     const pendingHostMessages = [];
     let godotMessageHandler = null;
