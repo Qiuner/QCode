@@ -209,6 +209,18 @@ func _on_agent_isles_message(arguments: Array) -> void:
 	var message := parsed as Dictionary
 	if message.get("source") != "agent-isles-host" or int(message.get("version", 0)) != 1:
 		return
+	if message.get("type") == "world:pause-action":
+		var action: String = str(message.get("payload", {}).get("action", ""))
+		if action == "resume":
+			set_game_paused(false)
+		elif action == "mute":
+			AudioServer.set_bus_mute(0, not AudioServer.is_bus_mute(0))
+		elif action == "nature":
+			nature_motion = not nature_motion
+		elif action == "camera":
+			camera_motion = not camera_motion
+			first_person_feedback.reset()
+		return
 	if message.get("type") == "tutorial:keeper":
 		var cue: Variant = message.get("payload")
 		if typeof(cue) != TYPE_DICTIONARY:
@@ -990,10 +1002,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		set_game_paused(not game_paused)
 		return
 	if game_paused:
-		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-			set_game_paused(false)
-			if view_mode != ViewMode.OVERVIEW:
-				Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT and echo_active:
 		set_echo_active(false)
@@ -1069,6 +1077,9 @@ func set_game_paused(value: bool) -> void:
 		Input.action_release(action)
 	player.velocity = Vector3.ZERO
 	pause_panel.visible = value and (garden == null or not garden.opened)
+	if OS.has_feature("web"):
+		JavaScriptBridge.eval("window.showIslandPause(%s)" % JSON.stringify({"open": pause_panel.visible, "muted": AudioServer.is_bus_mute(0), "nature": nature_motion, "camera": camera_motion}))
+		pause_panel.visible = false
 	if value:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 		photo_mode = false
@@ -1166,14 +1177,20 @@ func _build_ui() -> void:
 	dialogue_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_label("E 再聊一句 · 走远自动结束", Vector2(26, 111), 14, Color("a5c4b9"), dialogue_panel)
 	dialogue_panel.visible = false
-	pause_panel = _panel(Vector2.ZERO, Vector2(560, 170), Color(.055, .15, .16, .97))
+	pause_panel = _panel(Vector2.ZERO, Vector2(360, 210), Color("f4f7f2"))
 	pause_panel.set_anchors_preset(Control.PRESET_CENTER)
-	pause_panel.offset_left = -280
-	pause_panel.offset_right = 280
-	pause_panel.offset_top = -85
-	pause_panel.offset_bottom = 85
-	_label("在树荫下歇一会儿", Vector2(34, 25), 29, Color("fff0cb"), pause_panel)
-	_label("游戏已暂停。点击画面或按 Esc 继续。", Vector2(34, 88), 19, Color("c5ddd0"), pause_panel)
+	pause_panel.offset_left = -180
+	pause_panel.offset_right = 180
+	pause_panel.offset_top = -105
+	pause_panel.offset_bottom = 105
+	_label("休息一下", Vector2(28, 24), 26, Color("172d29"), pause_panel)
+	_label("已暂停", Vector2(28, 70), 16, Color("63736e"), pause_panel)
+	var resume_button := Button.new()
+	resume_button.text = "继续探索"
+	resume_button.position = Vector2(28, 124)
+	resume_button.size = Vector2(304, 48)
+	resume_button.pressed.connect(func(): set_game_paused(false))
+	pause_panel.add_child(resume_button)
 	pause_panel.visible = false
 
 

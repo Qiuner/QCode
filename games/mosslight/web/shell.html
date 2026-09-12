@@ -41,6 +41,18 @@
     dialog dt { color: #57645f; }
     dialog dd { margin: 0; text-align: right; }
     #close-guide { display: block; margin: 24px 0 0 auto; padding: 10px 16px; background: #172d29; color: #fff; }
+    #pause-menu { width: min(340px, calc(100% - 32px)); padding: 28px; }
+    #pause-menu::backdrop { background: #10252040; }
+    #pause-menu h2 { margin-bottom: 8px; }
+    #pause-menu p { color: #64726c; font-size: 13px; margin: 0 0 24px; }
+    .pause-actions { display: grid; gap: 8px; }
+    #pause-menu [hidden] { display: none; }
+    .pause-actions button { min-height: 44px; padding: 10px 16px; }
+    #pause-resume { color: #fff; background: #172d29; }
+    #pause-settings label { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 12px 0; }
+    #pause-settings input { width: 18px; height: 18px; accent-color: #286657; }
+    #pause-settings button { margin-top: 20px; }
+    #pause-menu #pause-task { margin: 20px 0 0; font-size: 12px; }
     main:fullscreen { height: 100vh; }
     body[data-embedded] nav { display: none; }
     body[data-embedded] main { min-height: 0; }
@@ -218,6 +230,34 @@
     const status = document.getElementById('status');
     const progress = document.getElementById('progress');
     const guide = document.getElementById('guide');
+    const pause = document.createElement('dialog');
+    pause.id = 'pause-menu';
+    pause.setAttribute('aria-labelledby', 'pause-title');
+    pause.innerHTML = `<h2 id="pause-title">休息一下</h2><p>已暂停</p><div id="pause-home" class="pause-actions"><button id="pause-resume" autofocus>继续探索</button><button id="pause-options">声音与画面</button><button id="pause-help">操作指南</button></div><div id="pause-settings" hidden><label>声音<input type="checkbox" id="pause-sound"></label><label>环境动态<input type="checkbox" id="pause-nature"></label><label>镜头动态<input type="checkbox" id="pause-camera"></label><div class="pause-actions"><button id="pause-back">返回</button></div></div><p id="pause-task" hidden>Qiuner 仍在处理任务</p>`;
+    document.body.appendChild(pause);
+    let guideFromPause = false;
+    const pauseHome = document.getElementById('pause-home');
+    const pauseSettings = document.getElementById('pause-settings');
+    const pauseAction = action => godotMessageHandler?.(JSON.stringify({ source: 'agent-isles-host', version: 1, type: 'world:pause-action', payload: { action } }));
+    const backToPause = () => { pauseSettings.hidden = true; pauseHome.hidden = false; document.getElementById('pause-title').textContent = '休息一下'; document.getElementById('pause-resume').focus(); };
+    window.showIslandPause = state => {
+      if (!state.open) { pause.close(); canvas.focus(); return; }
+      document.getElementById('pause-sound').checked = !state.muted;
+      document.getElementById('pause-nature').checked = state.nature;
+      document.getElementById('pause-camera').checked = state.camera;
+      if (!pause.open && !guideFromPause) { pause.showModal(); backToPause(); }
+    };
+    document.getElementById('pause-resume').onclick = () => pauseAction('resume');
+    document.getElementById('pause-options').onclick = () => { pauseHome.hidden = true; pauseSettings.hidden = false; document.getElementById('pause-title').textContent = '声音与画面'; document.getElementById('pause-sound').focus(); };
+    document.getElementById('pause-back').onclick = backToPause;
+    for (const [id, action] of [['sound', 'mute'], ['nature', 'nature'], ['camera', 'camera']]) document.getElementById(`pause-${id}`).onchange = () => pauseAction(action);
+    document.getElementById('pause-help').onclick = () => { guideFromPause = true; pause.close(); guide.showModal(); };
+    pause.addEventListener('cancel', event => { event.preventDefault(); if (!pauseSettings.hidden) backToPause(); else pauseAction('resume'); });
+    guide.addEventListener('close', () => { if (guideFromPause) { guideFromPause = false; pause.showModal(); backToPause(); } else if (started) canvas.focus(); });
+    window.addEventListener('message', event => {
+      if (event.origin !== parentOrigin || event.source !== window.parent || event.data?.source !== 'agent-isles-host' || event.data.version !== 1 || event.data.type !== 'world:init') return;
+      document.getElementById('pause-task').hidden = !event.data.payload?.residents?.some(item => item.id === 'coder' && ['working', 'thinking'].includes(item.status));
+    });
     let started = false;
     let failed = false;
     function reportFailure(error) {
@@ -269,7 +309,7 @@
     canvas.addEventListener('contextmenu', event => event.preventDefault());
     canvas.addEventListener('pointerdown', () => canvas.focus());
     document.getElementById('help').addEventListener('click', () => guide.showModal());
-    document.getElementById('close-guide').addEventListener('click', () => { guide.close(); if (started) canvas.focus(); });
+    document.getElementById('close-guide').addEventListener('click', () => guide.close());
     document.getElementById('fullscreen').addEventListener('click', async () => {
       try {
         if (document.fullscreenElement) await document.exitFullscreen();
