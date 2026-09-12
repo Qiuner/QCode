@@ -77,9 +77,13 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/build_web.ps1
 
 月井高台中央新增蓝色屏幕计算机和两条软管机械臂。走到高台正前方石径，出现提示后按 E，机械手会伸出、夹住玩家两侧，抬升越过台沿并放到台前。放下后继续自由行走，可从台边跳下再次使用。
 
-台前被木箱占用时不会启动；途中遇到障碍会就地放开。Esc 暂停、背包暂停及网页居民面板会暂停搬运，恢复后继续。N 关闭机械臂待机摆动，抓取所需的移动仍保留。当前仅抓玩家，不抓居民，也不连接 AI 会话。
+台前被木箱占用时不会启动；途中遇到障碍会就地放开。Esc 暂停、背包暂停及网页居民面板会暂停搬运，恢复后继续。当前仅抓玩家，不抓居民；台前可使用 Qiuner 的开发对话入口。
 
-`art/generate_grabber.py` 使用本机 Blender 独立生成可编辑的 `art/grabber.blend`，导出 `assets/grabber_computer.glb`、`grabber_segment.glb` 和 `grabber_claw.glb`。源文件保留外壳、屏幕、分节软管和机械手的独立对象；Godot 的 `scripts/sanctuary_computer.gd` 组装并驱动机械臂。重新制作只需运行该生成脚本，无须重建整个岛屿。
+空闲时，Qiuner 每隔 20～40 秒交替整理两条机械臂。玩家进入台前约 6 米范围时挥手招呼，离开 8 米才重新计算一次靠近，招呼间隔至少 35 秒；附近无人约一分钟后双手下垂、屏幕波形收平并减弱发光，玩家回来时唤醒。执行、思考、等待确认和错误状态阻止整理与打盹；按 E 可以随时从当前姿势转入抓取。N 关闭待机动作与计时，抓取仍可用；重新开启后继续，不补播关闭期间的动作。待机不发声、不弹窗，也不会主动抓人。
+
+机械臂连接座位于显示器下方，软管分两段从身体两侧绕到前方，整理动作在支柱前完成，挥手时掌缘与屏幕保持间隔。`tests/computer_idle.gd` 逐帧检查普通待机、挥手及左右整理的软管与机壳 / 支柱间隔、两条软管间距和手部顶点；这是预设动作的几何回归，不是任意场景障碍的软体碰撞系统。
+
+`art/generate_grabber.py` 使用本机 Blender 独立生成可编辑的 `art/grabber.blend`，导出 `assets/grabber_computer.glb`、`grabber_segment.glb`、`grabber_claw.glb` 和独立波形 `grabber_signal.glb`。源文件保留外壳、屏幕、分节软管和机械手的独立对象；Godot 的 `scripts/sanctuary_computer.gd` 组装并驱动机械臂与波形。重新制作只需运行该生成脚本，无须重建整个岛屿。
 
 ## 晴沙绿洲 · 第二地块
 

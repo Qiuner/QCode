@@ -3,6 +3,7 @@ extends Node3D
 const COMPUTER = preload("res://assets/grabber_computer.glb")
 const SEGMENT = preload("res://assets/grabber_segment.glb")
 const CLAW = preload("res://assets/grabber_claw.glb")
+const SIGNAL = preload("res://assets/grabber_signal.glb")
 const ORIGIN := Vector3(1.2, 2.12, -6.8)
 const LANDING := Vector3(1.2, 1.56, -4.85)
 const SEGMENTS := 18
@@ -23,6 +24,20 @@ var hands: Array[Node3D] = []
 var housing: Node3D
 var game: Node3D
 var status_label: Label3D
+var task_status := "idle"
+var idle_action := "rest"
+var action_time := 0.0
+var idle_delay := 30.0
+var alone_time := 0.0
+var greeting_cooldown := 0.0
+var player_near := false
+var sleep_amount := 0.0
+var tidy_side := 0
+var idle_random := RandomNumberGenerator.new()
+var signal_pivot: Node3D
+var signal_materials: Array[StandardMaterial3D] = []
+var grab_tips: Array[Vector3] = []
+var grab_rotations: Array[Quaternion] = []
 
 
 func _ready() -> void:
@@ -30,6 +45,22 @@ func _ready() -> void:
 	position = ORIGIN
 	housing = COMPUTER.instantiate()
 	add_child(housing)
+	signal_pivot = Node3D.new()
+	signal_pivot.position.y = 2.13
+	add_child(signal_pivot)
+	var waveform: Node3D = SIGNAL.instantiate()
+	waveform.position.y = -2.13
+	signal_pivot.add_child(waveform)
+	for mesh: MeshInstance3D in waveform.find_children("*", "MeshInstance3D", true, false):
+		for surface in range(mesh.mesh.get_surface_count()):
+			var material := mesh.get_active_material(surface).duplicate() as StandardMaterial3D
+			if game.web_lightweight:
+				material.diffuse_mode = BaseMaterial3D.DIFFUSE_LAMBERT
+			mesh.set_surface_override_material(surface, material)
+			signal_materials.append(material)
+	idle_random.randomize()
+	idle_delay = idle_random.randf_range(20, 40)
+	player_near = game.player.global_position.distance_to(LANDING) < 6
 	status_label = Label3D.new()
 	status_label.font = preload("res://assets/fonts/MosslightUI.ttf")
 	status_label.font_size = 28
@@ -68,6 +99,15 @@ func can_use() -> bool:
 
 
 func set_status(status: String) -> void:
+	task_status = status
+	if status not in ["idle", "completed"]:
+		idle_action = "rest"
+		action_time = 0
+		alone_time = 0
+		idle_delay = idle_random.randf_range(20, 40)
+		if not game.nature_motion:
+			sleep_amount = 0
+			_update_signal()
 	var labels := {"working": "执行中", "thinking": "思考中", "approval": "等待确认", "completed": "本轮结束", "failed": "遇到问题"}
 	status_label.text = "Qiuner" + (" · " + str(labels[status]) if labels.has(status) else "")
 
@@ -95,6 +135,16 @@ func grab() -> bool:
 	time = 0
 	released = false
 	active = true
+	grab_tips.clear()
+	grab_rotations.clear()
+	for hand: Node3D in hands:
+		grab_tips.append(hand.position)
+		grab_rotations.append(hand.quaternion)
+	idle_action = "rest"
+	action_time = 0
+	alone_time = 0
+	idle_delay = idle_random.randf_range(20, 40)
+	greeting_cooldown = 35
 	game.player.velocity = Vector3.ZERO
 	game.hero.position.y = 0
 	game.hero.rotation.z = 0
@@ -105,11 +155,15 @@ func grab() -> bool:
 
 
 func advance(delta: float) -> void:
+	if game.game_paused or game.agent_isles_panel_open or game.garden.opened:
+		return
 	if not active:
 		if game.nature_motion:
 			idle_time += delta
-		_pose(0)
+			_advance_idle(delta)
 		return
+	sleep_amount = move_toward(sleep_amount, 0, delta / .35)
+	_update_signal()
 	time += delta
 	var lift := start + Vector3.UP * 3.0
 	var above := LANDING + Vector3.UP * 1.6
@@ -138,23 +192,109 @@ func advance(delta: float) -> void:
 		game.player.velocity = Vector3.ZERO
 		game.first_person_feedback.reset()
 		_pose(0)
+		grab_tips.clear()
+		grab_rotations.clear()
+
+
+func _advance_idle(delta: float) -> void:
+	var distance: float = game.player.global_position.distance_to(LANDING)
+	var entered := not player_near and distance < 6
+	if distance < 6:
+		player_near = true
+	elif distance > 8:
+		player_near = false
+	greeting_cooldown = maxf(0, greeting_cooldown - delta)
+	var available := task_status in ["idle", "completed"]
+	if not available:
+		idle_action = "rest"
+		alone_time = 0
+	else:
+		alone_time = 0.0 if player_near else alone_time + delta
+		if entered and greeting_cooldown <= 0:
+			idle_action = "greet"
+			action_time = 0
+			greeting_cooldown = 35
+		elif idle_action == "sleep" and player_near:
+			idle_action = "rest"
+		if idle_action in ["tidy", "greet"]:
+			action_time += delta
+			if action_time >= 3.0:
+				idle_action = "rest"
+				idle_delay = idle_random.randf_range(20, 40)
+		elif alone_time >= 60:
+			idle_action = "sleep"
+		elif idle_action == "rest":
+			idle_delay -= delta
+			if idle_delay <= 0:
+				idle_action = "tidy"
+				tidy_side = 1 - tidy_side
+				action_time = 0
+	sleep_amount = move_toward(sleep_amount, 1.0 if idle_action == "sleep" else 0.0, delta / .8)
+	# Blend from the current hand pose so greetings, wakeups and task changes can interrupt.
+	var blend := 1.0 - exp(-delta * 9)
+	for index in range(2):
+		var side := -1.0 if index == 0 else 1.0
+		var tip := Vector3(side * 1.33, .65 + sin(idle_time * 1.4 + index) * .065, .75)
+		var rotation := Quaternion(Vector3.UP, Vector3.DOWN)
+		tip += Vector3(side * .12, -.45, -.1) * sleep_amount
+		if idle_action == "greet" and index == 1:
+			var weight := smoothstep(0, .4, action_time) * (1.0 - smoothstep(2.3, 3.0, action_time))
+			var wave := sin(clampf((action_time - .4) / 1.8, 0, 1) * TAU * 2)
+			tip = tip.lerp(Vector3(1.85 + wave * .16, 1.95, 1.25), weight)
+			rotation = rotation.slerp(Quaternion(Vector3.FORWARD, -.25 + wave * .2), weight)
+		elif idle_action == "tidy":
+			var weight := smoothstep(0, .5, action_time) * (1.0 - smoothstep(2.25, 3.0, action_time))
+			if index == tidy_side:
+				var stroke := smoothstep(.65, 2.1, action_time)
+				tip = tip.lerp(Vector3(-side * lerpf(.65, 1.02, stroke), lerpf(1.02, .78, stroke), 1.30), weight)
+				rotation = rotation.slerp(Quaternion(Vector3.UP, Vector3(-side, 0, 0)), weight)
+			else:
+				tip = tip.lerp(Vector3(side * 1.40, .65, 1.40), weight)
+		_set_arm(index, hands[index].position.lerp(tip, blend), hands[index].quaternion.slerp(rotation, blend))
+	_update_signal()
+
+
+func _update_signal() -> void:
+	signal_pivot.scale.y = lerpf(1.0 + sin(idle_time * 1.8) * .045, .12 + sin(idle_time * .5) * .025, sleep_amount)
+	for material: StandardMaterial3D in signal_materials:
+		material.emission_energy_multiplier = lerpf(.5, .08, sleep_amount)
 
 
 func _pose(reach: float) -> void:
 	for index in range(2):
 		var side := -1.0 if index == 0 else 1.0
-		var shoulder := Vector3(side * .57, 1.35, -.08)
 		var rest := Vector3(side * 1.33, .65 + sin(idle_time * 1.4 + index) * .065, .75)
+		if grab_tips.size() == 2 and time < TRANSPORT_END:
+			rest = grab_tips[index]
 		var wrist: Vector3 = to_local(game.player.global_position) + Vector3(side * .65, .90, 0)
 		var tip := rest.lerp(wrist, reach)
-		var p1 := shoulder + Vector3(side * 1.1, .30, .12)
-		var p2 := tip + Vector3(side * .5, .55, -.30)
-		for i in range(SEGMENTS):
-			var a := shoulder.bezier_interpolate(p1, p2, tip, float(i) / SEGMENTS)
-			var b := shoulder.bezier_interpolate(p1, p2, tip, float(i + 1) / SEGMENTS)
-			var piece: Node3D = arms[index].get_child(i)
-			var orientation := Basis(Quaternion(Vector3.UP, (b - a).normalized()))
-			piece.transform = Transform3D(orientation * Basis.from_scale(Vector3(1, a.distance_to(b), 1)), a)
 		var rest_rotation := Quaternion(Vector3.UP, Vector3.DOWN)
+		if grab_rotations.size() == 2 and time < TRANSPORT_END:
+			rest_rotation = grab_rotations[index]
 		var grip_rotation := Quaternion(Vector3.UP, Vector3(-side, 0, 0))
-		hands[index].transform = Transform3D(Basis(rest_rotation.slerp(grip_rotation, reach)), tip)
+		_set_arm(index, tip, rest_rotation.slerp(grip_rotation, reach))
+
+
+func _set_arm(index: int, tip: Vector3, rotation: Quaternion) -> void:
+	var side := -1.0 if index == 0 else 1.0
+	var shoulder := Vector3(side * .57, .98, -.08)
+	# Route around the lower sides before bending toward the hand in front of the housing.
+	var elbow := Vector3(side * 1.50, 1.02, 1.02)
+	var p1 := Vector3(side * 1.50, .98, -.08)
+	var p2 := elbow - Vector3(0, 0, .25)
+	var p3 := elbow + Vector3(0, 0, .25)
+	var p4 := tip - Basis(rotation).y * .35
+	for i in range(SEGMENTS):
+		var half := SEGMENTS / 2
+		var a: Vector3
+		var b: Vector3
+		if i < half:
+			a = shoulder.bezier_interpolate(p1, p2, elbow, float(i) / half)
+			b = shoulder.bezier_interpolate(p1, p2, elbow, float(i + 1) / half)
+		else:
+			a = elbow.bezier_interpolate(p3, p4, tip, float(i - half) / half)
+			b = elbow.bezier_interpolate(p3, p4, tip, float(i + 1 - half) / half)
+		var piece: Node3D = arms[index].get_child(i)
+		var orientation := Basis(Quaternion(Vector3.UP, (b - a).normalized()))
+		piece.transform = Transform3D(orientation * Basis.from_scale(Vector3(1, a.distance_to(b), 1)), a)
+	hands[index].transform = Transform3D(Basis(rotation), tip)
