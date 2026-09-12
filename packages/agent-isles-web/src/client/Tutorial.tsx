@@ -161,7 +161,7 @@ export function TutorialPanel({ tutorial, actions, project, pick, bindProject, s
       <button disabled={disabled || preview === undefined} onClick={() => void act(async () => { await tutorial.command('confirm'); setPreview(undefined) })}>我已体验，可以正常使用</button>
       <button disabled={disabled} onClick={() => void act(() => tutorial.command('revise'))}>我遇到了问题，描述后修正</button>
     </>}
-    {run.step === 'return' && <><p>先离开当前项目，再从工作记录找到它和Qiuner的会话。下次回来也这样继续。</p>{!run.left ? <button disabled={disabled} onClick={() => void act(async () => { await tutorial.command('leave'); leave() })}>离开项目，自己找回来</button> : !run.returned ? <p>到向导的工作记录选择这个项目，再继续教程。</p> : <><p>你找回了「{run.projectName}」。作品放在哪里？怎么确认它可用？下一次想改什么？</p><button disabled={disabled} onClick={() => void act(() => tutorial.command('complete'))}>我知道怎样继续，完成首课</button></>}</>}
+    {run.step === 'return' && <><p>先离开当前项目，再打开创作手册，继续这个作品的学习。历史项目和对话也可以找苔伯查看。</p>{!run.left ? <button disabled={disabled} onClick={() => void act(async () => { await tutorial.command('leave'); leave() })}>离开项目，自己找回来</button> : !run.returned ? <p>打开左上角的创作手册，选择这个作品的“继续学习”。</p> : <><p>你找回了「{run.projectName}」。作品放在哪里？怎么确认它可用？下一次想改什么？</p><button disabled={disabled} onClick={() => void act(() => tutorial.command('complete'))}>我知道怎样继续，完成首课</button></>}</>}
     {run.step === 'complete' && <p>第一个作品和一次自己的改动已完成。你可以继续自由创作；这条记录包含你的体验确认，不代表自动判定已经掌握编程。</p>}
     {disabled && <p role="status">正在保存或读取，请稍候…</p>}
     {tutorial.error && <div role="alert">{tutorial.error}<button onClick={() => void tutorial.reload()}>重新读取记录</button></div>}
