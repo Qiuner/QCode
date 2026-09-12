@@ -34,6 +34,7 @@ export function projectResidentEvents(entries: readonly SessionEventLikeEntry[])
   let status: ResidentStatus = 'idle'
   let outcome = ''
   let live = ''
+  let ended: { seq: number; failed: boolean; worked: boolean } | undefined
   for (const { event } of entries) {
     if (event.type === 'turn/start') {
       history.push(...messages); messages.length = 0
@@ -61,11 +62,12 @@ export function projectResidentEvents(entries: readonly SessionEventLikeEntry[])
     }
     if (event.type === 'turn/end') {
       const reason = event.data.reason
+      ended = { seq: event.seq, failed: reason.kind !== 'completed', worked: tools.length > 0 }
       status = reason.kind === 'completed' ? 'completed' : 'failed'
       outcome = reason.kind === 'completed' ? '本轮已结束' : reason.kind === 'error' ? reason.error.message : `本轮未完成：${reason.kind}`
     }
   }
-  return { messages, history, tools, status, outcome, live }
+  return { messages, history, tools, status, outcome, live, ended }
 }
 
 /** Browser drafts contain only user text, never model credentials. */
