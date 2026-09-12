@@ -9,3 +9,4 @@
 ### Added
 
 - 建立公开贡献所需的 Issue 表单、Pull Request 模板、贡献指南、安全策略、行为准则、支持说明和 CI。
+- 采用 MIT License 发布 agent-isles 自有代码，版权所有者为 Qiuner，并补充第三方许可证索引。

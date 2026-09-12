@@ -2,6 +2,7 @@
   "name": "@agent-isles/web-plugin",
   "version": "0.0.0",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "main": "lib/types/index.js",
   "types": "lib/types/index.d.ts",

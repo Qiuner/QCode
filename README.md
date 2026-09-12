@@ -15,6 +15,7 @@
   <img src="https://img.shields.io/badge/Godot-4.7-478CBF?style=flat-square&logo=godotengine&logoColor=white" alt="Godot 4.7">
   <img src="https://img.shields.io/badge/Node.js-22.19%2B-339933?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js 22.19 or newer">
   <img src="https://img.shields.io/badge/DSH-0.1.3--alpha.1-5D9C87?style=flat-square" alt="DeepSeek Harness 0.1.3-alpha.1">
+  <img src="https://img.shields.io/badge/license-MIT-2F6F62?style=flat-square" alt="License: MIT">
 </p>
 
 <p align="center">
@@ -163,6 +164,8 @@ Bug 报告、功能建议和 Pull Request 都欢迎。开始前请阅读[贡献�
 - [社区行为准则](CODE_OF_CONDUCT.md)
 - [变更日志](CHANGELOG.md)
 - [发布检查清单](docs/release-checklist.md)
+
+agent-isles 自有代码以 [MIT License](LICENSE) 开源，版权所有者为 Qiuner。第三方依赖、字体、模型、音频和 vendored runtime 仍适用其各自的许可证与[第三方声明](THIRD_PARTY_NOTICES.md)。
 
 
 ## 路线图
