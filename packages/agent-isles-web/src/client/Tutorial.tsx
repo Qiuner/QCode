@@ -116,9 +116,9 @@ export function TutorialPanel({ tutorial, actions, project, pick, bindProject, s
   if (run.paused) return <section className="town-tutorial"><h3>教程已暂停</h3><p>作品和学习记录已保留。</p><button disabled={disabled} onClick={() => void act(() => tutorial.command('resume'))}>继续教程</button></section>
   return <section className="town-tutorial" aria-label="首课教学">
     <details className="town-course-menu"><summary>学习选项 · {FIRST_TUTORIAL.title}</summary><button disabled={disabled} onClick={() => void act(async () => { await tutorial.command('draft', { draft: text }); await tutorial.command('pause'); move('cancel') })}>暂停教程</button>{project && <p>作品位置：{project.path}</p>}</details>
-    {run.step === 'idea' && <><p>你负责提出想法、体验结果，芽芽帮你实现。先说说作品要做什么、最重要的两个功能是什么。</p><label htmlFor="tutorial-idea">我的第一个作品</label><textarea id="tutorial-idea" value={text} maxLength={12000} onChange={event => editText(event.target.value)} /><button disabled={disabled} onClick={() => { editText(FIRST_TUTORIAL.example); void tutorial.command('assist', { assistance: '提示方向' }).catch(() => {}) }}>看看需求示例</button><button disabled={disabled || !text.trim()} onClick={() => void act(async () => { await tutorial.command('idea', { draft: text }); if (!project && !run.encounterSeen) { await tutorial.command('seen'); move('arrive') } })}>确认想法，准备制作</button></>}
+    {run.step === 'idea' && <><p>你负责提出想法、体验结果，Qiuner帮你实现。先说说作品要做什么、最重要的两个功能是什么。</p><label htmlFor="tutorial-idea">我的第一个作品</label><textarea id="tutorial-idea" value={text} maxLength={12000} onChange={event => editText(event.target.value)} /><button disabled={disabled} onClick={() => { editText(FIRST_TUTORIAL.example); void tutorial.command('assist', { assistance: '提示方向' }).catch(() => {}) }}>看看需求示例</button><button disabled={disabled || !text.trim()} onClick={() => void act(async () => { await tutorial.command('idea', { draft: text }); if (!project && !run.encounterSeen) { await tutorial.command('seen'); move('arrive') } })}>确认想法，准备制作</button></>}
     {run.step === 'folder' && <>
-      <p className="town-dialogue-line">{folderLine === 0 ? project ? `这个作品要放在「${project.title}」吗？` : '芽芽：可以！先给这个作品找个家。' : folderLine === 1 ? '阿澜：每个项目都需要自己的文件夹，代码和图片才不会混在一起。' : '阿澜：来找我，我们给它准备一个家。刚才的想法已经留好了。'}</p>
+      <p className="town-dialogue-line">{folderLine === 0 ? project ? `这个作品要放在「${project.title}」吗？` : 'Qiuner：可以！先给这个作品找个家。' : folderLine === 1 ? '阿澜：每个项目都需要自己的文件夹，代码和图片才不会混在一起。' : '阿澜：来找我，我们给它准备一个家。刚才的想法已经留好了。'}</p>
       {folderLine < 2 && <button onClick={() => setFolderLine(value => value + 1)}>继续听</button>}
       <div className="town-dialogue-choices"><button disabled={disabled} onClick={() => { move('home') }}>跟阿澜去</button><button disabled={disabled} onClick={() => { move('cancel'); setFolder(''); void act(() => chooseFolder()) }}>直接选择文件夹 / 跳过演出</button></div>
       {project && <><p>当前位置：{project.path}</p><button disabled={disabled} onClick={() => void act(() => chooseFolder(true))}>就在当前项目制作</button></>}
@@ -136,11 +136,11 @@ export function TutorialPanel({ tutorial, actions, project, pick, bindProject, s
       {nativeSessionId ? <><p>{run.draft}</p><button disabled={disabled || running || waiting} onClick={() => void act(async () => { const checked = await tutorial.command('check', { sessionId: nativeSessionId }); setPreview(await actions.preview(checked)) })}>检查成果，打开作品</button></> : !run.submission ? <>{composer(<><label htmlFor="tutorial-demand">{run.step === 'build' ? '刚才的想法' : '我想做的改动'}</label><textarea id="tutorial-demand" value={text} maxLength={12000} onChange={event => editText(event.target.value)} />
       <button disabled={disabled} onClick={() => void act(() => tutorial.command('assist', { assistance: '提示方向' }))}>给我提示</button>
       {run.assistance.some(item => item === `${run.step}:提示方向`) && <p>我现在看到……我希望改成……改好后，我会这样检查……</p>}
-      <button title="确认需求，交给芽芽" disabled={disabled || !text.trim()} onClick={() => void act(async () => { const saved = await tutorial.command('draft', { draft: text }); try { tutorial.accept(await submit(saved, text)) } catch (error) { await tutorial.reload(); throw error } })}>发送</button></>)}</> : <>
+      <button title="确认需求，交给Qiuner" disabled={disabled || !text.trim()} onClick={() => void act(async () => { const saved = await tutorial.command('draft', { draft: text }); try { tutorial.accept(await submit(saved, text)) } catch (error) { await tutorial.reload(); throw error } })}>发送</button></>)}</> : <>
         {composer(<>
-        <label htmlFor="tutorial-answer">{waiting ? '处理请求后，告诉芽芽你的决定' : '告诉芽芽想改哪里，或补充说明'}</label>
+        <label htmlFor="tutorial-answer">{waiting ? '处理请求后，告诉Qiuner你的决定' : '告诉Qiuner想改哪里，或补充说明'}</label>
         <textarea id="tutorial-answer" value={text} maxLength={12000} placeholder="例如：先保留现在的样子，请继续检查添加事项是否正常。" onChange={event => editText(event.target.value)} />
-        <button title={running ? '发送补充，等待处理' : '交给芽芽继续制作'} disabled={disabled || !text.trim()} onClick={() => void act(async () => {
+        <button title={running ? '发送补充，等待处理' : '交给Qiuner继续制作'} disabled={disabled || !text.trim()} onClick={() => void act(async () => {
           const saved = await tutorial.command('draft', { draft: text })
           try { tutorial.accept(await submit(saved, text, true)) }
           catch (error) { await tutorial.reload(); throw error }
@@ -161,7 +161,7 @@ export function TutorialPanel({ tutorial, actions, project, pick, bindProject, s
       <button disabled={disabled || preview === undefined} onClick={() => void act(async () => { await tutorial.command('confirm'); setPreview(undefined) })}>我已体验，可以正常使用</button>
       <button disabled={disabled} onClick={() => void act(() => tutorial.command('revise'))}>我遇到了问题，描述后修正</button>
     </>}
-    {run.step === 'return' && <><p>先离开当前项目，再从工作记录找到它和芽芽的会话。下次回来也这样继续。</p>{!run.left ? <button disabled={disabled} onClick={() => void act(async () => { await tutorial.command('leave'); leave() })}>离开项目，自己找回来</button> : !run.returned ? <p>到向导的工作记录选择这个项目，再继续教程。</p> : <><p>你找回了「{run.projectName}」。作品放在哪里？怎么确认它可用？下一次想改什么？</p><button disabled={disabled} onClick={() => void act(() => tutorial.command('complete'))}>我知道怎样继续，完成首课</button></>}</>}
+    {run.step === 'return' && <><p>先离开当前项目，再从工作记录找到它和Qiuner的会话。下次回来也这样继续。</p>{!run.left ? <button disabled={disabled} onClick={() => void act(async () => { await tutorial.command('leave'); leave() })}>离开项目，自己找回来</button> : !run.returned ? <p>到向导的工作记录选择这个项目，再继续教程。</p> : <><p>你找回了「{run.projectName}」。作品放在哪里？怎么确认它可用？下一次想改什么？</p><button disabled={disabled} onClick={() => void act(() => tutorial.command('complete'))}>我知道怎样继续，完成首课</button></>}</>}
     {run.step === 'complete' && <p>第一个作品和一次自己的改动已完成。你可以继续自由创作；这条记录包含你的体验确认，不代表自动判定已经掌握编程。</p>}
     {disabled && <p role="status">正在保存或读取，请稍候…</p>}
     {tutorial.error && <div role="alert">{tutorial.error}<button onClick={() => void tutorial.reload()}>重新读取记录</button></div>}

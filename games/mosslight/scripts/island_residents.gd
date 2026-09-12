@@ -74,7 +74,7 @@ func guide_keeper(encounter_id: String, action: String, traveler: Vector3, reduc
 
 func _ready() -> void:
 	var names := ["芽芽 · 园丁", "阿澜 · 钓鱼人", "苔伯 · 守井人", "向导 · 项目接待"]
-	var agent_isles_ids := ["coder", "file_keeper", "teacher", "coordinator"]
+	var agent_isles_ids := ["gardener", "file_keeper", "teacher", "coordinator"]
 	var homes := [Vector3(-7.2, .06, 1.3), Vector3(6.6, .06, 2.9), Vector3(-4.25, .06, -4.5), Vector3(2.8, .06, 6.0)]
 	for i in range(4):
 		var body := StaticBody3D.new()
@@ -164,7 +164,7 @@ func nearest(traveler: CharacterBody3D) -> StaticBody3D:
 
 func agent_isles_talk(npc: StaticBody3D, has_workspace: bool) -> Dictionary:
 	var identities := {
-		"coder": ["Coder · 开发", "我负责实现功能、调试问题和运行验证。"],
+		"gardener": ["芽芽 · 园丁", "我在这里照顾花草。想制作项目，可以去高台找 Qiuner。"],
 		"file_keeper": ["File Keeper · 整理", "我负责阅读项目、整理文件和维护资料。"],
 		"teacher": ["苔伯 · 项目与对话管理", "我帮你找回已有项目和历史对话，接着上次的事情。"],
 		"coordinator": ["向导 · 项目接待", "欢迎来到小镇。我负责绑定项目文件夹，也可以帮你切换项目。"],
@@ -190,7 +190,7 @@ func talk(npc: StaticBody3D, learned: bool) -> String:
 			if not learned:
 				lines[1] = "先去南边石座上的木箱旁按 E。学会回响，就能搭出上台的落脚点。"
 		3:
-			lines = ["欢迎来到小镇，我是项目向导。", "制作找芽芽，学习找苔伯，查看文件找阿澜。", "项目需要安顿或更换的时候，来入口找我就好。"]
+			lines = ["欢迎来到小镇，我是项目向导。", "制作找高台上的 Qiuner，查看文件找阿澜。", "项目需要安顿或更换的时候，来入口找我就好。"]
 	if npc.get_meta("dialogue_phase") != phase:
 		npc.set_meta("line_index", 0)
 		npc.set_meta("dialogue_phase", phase)

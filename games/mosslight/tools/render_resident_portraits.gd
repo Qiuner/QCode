@@ -30,7 +30,10 @@ func run() -> void:
 	camera.look_at(Vector3(0, 1.25, 0))
 	var portraits := {}
 	for id in ["coordinator", "coder", "teacher", "file_keeper"]:
-		var model_name := "npc_keeper" if id in ["coordinator", "teacher"] else "npc_gardener" if id == "coder" else "npc_fisher"
+		var model_name := "npc_keeper" if id in ["coordinator", "teacher"] else "grabber_computer" if id == "coder" else "npc_fisher"
+		camera.size = 3.2 if id == "coder" else 1.8
+		camera.position = Vector3(0, 2.4, 5) if id == "coder" else Vector3(0, 1.65, 4)
+		camera.look_at(Vector3(0, 1.65, 0) if id == "coder" else Vector3(0, 1.25, 0))
 		var model := load("res://assets/" + model_name + ".glb").instantiate() as Node3D
 		world.add_child(model)
 		await process_frame

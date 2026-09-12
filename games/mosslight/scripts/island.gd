@@ -265,13 +265,16 @@ func _on_agent_isles_message(arguments: Array) -> void:
 			Input.action_release(action)
 		if panel_open:
 			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	# The host owns the conversation; never leave a second dialogue behind it.
-	talking_to = null
-	dialogue_panel.visible = false
-	dialogue_left = 0
+	# Functional panels replace local dialogue; background updates leave villagers talking.
+	if panel_open:
+		talking_to = null
+		dialogue_panel.visible = false
+		dialogue_left = 0
 	prompt.visible = not panel_open
 	agent_isles_session_id = str(payload.get("sessionId", ""))
 	for resident: Dictionary in payload.get("residents", []):
+		if resident.get("id") == "coder":
+			sanctuary_computer.set_status(str(resident.get("status", "idle")))
 		residents.set_agent_status(str(resident.get("id", "")), str(resident.get("status", "idle")))
 	var workspace: Variant = payload.get("workspace")
 	if typeof(workspace) != TYPE_DICTIONARY:
@@ -811,6 +814,13 @@ func place_echo() -> bool:
 func _interact() -> void:
 	if game_paused or agent_isles_panel_open or sanctuary_computer.active:
 		return
+	if sanctuary_computer.can_use():
+		if embedded_mode or agent_isles_connected:
+			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+			_emit_agent_isles("resident:selected", {"residentId": "coder"})
+		else:
+			_show_toast("Qiuner · 在小岛网页版中打开项目对话。", 4)
+		return
 	if sanctuary_computer.can_grab():
 		sanctuary_computer.grab()
 		return
@@ -835,7 +845,7 @@ func _interact() -> void:
 	else:
 		var npc: StaticBody3D = residents.nearest(player)
 		if npc != null:
-			if embedded_mode or agent_isles_connected:
+			if (embedded_mode or agent_isles_connected) and npc.get_meta("agent_isles_id") != "gardener":
 				talking_to = null
 				dialogue_panel.visible = false
 				dialogue_left = 0
@@ -1201,10 +1211,13 @@ func _label(text: String, at: Vector2, font_size: int, color: Color, parent: Con
 func _update_hud() -> void:
 	echo_label.text = "%s回响    %d / 3" % [ECHO_OBJECTS.NAMES[selected_echo], echoes.size()] if knows_echo(selected_echo) else "未知回响"
 	if sanctuary_computer != null and sanctuary_computer.active:
-		prompt.text = "计算机正在接你上台"
+		prompt.text = "Qiuner 正在接你上台"
+		return
+	if sanctuary_computer != null and sanctuary_computer.can_use():
+		prompt.text = "[ E ]  使用 Qiuner"
 		return
 	if sanctuary_computer != null and sanctuary_computer.can_grab():
-		prompt.text = "[ E ]  让计算机接你上台"
+		prompt.text = "[ E ]  让 Qiuner 接你上台"
 		return
 	var source := _nearby_echo_source()
 	if source != null:

@@ -3,7 +3,7 @@ import type { ResidentId, ResidentStatus } from './world-bridge.js'
 
 export const RESIDENTS = [
   { id: 'coordinator', name: '向导 · 项目接待', greeting: '欢迎来到小镇。先为你的项目选一个文件夹，我会安排大家在这里工作。', action: '绑定项目' },
-  { id: 'coder', name: '芽芽 · Coder', greeting: '告诉我你想制作什么，我会在这个项目里动手实现。', action: '开始制作' },
+  { id: 'coder', name: 'Qiuner · 计算机', greeting: '告诉我你想制作什么，我会在这个项目里动手实现。', action: '开始制作' },
   { id: 'teacher', name: '苔伯 · 项目与对话管理', greeting: '之前的项目和对话都在这里。我们找找上次做到哪里了。', action: '查看项目与历史对话' },
   { id: 'file_keeper', name: '阿澜 · File Keeper', greeting: '我帮你查找项目文件，也可以打开指定文件看看。', action: '查看文件' },
 ] as const

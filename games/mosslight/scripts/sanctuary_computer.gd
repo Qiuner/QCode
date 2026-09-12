@@ -22,6 +22,7 @@ var arms: Array[Node3D] = []
 var hands: Array[Node3D] = []
 var housing: Node3D
 var game: Node3D
+var status_label: Label3D
 
 
 func _ready() -> void:
@@ -29,6 +30,15 @@ func _ready() -> void:
 	position = ORIGIN
 	housing = COMPUTER.instantiate()
 	add_child(housing)
+	status_label = Label3D.new()
+	status_label.font = preload("res://assets/fonts/MosslightUI.ttf")
+	status_label.font_size = 28
+	status_label.pixel_size = .006
+	status_label.position = Vector3(0, 3.15, 0)
+	status_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	status_label.outline_size = 7
+	add_child(status_label)
+	set_status("idle")
 	var solid := StaticBody3D.new()
 	solid.name = "ComputerHousing"
 	solid.collision_layer = 3
@@ -51,6 +61,15 @@ func _ready() -> void:
 		add_child(hand)
 		hands.append(hand)
 	_pose(0.0)
+
+
+func can_use() -> bool:
+	return not active and not game.game_paused and not game.agent_isles_panel_open and not game.garden.opened and game.player.global_position.distance_to(LANDING) < 1.25
+
+
+func set_status(status: String) -> void:
+	var labels := {"working": "执行中", "thinking": "思考中", "approval": "等待确认", "completed": "本轮结束", "failed": "遇到问题"}
+	status_label.text = "Qiuner" + (" · " + str(labels[status]) if labels.has(status) else "")
 
 
 func can_grab() -> bool:

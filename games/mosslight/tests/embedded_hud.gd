@@ -43,6 +43,20 @@ func run() -> void:
 	game._interact()
 	game._interact()
 	check(not game.dialogue_panel.visible and game.talking_to == null, "reopening same resident leaves no local dialogue latch")
+	game.player.position = game.residents.residents[0].position + Vector3(0, 0, 1.15)
+	await physics_frame
+	game._interact()
+	check(game.dialogue_panel.visible, "gardener uses local dialogue in embedded world")
+	game._on_agent_isles_message([JSON.stringify(message)])
+	check(game.dialogue_panel.visible, "background host updates preserve gardener dialogue")
+	game.player.position = game.sanctuary_computer.LANDING
+	await physics_frame
+	game._interact()
+	message.payload.panelOpen = true
+	message.payload.residents = [{"id": "coder", "status": "working"}]
+	game._on_agent_isles_message([JSON.stringify(message)])
+	check(game.sanctuary_computer.status_label.text.contains("执行中"), "coder status is shown on Qiuner")
+	check(not game.dialogue_panel.visible, "Qiuner host panel clears local dialogue")
 	print("MOSSLIGHT_EMBEDDED_HUD_TESTS_COMPLETE failures=%d" % failures)
 	quit(1 if failures else 0)
 
