@@ -1257,7 +1257,7 @@ func _update_hud() -> void:
 		prompt.text = "[ E ]  让 Qiuner 接你上台"
 		return
 	if sanctuary_computer != null and sanctuary_computer.can_remote_grab():
-		prompt.text = "[ U ]  召回到中央计算机"
+		prompt.text = ""
 		return
 	var source := _nearby_echo_source()
 	if source != null:
