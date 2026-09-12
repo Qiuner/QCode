@@ -4,9 +4,9 @@
 
 <h1 align="center">agent-isles</h1>
 
-<p align="center"><strong>让 AI 住进你的项目，在真实创作中陪你学习。</strong></p>
+<p align="center"><strong>把 AI 编程从严肃的聊天框，带进一片可以探索的群岛。</strong></p>
 
-<p align="center">一个以角色和可探索世界为界面的 AI 教育工作台。</p>
+<p align="center">和住在项目里的 AI 伙伴一起做出真实作品，也在创作过程中学会 Coding。</p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/status-early_development-E9A23B?style=flat-square" alt="Status: early development">
@@ -28,16 +28,18 @@
   <a href="SUPPORT.md">获取帮助</a>
 </p>
 
-<img src="docs/images/agent-isles-workspace.png" alt="agent-isles 小镇与项目向导" width="100%">
+<img src="docs/images/agent-isles-workspace.png" alt="agent-isles 群岛世界与项目向导" width="100%">
 
 > [!IMPORTANT]
 > agent-isles 仍处于早期开发阶段。目前提供本地 Web MVP 和 Windows x64 启动器、安装包预览版。安装与构建说明见 [Windows 启动器](apps/desktop/README.md)。
 
 ## agent-isles 是什么
 
-agent-isles 把 AI 能力变成住在同一个世界里的不同居民。学习者不需要先理解复杂的模型、工具和会话概念，只需选择一个真实项目，找到合适的居民，用自然语言说明自己想学什么或做什么。
+agent-isles 是一个可探索的 AI Coding 学习与创作环境。它把原本藏在聊天框、终端和工具列表里的 Agent 能力，变成群岛世界中的伙伴、地点和行动。你不需要先弄懂模型、会话、工具调用和项目结构，就可以从一句自己的想法出发，和 AI 一起把它做成真正能运行的作品。
 
-这里的学习发生在实际项目中：AI 可以读取文件、解释代码、协助实现并展示执行过程，学习者始终可以进入高级工作台查看完整对话、工具调用和审批记录。
+你可以选择“跟着学”，在完成第一个作品的过程中认识需求、项目、执行、审批和验收；也可以选择“自由创作”，直接绑定已有项目，按自己的节奏探索和修改。教学不是脱离实践的课程，而是附着在真实创作上的引导：AI 可以动手，但作品仍由你提出、体验、判断并继续完善。
+
+可探索的群岛降低了第一次接触 AI 编程时的陌生感，但没有隐藏真实能力和责任边界。任务状态会反映在世界和角色上，文件、历史对话与项目各有明确入口；需要深入时，你仍然可以进入高级工作台查看完整对话、工具调用和人工审批。
 
 ## 当前体验
 
@@ -46,23 +48,24 @@ Windows 预览版通过安装包安装后，点击 agent-isles 图标即可启�
 | 居民 | 职责 | 当前能力 |
 | --- | --- | --- |
 | 向导 | 项目接待 | 选择本地文件夹、绑定和切换 Workspace |
-| 芽芽 · Coder | 制作伙伴 | 接收目标，读取、修改并验证项目 |
-| 苔伯 · Teacher | 学习导师 | 结合项目文件解释概念与代码 |
-| 阿澜 · File Keeper | 文件管理员 | 浏览真实目录并读取指定文件 |
+| Qiuner · 计算机 | 制作伙伴 | 通过完整对话接收目标，使用附件、模型与权限设置读取、修改并验证项目 |
+| 苔伯 | 项目与历史管理员 | 管理项目、搜索历史，并查看或继续已有对话 |
+| 阿澜 · File Keeper | 文件管理员 | 浏览真实目录、预览文本，并查看 Git 暂存、未暂存与未跟踪修改 |
 
-- **在项目中学习**：讲解与实践共享同一个真实 Workspace。
+- **跟着学，也能自由做**：教程帮助你完成第一个作品，普通项目支持直接进入创作。
+- **在项目中学习**：讲解、实践和验收共享同一个真实 Workspace。
 - **角色即能力入口**：不同居民拥有清晰的职责、会话和状态。
-- **过程可观察**：小镇中的人物、气泡和动画反映 AI 的工作状态。
+- **过程可观察**：群岛中的角色、气泡和动画反映 AI 的工作状态。
 - **保留专业界面**：高级工作台承载完整对话、工具结果和人工审批。
 - **不复制执行引擎**：底层复用固定版本的 DeepSeek Harness runtime。
 
 ## 产品画面
 
-### 与居民一起完成任务
+### 和 Qiuner 一起完成任务
 
-Coder 在绑定的项目中读取和修改文件。对话、进度与最终结果直接显示在居民面板中，完整工具调用仍可在高级工作台查看。
+Qiuner 在绑定的项目中读取和修改文件。对话、进度与最终结果直接显示在制作面板中，完整工具调用仍可在高级工作台查看。
 
-![agent-isles Coder 居民执行真实项目任务](docs/images/agent-isles-coder.png)
+![agent-isles 的 Qiuner 制作伙伴执行真实项目任务](docs/images/agent-isles-coder.png)
 
 ### 在不同尺寸下使用
 
@@ -98,8 +101,8 @@ corepack yarn dev:web --no-open
 ## 工作原理
 
 ```text
-学习者
-  -> agent-isles Web：小镇、居民、对话与状态
+创作者 / 学习者
+  -> agent-isles Web：群岛世界、角色、对话与状态
     -> agent-isles Host/Client 插件：Workspace 与 Resident/Session 映射
       -> DeepSeek Harness：模型、工具、审批、文件与终端
         -> 本地项目
@@ -140,11 +143,12 @@ Godot 负责呈现世界和居民状态，React 负责 Workspace、居民选择�
 
 ## 当前限制
 
-- Teacher 与 File Keeper 的只读行为目前由提示词约束，尚未形成强权限隔离。
-- 居民与 Session 的映射保存在本地 Host 状态文件中，尚未进入 DSH runtime 持久化模型。
-- 文件管理员还没有独立的文件树预览器。
+- File Keeper 的只读行为目前由应用边界和提示词共同约束，尚未形成完整的强权限隔离。
+- File Keeper 暂不支持编辑文件、预览图片、访问远程文件系统或展示父级仓库的修改。
+- 完整首课尚未通过真实模型的端到端验收，真实任务、异常恢复和教学节奏仍需继续验证。
 - 移动端已支持面板布局，世界操作仍以键鼠为主。
-- Windows 安装包当前为未签名预览版，自动更新和发布渠道尚未实现。
+- 通知保存在当前浏览器中，暂不跨浏览器同步，也不提供操作系统通知。
+- 最新 Windows 安装包尚未重新构建并完成安装、卸载与真实任务验收；预览版未签名，自动更新和发布渠道尚未实现。
 
 ## 文档
 
@@ -163,14 +167,12 @@ Bug 报告、功能建议和 Pull Request 都欢迎。开始前请阅读[贡献�
 - [安全策略](SECURITY.md)
 - [社区行为准则](CODE_OF_CONDUCT.md)
 - [变更日志](CHANGELOG.md)
-- [发布检查清单](docs/release-checklist.md)
 
 agent-isles 自有代码以 [MIT License](LICENSE) 开源，版权所有者为 Qiuner。第三方依赖、字体、模型、音频和 vendored runtime 仍适用其各自的许可证与[第三方声明](THIRD_PARTY_NOTICES.md)。
 
-
 ## 路线图
 
-- 将居民 Session 映射迁移到持久化 runtime。
-- 在世界中展示更完整的进度、审批、错误与完成状态。
-- 增加居民任务历史和“继续上次工作”。
-- 完善 Windows 预览版的签名、升级和发布流程。
+- 完成真实模型、完整首课和主要异常路径的端到端验收。
+- 为不同居民建立可执行的强权限边界。
+- 完善 Windows 安装包的签名、自动更新和发布渠道。
+- 扩展课程、作品模板，以及与任务进展联动的世界反馈。
