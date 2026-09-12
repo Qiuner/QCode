@@ -23,6 +23,7 @@ const ISLAND_RESIDENTS = preload("res://scripts/island_residents.gd")
 const GARDEN_INVENTORY = preload("res://scripts/garden_inventory.gd")
 const WEB_RENDERING = preload("res://scripts/web_rendering.gd")
 const ECHO_OBJECTS = preload("res://scripts/echo_objects.gd")
+const SANCTUARY_COMPUTER = preload("res://scripts/sanctuary_computer.gd")
 enum ViewMode { OVERVIEW, THIRD_PERSON, FIRST_PERSON }
 
 var player: CharacterBody3D
@@ -85,6 +86,7 @@ var dialogue_name: Label
 var dialogue_text: Label
 var dialogue_left := 0.0
 var garden: Node3D
+var sanctuary_computer: Node3D
 var agent_isles_message_handler: JavaScriptObject
 var agent_isles_bridge: JavaScriptObject
 var agent_isles_connected := false
@@ -123,6 +125,8 @@ func _ready() -> void:
 	_setup_agent_isles_bridge()
 	garden = GARDEN_INVENTORY.new()
 	add_child(garden)
+	sanctuary_computer = SANCTUARY_COMPUTER.new()
+	add_child(sanctuary_computer)
 	_apply_embedded_hud()
 	camera_obstacle_shape.radius = .22
 	_update_view_hint()
@@ -594,6 +598,11 @@ func _material(color: Color, roughness: float, glow: bool = false) -> StandardMa
 func _physics_process(delta: float) -> void:
 	if game_paused or agent_isles_panel_open:
 		return
+	sanctuary_computer.advance(delta)
+	if sanctuary_computer.active:
+		_update_camera(delta)
+		_update_hud()
+		return
 	var input := Input.get_vector("walk_left", "walk_right", "walk_up", "walk_down")
 	var right := camera.global_basis.x
 	var back := camera.global_basis.z
@@ -800,7 +809,12 @@ func place_echo() -> bool:
 
 
 func _interact() -> void:
-	if game_paused or agent_isles_panel_open or garden.interact():
+	if game_paused or agent_isles_panel_open or sanctuary_computer.active:
+		return
+	if sanctuary_computer.can_grab():
+		sanctuary_computer.grab()
+		return
+	if garden.interact():
 		return
 	if regions_error and absf(player.position.x) > 9.5 and absf(player.position.z - 3) < 2:
 		_request_neighbor_regions()
@@ -1186,6 +1200,12 @@ func _label(text: String, at: Vector2, font_size: int, color: Color, parent: Con
 
 func _update_hud() -> void:
 	echo_label.text = "%s回响    %d / 3" % [ECHO_OBJECTS.NAMES[selected_echo], echoes.size()] if knows_echo(selected_echo) else "未知回响"
+	if sanctuary_computer != null and sanctuary_computer.active:
+		prompt.text = "计算机正在接你上台"
+		return
+	if sanctuary_computer != null and sanctuary_computer.can_grab():
+		prompt.text = "[ E ]  让计算机接你上台"
+		return
 	var source := _nearby_echo_source()
 	if source != null:
 		prompt.text = "[ E ]  学习%s回响" % ECHO_OBJECTS.NAMES[source.get_meta("echo_kind")]
