@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    name: Web checks
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Enable Yarn
+        shell: pwsh
+        run: |
+          corepack enable
+          corepack prepare yarn@4.18.0 --activate
+
+      - name: Install dependencies
+        run: corepack yarn install --immutable
+
+      - name: Verify pinned sources
+        shell: pwsh
+        run: |
+          corepack yarn check:upstream
+          corepack yarn check:vendored-runtime
+
+      - name: Type-check and build Web plugin
+        shell: pwsh
+        run: |
+          corepack yarn typecheck
+          corepack yarn build:web
+
+      - name: Run Web unit tests
+        shell: pwsh
+        run: node --test (Get-ChildItem packages/agent-isles-web/tests/*.test.mjs | ForEach-Object FullName)

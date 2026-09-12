@@ -1,0 +1,36 @@
+name: 文档问题
+description: 报告缺失、错误或难以理解的文档
+title: "[Docs]: "
+labels:
+  - documentation
+body:
+  - type: input
+    id: location
+    attributes:
+      label: 文档位置
+      description: 填写文件路径、章节或页面链接。
+      placeholder: README.md 的“快速开始”章节
+    validations:
+      required: true
+
+  - type: textarea
+    id: issue
+    attributes:
+      label: 问题描述
+      description: 说明内容哪里错误、缺失、过时或容易误解。
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: 建议修改
+      description: 如果可以，请给出期望看到的内容或结构。
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: 提交前检查
+      options:
+        - label: 我已确认当前主分支上的文档仍存在这个问题。
+          required: true

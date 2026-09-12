@@ -22,7 +22,9 @@
   <a href="#产品画面">产品画面</a> ·
   <a href="#快速开始">快速开始</a> ·
   <a href="#工作原理">工作原理</a> ·
-  <a href="#文档">项目文档</a>
+  <a href="#文档">项目文档</a> ·
+  <a href="CONTRIBUTING.md">参与贡献</a> ·
+  <a href="SUPPORT.md">获取帮助</a>
 </p>
 
 <img src="docs/images/agent-isles-workspace.png" alt="agent-isles 小镇与项目向导" width="100%">
@@ -150,6 +152,18 @@ Godot 负责呈现世界和居民状态，React 负责 Workspace、居民选择�
 - [Web 定制边界](docs/web-customization.md)
 - [世界与 Web 的职责](docs/world-web-plan.md)
 - [居民角色设计](docs/roles.md)
+- [发布检查清单](docs/release-checklist.md)
+
+## 参与贡献
+
+Bug 报告、功能建议和 Pull Request 都欢迎。开始前请阅读[贡献指南](CONTRIBUTING.md)，较大的功能或交互调整建议先通过 Issue 对齐范围。
+
+- [获取帮助](SUPPORT.md)
+- [安全策略](SECURITY.md)
+- [社区行为准则](CODE_OF_CONDUCT.md)
+- [变更日志](CHANGELOG.md)
+- [发布检查清单](docs/release-checklist.md)
+
 
 ## 路线图
 
