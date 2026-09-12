@@ -1,12 +1,14 @@
-<div align="center">
+<p align="center">
+  <img src="assets/brand/android-chrome-512x512.png" alt="agent-isles Logo" width="128" height="128">
+</p>
 
-# agent-isles
+<h1 align="center">agent-isles</h1>
 
-**让 AI 住进你的项目，在真实创作中陪你学习。**
+<p align="center"><strong>让 AI 住进你的项目，在真实创作中陪你学习。</strong></p>
 
-一个以角色和可探索世界为界面的 AI 教育工作台。
+<p align="center">一个以角色和可探索世界为界面的 AI 教育工作台。</p>
 
-<p>
+<p align="center">
   <img src="https://img.shields.io/badge/status-early_development-E9A23B?style=flat-square" alt="Status: early development">
   <img src="https://img.shields.io/badge/interface-Web-5D9C87?style=flat-square&logo=googlechrome&logoColor=white" alt="Interface: Web">
   <img src="https://img.shields.io/badge/platform-Windows-0078D4?style=flat-square&logo=windows11&logoColor=white" alt="Platform: Windows">
@@ -15,7 +17,7 @@
   <img src="https://img.shields.io/badge/DSH-0.1.3--alpha.1-5D9C87?style=flat-square" alt="DeepSeek Harness 0.1.3-alpha.1">
 </p>
 
-<p>
+<p align="center">
   <a href="#agent-isles-是什么">产品介绍</a> ·
   <a href="#产品画面">产品画面</a> ·
   <a href="#快速开始">快速开始</a> ·
@@ -24,8 +26,6 @@
 </p>
 
 <img src="docs/images/agent-isles-workspace.png" alt="agent-isles 小镇与项目向导" width="100%">
-
-</div>
 
 > [!IMPORTANT]
 > agent-isles 仍处于早期开发阶段。目前提供本地 Web MVP 和 Windows x64 启动器、安装包预览版。安装与构建说明见 [Windows 启动器](apps/desktop/README.md)。
