@@ -166,7 +166,7 @@ func agent_isles_talk(npc: StaticBody3D, has_workspace: bool) -> Dictionary:
 	var identities := {
 		"coder": ["Coder · 开发", "我负责实现功能、调试问题和运行验证。"],
 		"file_keeper": ["File Keeper · 整理", "我负责阅读项目、整理文件和维护资料。"],
-		"teacher": ["Teacher · 教学", "我负责解释代码、梳理思路和沉淀文档。"],
+		"teacher": ["苔伯 · 项目与对话管理", "我帮你找回已有项目和历史对话，接着上次的事情。"],
 		"coordinator": ["向导 · 项目接待", "欢迎来到小镇。我负责绑定项目文件夹，也可以帮你切换项目。"],
 	}
 	var identity: Array = identities.get(str(npc.get_meta("agent_isles_id")), ["Resident · 居民", "我会协助处理这个项目。"])

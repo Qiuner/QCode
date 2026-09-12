@@ -78,7 +78,8 @@ test('each resident receives its role and the complete user request', () => {
     assert.ok(residentPrompt(id, 'hello.txt\nExplain this').endsWith('hello.txt\nExplain this'))
   }
   assert.match(residentPrompt('coder', ''), /实际验证/)
-  assert.match(residentPrompt('teacher', ''), /不要修改文件/)
+  assert.match(residentPrompt('teacher', ''), /项目与历史对话管理/)
+  assert.doesNotMatch(residentPrompt('teacher', ''), /教学|练习|讲解/)
   assert.match(residentPrompt('file_keeper', ''), /本轮只读/)
 })
 

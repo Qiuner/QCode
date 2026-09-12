@@ -8,7 +8,7 @@ export async function testTeacherManager(browser, url) {
       setInterval(()=>{for(const type of ['world:ready','world:playable'])parent.postMessage({source:'agent-isles-world',version:1,type},'*')},300)
     </script>` }))
     await page.goto(url)
-    await page.getByRole('button', { name: '创作手册', exact: true }).waitFor()
+    await page.locator('.town-work-entry').waitFor()
     await page.locator('.town-shell > iframe').evaluate(frame => frame.contentWindow.postMessage('test:teacher', '*'))
     const panel = page.getByRole('complementary', { name: '苔伯 · 项目与对话管理', exact: true })
     await panel.waitFor()
