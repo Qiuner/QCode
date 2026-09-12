@@ -43,12 +43,13 @@ function compile(source, target, extras = []) {
   const result = spawnSync(compiler, ['/nologo', '/target:winexe', '/platform:x64', '/optimize+', '/reference:System.Windows.Forms.dll', '/reference:System.Drawing.dll', '/reference:System.IO.Compression.dll', '/reference:System.IO.Compression.FileSystem.dll', '/reference:Microsoft.CSharp.dll', `/out:${target}`, ...extras, path.join(root, source)], { stdio: 'inherit' })
   if (result.status !== 0) throw new Error(`编译失败：${source}`)
 }
-compile('apps/desktop/Launcher.cs', path.join(app, 'agent-isles.exe'))
+const brandIcon = `/win32icon:${path.join(root, 'assets/brand/favicon.ico')}`
+compile('apps/desktop/Launcher.cs', path.join(app, 'agent-isles.exe'), [brandIcon])
 const zip = path.join(out, 'agent-isles-windows-x64.zip')
 const pack = spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', 'Add-Type -AssemblyName System.IO.Compression.FileSystem; [IO.Compression.ZipFile]::CreateFromDirectory($env:AGENT_ISLES_PACK_SOURCE, $env:AGENT_ISLES_PACK_ZIP)'], { env: { ...process.env, AGENT_ISLES_PACK_SOURCE: app, AGENT_ISLES_PACK_ZIP: zip }, stdio: 'inherit' })
 if (pack.status !== 0) throw new Error('压缩安装资源失败')
 const setup = path.join(out, 'agent-isles-setup-x64.exe')
-compile('apps/desktop/Setup.cs', setup, [`/resource:${zip},payload.zip`])
+compile('apps/desktop/Setup.cs', setup, [brandIcon, `/resource:${zip},payload.zip`])
 writeFileSync(path.join(out, 'SHA256SUMS.txt'), [setup, zip].map(file => `${createHash('sha256').update(readFileSync(file)).digest('hex')}  ${path.basename(file)}`).join('\n') + '\n')
 writeFileSync(path.join(root, 'dist/desktop-latest.txt'), out)
 console.log(`安装包：${setup}\n便携包：${zip}`)

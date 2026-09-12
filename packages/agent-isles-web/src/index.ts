@@ -102,6 +102,22 @@ export async function serveWorld(req: IncomingMessage, res: ServerResponse, worl
 /** Host half: mount the Godot export beside the existing Harness API and SPA. */
 export function apply(ctx: Context & ModelTestServices): void {
   ctx.plugin(tutorial)
+  for (const file of ['favicon.ico', 'favicon-16x16.png', 'favicon-32x32.png', 'apple-touch-icon.png', 'android-chrome-192x192.png', 'android-chrome-512x512.png', 'site.webmanifest']) {
+    ctx.effect(() => ctx.webServer.register({
+      kind: 'exact', path: `/agent-isles/brand/${file}`,
+      handler: async (req, res) => {
+        if (req.method !== 'GET' && req.method !== 'HEAD') { end(res, 405); return }
+        try {
+          const content = await readFile(new URL(`../brand/${file}`, import.meta.url))
+          res.writeHead(200, {
+            'content-type': file.endsWith('.png') ? 'image/png' : file.endsWith('.ico') ? 'image/x-icon' : 'application/manifest+json',
+            'content-length': content.length, 'cache-control': 'no-cache',
+          })
+          res.end(req.method === 'HEAD' ? undefined : content)
+        } catch { end(res, 404) }
+      },
+    }), `agent-isles-web: brand ${file}`)
+  }
   const distIndex = process.env.AGENT_ISLES_DIST_INDEX
   if (distIndex) ctx.inject(['connection'], connectionCtx => {
     const handler = createBrowserEntry(

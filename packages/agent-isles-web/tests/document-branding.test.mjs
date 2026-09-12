@@ -37,9 +37,11 @@ test('document branding installs the favicon, follows title changes, and cleans 
 
   const dispose = applyDocumentBranding(document, Observer)
   assert.equal(document.title, 'agent-isles')
-  assert.equal(links.length, 1)
+  assert.equal(links.length, 3)
   assert.equal(links[0].rel, 'icon')
-  assert.equal(links[0].type, 'image/svg+xml')
+  assert.equal(links[0].type, 'image/x-icon')
+  assert.equal(links[1].rel, 'apple-touch-icon')
+  assert.equal(links[2].rel, 'manifest')
   assert.equal(links[0].href, AGENT_ISLES_FAVICON)
 
   document.title = '新的会话 — DeepSeek Harness'

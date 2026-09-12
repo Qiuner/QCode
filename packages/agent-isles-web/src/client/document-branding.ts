@@ -1,13 +1,7 @@
 const PRODUCT_TITLE = 'agent-isles'
 const TITLE_SEPARATOR = ' — '
 
-export const AGENT_ISLES_FAVICON = `data:image/svg+xml,${encodeURIComponent(`
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect x="2" y="2" width="13" height="13" rx="3" fill="#1f6f5c"/>
-  <rect x="17" y="2" width="13" height="13" rx="3" fill="#e0a12f"/>
-  <rect x="2" y="17" width="13" height="13" rx="3" fill="#d45b48"/>
-  <rect x="17" y="17" width="13" height="13" rx="3" fill="#3977b8"/>
-</svg>`)}`
+export const AGENT_ISLES_FAVICON = '/agent-isles/brand/favicon.ico'
 
 export function agentIslesDocumentTitle(title: string): string {
   const separator = title.lastIndexOf(TITLE_SEPARATOR)
@@ -23,10 +17,18 @@ export function applyDocumentBranding(
   const previousTitle = document.title
   const icon = document.createElement('link')
   icon.rel = 'icon'
-  icon.type = 'image/svg+xml'
+  icon.type = 'image/x-icon'
   icon.href = AGENT_ISLES_FAVICON
   icon.dataset.agentIslesBrand = ''
   document.head.append(icon)
+  const touchIcon = document.createElement('link')
+  touchIcon.rel = 'apple-touch-icon'
+  touchIcon.href = '/agent-isles/brand/apple-touch-icon.png'
+  const manifest = document.createElement('link')
+  manifest.rel = 'manifest'
+  manifest.href = '/agent-isles/brand/site.webmanifest'
+  document.head.append(touchIcon)
+  document.head.append(manifest)
 
   let updating = false
   const updateTitle = (): void => {
@@ -45,6 +47,8 @@ export function applyDocumentBranding(
   return () => {
     observer.disconnect()
     icon.remove()
+    touchIcon.remove()
+    manifest.remove()
     document.title = previousTitle
   }
 }

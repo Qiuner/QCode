@@ -21,6 +21,7 @@ internal static class Setup {
             Label status = null;
             if (!extract) {
                 progress = new Form { Text = "正在安装 agent-isles", Width = 430, Height = 150, ControlBox = false, StartPosition = FormStartPosition.CenterScreen };
+                progress.Icon = System.Drawing.Icon.ExtractAssociatedIcon(Application.ExecutablePath);
                 status = new Label { Dock = DockStyle.Fill, Padding = new Padding(20), Text = "正在解压运行时和小岛资源，请稍候…" };
                 progress.Controls.Add(status); progress.Show(); Application.DoEvents();
             }

@@ -42,13 +42,14 @@ internal static class Launcher {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             window = new Form { Text = "agent-isles", Width = 440, Height = 190, StartPosition = FormStartPosition.CenterScreen, MaximizeBox = false };
+            window.Icon = System.Drawing.Icon.ExtractAssociatedIcon(Application.ExecutablePath);
             status = new Label { Text = "正在准备小岛…", Dock = DockStyle.Fill, Padding = new Padding(24), AutoSize = false };
             window.Controls.Add(status);
             var menu = new ContextMenuStrip();
             menu.Items.Add("打开小岛", null, (s, e) => Open());
             menu.Items.Add("打开日志目录", null, (s, e) => Process.Start(home));
             menu.Items.Add("退出 agent-isles", null, (s, e) => Quit());
-            tray = new NotifyIcon { Icon = System.Drawing.SystemIcons.Application, Text = "agent-isles", ContextMenuStrip = menu, Visible = !smoke };
+            tray = new NotifyIcon { Icon = window.Icon, Text = "agent-isles", ContextMenuStrip = menu, Visible = !smoke };
             tray.DoubleClick += (s, e) => Open();
             window.FormClosing += (s, e) => { if (!quitting && url != null) { e.Cancel = true; window.Hide(); } };
             window.FormClosed += (s, e) => Quit();

@@ -34,7 +34,7 @@
     }
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json && tsdown --env.DSH_BUILD_FACE client",
+    "build": "tsc -p tsconfig.json && tsdown --env.DSH_BUILD_FACE client && node ../../scripts/copy-brand.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
