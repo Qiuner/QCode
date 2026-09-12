@@ -28,6 +28,8 @@
   <a href="SUPPORT.md">获取帮助</a>
 </p>
 
+> 项目介绍站已放在 `docs/`，并配置了 GitHub Pages 工作流；首次推送到 GitHub 后，页面地址会由仓库的 Pages 设置提供。
+
 <img src="docs/images/agent-isles-workspace.png" alt="agent-isles 群岛世界与项目向导" width="100%">
 
 > [!IMPORTANT]

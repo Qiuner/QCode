@@ -3,8 +3,6 @@ import type {
 } from '@deepseek-ai/dsh-client-ui-sidebar/client'
 import type { HeroBrandMarkOwnerProps } from '@deepseek-ai/dsh-client-ui-conversation/client'
 
-const colors = ['#1f6f5c', '#e0a12f', '#d45b48', '#3977b8']
-
 export function AgentIslesBrandMark({ size }: SidebarBrandMarkOwnerProps) {
   return <AgentIslesMark size={size} />
 }
@@ -18,25 +16,12 @@ function AgentIslesMark({ size, className, hero = false }: {
   className?: string | undefined
   hero?: boolean
 }) {
-  return (
-    <span
-      aria-hidden="true"
-      className={`${className ?? ''}${hero ? ' agent-isles-hero-mark' : ''}`.trim() || undefined}
-      style={{
-        boxSizing: 'border-box',
-        display: 'grid',
-        flex: 'none',
-        gap: 2,
-        gridTemplateColumns: 'repeat(2, 1fr)',
-        gridTemplateRows: 'repeat(2, 1fr)',
-        height: size,
-        padding: 2,
-        width: size,
-      }}
-    >
-      {colors.map(color => <span key={color} style={{ background: color, borderRadius: 2 }} />)}
-    </span>
-  )
+  return <img
+    aria-hidden="true"
+    className={`${className ?? ''}${hero ? ' agent-isles-hero-mark' : ''}`.trim() || undefined}
+    src="/agent-isles/brand/android-chrome-192x192.png"
+    style={{ display: 'block', flex: 'none', height: size, objectFit: 'contain', width: size }}
+  />
 }
 
 export function AgentIslesBrandName() {
