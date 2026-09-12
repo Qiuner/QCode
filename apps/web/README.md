@@ -1,5 +1,7 @@
 # 本地服务托管
 
+新会话默认使用 DSH 的“完全权限”（`danger-full-access`，审批策略 `never`）。可通过 `DSH_PERMISSION_MODE` 覆盖启动默认值，或在 DSH 通用设置修改新会话默认权限；现有会话保留已保存的权限，可在原生输入框的权限菜单切换。桌面启动器共用此启动配置。
+
 构建后执行 `node apps/web/src/background.mjs start`，将小岛服务放入独立、无窗口的后台进程。终端关闭后服务继续运行；重复执行会复用同一数据目录对应的托管进程。启动后使用根目录「打开小岛.cmd」进入。
 
 - 状态：`node apps/web/src/background.mjs status`

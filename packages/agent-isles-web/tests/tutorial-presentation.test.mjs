@@ -27,3 +27,9 @@ test('idle submitted work offers verification rather than claiming success', () 
   assert.match(html, /核对通过后会打开预览/)
   assert.match(html, /告诉芽芽想改哪里，或补充说明/)
 })
+
+test('native session keeps tutorial checks without rendering a second composer', () => {
+  const html = render({ nativeSessionId: 'session' })
+  assert.doesNotMatch(html, /<textarea|tutorial-answer/)
+  assert.match(html, /检查成果，打开作品/)
+})

@@ -50,7 +50,8 @@ export function useTutorial(actions: TutorialActions | undefined, workspaceId?: 
 }
 export type TutorialController = ReturnType<typeof useTutorial>
 
-export function TutorialPanel({ tutorial, actions, project, pick, bindProject, submit, move, modelSettings, leave, composerTarget, previewTarget, running = false, waiting = false }: {
+export function TutorialPanel({ tutorial, actions, project, pick, bindProject, submit, move, modelSettings, leave, composerTarget, previewTarget, running = false, waiting = false, nativeSessionId }: {
+  nativeSessionId?: string
   running?: boolean
   waiting?: boolean
   composerTarget?: HTMLElement | null
@@ -72,7 +73,7 @@ export function TutorialPanel({ tutorial, actions, project, pick, bindProject, s
   const [preview, setPreview] = useState<string>()
   const [localBusy, setLocalBusy] = useState(false)
   const disabled = tutorial.busy || localBusy
-  const composer = (content: ReactNode) => composerTarget ? createPortal(<div className="town-tutorial-input">{content}</div>, composerTarget) : <div className="town-tutorial-input">{content}</div>
+  const composer = (content: ReactNode) => nativeSessionId ? null : composerTarget ? createPortal(<div className="town-tutorial-input">{content}</div>, composerTarget) : <div className="town-tutorial-input">{content}</div>
   const draftKey = `agent-isles:tutorial-draft:${run.id}:${run.step}${run.submission ? `:answer:${run.submission.requestId}` : ''}`
   useEffect(() => {
     let restored = run.submission ? '' : run.draft
@@ -132,18 +133,18 @@ export function TutorialPanel({ tutorial, actions, project, pick, bindProject, s
     </>}
     {(run.step === 'build' || run.step === 'improve') && <>
       {!run.submission && <p className="town-dialogue-line">{run.step === 'build' ? `「${run.projectName}」安顿好了。看看刚才的想法，准备好就交给我。` : '这次你想改哪里？告诉我现在怎样、希望怎样。'}</p>}
-      {!run.submission ? <>{composer(<><label htmlFor="tutorial-demand">{run.step === 'build' ? '刚才的想法' : '我想做的改动'}</label><textarea id="tutorial-demand" value={text} maxLength={12000} onChange={event => editText(event.target.value)} />
+      {nativeSessionId ? <><p>{run.draft}</p><button disabled={disabled || running || waiting} onClick={() => void act(async () => { const checked = await tutorial.command('check', { sessionId: nativeSessionId }); setPreview(await actions.preview(checked)) })}>检查成果，打开作品</button></> : !run.submission ? <>{composer(<><label htmlFor="tutorial-demand">{run.step === 'build' ? '刚才的想法' : '我想做的改动'}</label><textarea id="tutorial-demand" value={text} maxLength={12000} onChange={event => editText(event.target.value)} />
       <button disabled={disabled} onClick={() => void act(() => tutorial.command('assist', { assistance: '提示方向' }))}>给我提示</button>
       {run.assistance.some(item => item === `${run.step}:提示方向`) && <p>我现在看到……我希望改成……改好后，我会这样检查……</p>}
-      <button disabled={disabled || !text.trim()} onClick={() => void act(async () => { const saved = await tutorial.command('draft', { draft: text }); try { tutorial.accept(await submit(saved, text)) } catch (error) { await tutorial.reload(); throw error } })}>确认需求，交给芽芽</button></>)}</> : <>
+      <button title="确认需求，交给芽芽" disabled={disabled || !text.trim()} onClick={() => void act(async () => { const saved = await tutorial.command('draft', { draft: text }); try { tutorial.accept(await submit(saved, text)) } catch (error) { await tutorial.reload(); throw error } })}>发送</button></>)}</> : <>
         {composer(<>
         <label htmlFor="tutorial-answer">{waiting ? '处理请求后，告诉芽芽你的决定' : '告诉芽芽想改哪里，或补充说明'}</label>
         <textarea id="tutorial-answer" value={text} maxLength={12000} placeholder="例如：先保留现在的样子，请继续检查添加事项是否正常。" onChange={event => editText(event.target.value)} />
-        <button disabled={disabled || !text.trim()} onClick={() => void act(async () => {
+        <button title={running ? '发送补充，等待处理' : '交给芽芽继续制作'} disabled={disabled || !text.trim()} onClick={() => void act(async () => {
           const saved = await tutorial.command('draft', { draft: text })
           try { tutorial.accept(await submit(saved, text, true)) }
           catch (error) { await tutorial.reload(); throw error }
-        })}>{running ? '发送补充，等待处理' : '交给芽芽继续制作'}</button></>)}
+        })}>发送</button></>)}
         <p>先核对本轮执行和作品文件，核对通过后会打开预览，请亲手试一试。</p><button disabled={disabled || running || waiting} onClick={() => void act(async () => { const checked = await tutorial.command('check'); setPreview(await actions.preview(checked)) })}>{running ? '制作中，完成后可检查' : waiting ? '请先处理上面的请求' : '检查成果，打开作品'}</button>
         <details><summary>任务没有继续？</summary><p>执行或等待审批时，请先处理当前请求。离开对话不会停止任务。</p>
         <button disabled={disabled} onClick={() => void act(() => tutorial.command('retry'))}>本轮失败后，重新编辑</button>

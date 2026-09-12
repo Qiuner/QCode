@@ -69,21 +69,16 @@ function SessionResult({ binding, name, project, run, waiting }: { binding: Sess
   const events = useSyncExternalStore(binding.eventSource.subscribe.bind(binding.eventSource), binding.eventSource.getSnapshot.bind(binding.eventSource))
   const result = projectResidentEvents(events.entries)
   const narrative = workNarrative({ run, loading: state.openState === 'loading', running: state.running || state.awaitingFirstTurn, pending: waiting, failed: !!(state.openError || state.promptError || state.lastAgentError) || result.status === 'failed', finished: result.status === 'completed' })
-  const reply = result.messages.filter(message => message.role === 'assistant').at(-1)?.text
   return <div className="town-results">
-    {name === '芽芽' && <section className="town-work-story" aria-label="作品进度"><small>{name} · {project ? `正在一起制作「${project}」` : '和你一起做作品'}</small><h3>{narrative.title}</h3><p>{narrative.text}</p></section>}
-    {reply && !state.running && <details className="town-reply" open={name !== '芽芽' || waiting || undefined}><summary>阅读{name}的回复</summary><p style={{ whiteSpace: 'pre-wrap' }}>{reply}</p></details>}
-    {(state.openState === 'loading' || state.running || state.awaitingFirstTurn) && <p role="status">{state.openState === 'loading' ? '正在恢复会话…' : state.running ? '正在工作…' : '任务已接收，等待开始…'}</p>}
+    <span className="town-session-status" role="status" title={narrative.text}>{state.awaitingFirstTurn ? '任务已接收，等待开始…' : narrative.title}</span>
     {state.queue.length > 0 && <p role="status">还有 {state.queue.length} 条消息等待处理。</p>}
     {(state.openError || state.promptError || state.lastAgentError) && <div role="alert"><p>这一步遇到了问题。请查看原因，再决定怎样继续。</p><details><summary>查看错误详情</summary><p>{state.openError?.message ?? state.promptError?.error.message ?? state.lastAgentError}</p></details></div>}
     {stopError && <p role="alert">{stopError}</p>}
     {state.running && <button type="button" onClick={() => { void binding.session.cancel().then(result => { if (!result.ok) setStopError(result.error.message) }, reason => setStopError(String(reason))) }}>停止本轮</button>}
-    {state.hasMore && <button type="button" disabled={state.loadingOlder} onClick={() => { void binding.session.loadOlder() }}>更早的记录</button>}
   </div>
 }
 
 export function AgentIslesWorld(props: Props) {
-  const [showProcess, setShowProcess] = useState(false)
   const [workbench, setWorkbench] = useState(() => location.pathname === '/workbench' || new URLSearchParams(location.search).get('agent-isles') === 'workbench')
   const islandUrl = useRef(workbench ? '/' : location.pathname + location.search + location.hash)
   function switchSurface(next: boolean) {
@@ -191,7 +186,6 @@ export function AgentIslesWorld(props: Props) {
   const draftKey = `${projectId}:${selected}`
   const draft = drafts[draftKey] ?? ''
   const binding = bindingId ? props.getBinding(bindingId) : undefined
-  useEffect(() => setShowProcess(false), [bindingId])
   const interaction = bindingId ? pending.get(bindingId as SessionId) : undefined
   const approval = interaction?.kind === 'approval' && 'answer' in interaction
     ? interaction as typeof interaction & { toolName: string; reason?: string; callId?: string; answer(decision: 'allowed-once' | 'rejected'): Promise<void> }
@@ -348,13 +342,13 @@ export function AgentIslesWorld(props: Props) {
     }
   }, [tutorial.run?.id, tutorial.run?.paused, tutorial.run?.step, workspace?.workspaceId])
   const workOpen = playable && !showModels && !!resident && selected !== 'coordinator' && !(tutorial.run && !tutorial.run.paused && tutorial.run.step === 'folder')
-  const tutorialSession = tutorial.run?.submission?.sessionId as SessionId | undefined
+  const tutorialSession = (selected === 'coder' ? bindingId ?? tutorial.run?.submission?.sessionId : tutorial.run?.submission?.sessionId) as SessionId | undefined
   const tutorialRunning = !!(tutorialSession && sessionState.byId[tutorialSession]?.running)
   const tutorialWaiting = !!(tutorialSession && pending.has(tutorialSession))
   const tutorialEntries = tutorialSession ? props.getBinding(tutorialSession)?.eventSource.getSnapshot().entries : undefined
   const tutorialStory = workNarrative({ run: tutorial.run, running: tutorialRunning, pending: tutorialWaiting, failed: tutorialEntries ? residentEventStatus(tutorialEntries) === 'failed' : false, finished: tutorialEntries ? residentEventStatus(tutorialEntries) === 'completed' : false })
   const tutorialPanel = tutorial.run && props.tutorials && props.submitTutorial && ['coder', 'file_keeper'].includes(selected ?? '')
-    ? <TutorialPanel running={tutorialRunning} waiting={tutorialWaiting} previewTarget={workOpen ? previewTarget : null} composerTarget={workOpen ? composerTarget : null} key={tutorial.run.id} tutorial={tutorial} actions={props.tutorials} project={workspace} pick={() => props.pickDirectory()} bindProject={async id => { useProject(id); await props.refreshProjects?.(id); await props.saveProject(id); setSelected('coder') }} submit={props.submitTutorial} move={moveKeeper} modelSettings={reason => { if (reason instanceof ModelConfigurationRequired) setShowModels(true) }} leave={() => { skipAutoProject.current = true; setProjectId(null); try { localStorage.removeItem(PROJECT_KEY) } catch {} closeConversation() }} /> : null
+    ? <TutorialPanel nativeSessionId={workOpen ? bindingId : undefined} running={tutorialRunning} waiting={tutorialWaiting} previewTarget={workOpen ? previewTarget : null} composerTarget={workOpen ? composerTarget : null} key={tutorial.run.id} tutorial={tutorial} actions={props.tutorials} project={workspace} pick={() => props.pickDirectory()} bindProject={async id => { useProject(id); await props.refreshProjects?.(id); await props.saveProject(id); setSelected('coder') }} submit={props.submitTutorial} move={moveKeeper} modelSettings={reason => { if (reason instanceof ModelConfigurationRequired) setShowModels(true) }} leave={() => { skipAutoProject.current = true; setProjectId(null); try { localStorage.removeItem(PROJECT_KEY) } catch {} closeConversation() }} /> : null
 
   return <>{workbench && <button className="town-return-island" onClick={() => switchSurface(false)}>← 返回小岛</button>}<div className="town-shell" style={workbench ? { display: 'none' } : undefined} onClickCapture={event => {
     const anchor = (event.target as Element).closest('a[href="/workbench"]')
@@ -478,20 +472,20 @@ export function AgentIslesWorld(props: Props) {
           <button onClick={() => { void approval.answer('rejected').catch(reason => setError(String(reason))) }}>拒绝</button>
         </> : <p>居民正在等待补充信息。</p>}<a href="/workbench">查看完整请求 ↗</a></div>}
         {binding && <SessionResult key={bindingId} binding={binding} name={resident.name.split(' · ')[0]} project={workspace?.title} run={selected === 'coder' ? tutorial.run : undefined} waiting={!!interaction} />}
-        {tutorialPanel}
+        {tutorialPanel && (workOpen && bindingId ? <details className="town-course-disclosure"><summary>首课进度</summary>{tutorialPanel}</details> : tutorialPanel)}
         {!workOpen && <nav className="town-guide-tools" aria-label="会话导航"><button onClick={() => choose('coordinator')}>返回向导</button><button onClick={() => setShowModels(true)}>模型设置</button></nav>}
         {selected === 'file_keeper' && <button disabled={busy || !binding} onClick={() => { void send('列出当前项目根目录的文件和子目录，注明各项类型。最多列出 80 项，不要递归扫描。', false) }}>列出项目文件</button>}
-        {(!tutorialPanel || tutorial.run?.paused || tutorial.run?.step === 'complete') && composerTarget && createPortal(<form onSubmit={event => { event.preventDefault(); void send(selected === 'file_keeper' ? `读取这个项目内的文件：${draft}` : draft) }}>
+        {!bindingId && (!tutorialPanel || tutorial.run?.paused || tutorial.run?.step === 'complete') && composerTarget && createPortal(<form onSubmit={event => { event.preventDefault(); void send(selected === 'file_keeper' ? `读取这个项目内的文件：${draft}` : draft) }}>
           <label htmlFor="town-request">{selected === 'coder' ? '告诉芽芽你的想法或想改的地方' : selected === 'teacher' ? '你的问题' : '文件相对路径'}</label>
           <textarea id="town-request" rows={3} value={draft} disabled={busy} placeholder={selected === 'coder' ? '例如：给首页加一个待办清单，可以添加和完成事项。请验证这两个操作。' : undefined} onChange={event => setDrafts(value => ({ ...value, [draftKey]: event.target.value }))} />
           {draft && <small>{draftStorageError ? '草稿暂时只能保留在当前页面，刷新前请复制保存。' : '草稿保存在此浏览器，回来可以继续填写。'}</small>}
-          <button disabled={busy || !binding || !draft.trim()}>{busy ? '正在连接…' : binding?.session.getSnapshot().running ? '发送补充（排队）' : resident.action}</button>
+          <button title={binding?.session.getSnapshot().running ? '发送补充（排队）' : resident.action} disabled={busy || !binding || !draft.trim()}>{busy ? '连接中' : '发送'}</button>
         </form>, composerTarget)}
       </>}
       {picking ? <div><p role="status">等待系统文件夹选择窗口…</p><button onClick={() => pickerAbort.current?.abort()}>取消选择</button></div> : busy && <p role="status">正在处理…</p>}
       {error && <p role="alert">{error}</p>}
       </div>
-      {workOpen && bindingId && !workbench && <><button className="town-process-toggle" aria-expanded={showProcess} onClick={() => setShowProcess(value => !value)}>{showProcess ? '收起制作过程' : '查看制作过程与完整对话'}</button>{showProcess && <NativeChat key={bindingId} sessionId={bindingId} />}</>}
+      {workOpen && bindingId && !workbench && <NativeChat key={bindingId} sessionId={bindingId} />}
       <div className="town-composer" ref={setComposerTarget} />
       <div className="town-preview-pane" ref={setPreviewTarget} />
     </aside>}

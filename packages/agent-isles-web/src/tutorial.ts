@@ -141,6 +141,16 @@ export function createTutorialHandler(ctx: Context, runs: KvTable<string, Tutori
         run.draft = cmd.draft ?? '我进行了……操作，实际出现……，我希望……。'
         break
       case 'check': {
+        if (cmd.sessionId) {
+          const workspace = workspaceFor(run)
+          if (!['build', 'improve'].includes(run.step) || !workspace.sessionIds.includes(cmd.sessionId as SessionId)) throw new TutorialError('请在当前项目的制作会话检查成果。')
+          const events = await eventsFor(cmd.sessionId)
+          const user = [...events].reverse().find(event => event.type === 'user/message' && event.data.source.kind === 'user')
+          if (!user || user.type !== 'user/message' || !('rpcId' in user.data.source) || !user.data.source.rpcId) throw new TutorialError('先在对话框发送本轮需求。')
+          const requestId = String(user.data.source.rpcId)
+          if (run.evidence && user.seq <= run.evidence.endSeq) throw new TutorialError('请先发送新的修改需求。')
+          run.submission = { sessionId: cmd.sessionId, requestId, text: user.data.content.filter(block => block.type === 'text').map(block => block.text).join('\n').slice(0, 16000), from: 0, stage: run.step as 'build' | 'improve' }
+        }
         const submission = run.submission
         if (!submission || !['build', 'improve', 'inspect', 'review'].includes(run.step)) throw new TutorialError('先发送这一轮需求。')
         const workspace = workspaceFor(run)

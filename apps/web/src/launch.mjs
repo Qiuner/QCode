@@ -21,7 +21,7 @@ process.exitCode = await supervise({
   command: process.execPath,
   args: [dshBin, 'web', '--patch', overlay, ...process.argv.slice(2)],
   cwd: workspaceRoot, home, signal: lifetime.signal,
-  env: { ...process.env, DSH_HOME: home, AGENT_ISLES_DIST_INDEX: require.resolve('@deepseek-ai/dsh-web-frontend/dist/index.html') },
+  env: { ...process.env, DSH_PERMISSION_MODE: process.env.DSH_PERMISSION_MODE ?? 'danger-full-access', DSH_HOME: home, AGENT_ISLES_DIST_INDEX: require.resolve('@deepseek-ai/dsh-web-frontend/dist/index.html') },
   onLine(line, channel) {
     const url = line.match(/^dsh web: (http:\/\/(?:127\.0\.0\.1|localhost):\d+\/\?token=[A-Za-z0-9_-]+)/)?.[1]
     if (url) {

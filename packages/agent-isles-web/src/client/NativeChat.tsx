@@ -19,15 +19,11 @@ export function NativeChat({ sessionId }: { sessionId: string }) {
         }
         [data-agent-isles-town] [data-slot="conversation"] > [data-phase] {
           --dsh-chat-content-width: 100%; --dsh-composer-side-clearance: 0px;
-          --dsh-composer-height: 0px; height: 100%; min-height: 0;
+          height: 100%; min-height: 0;
           --dsw-alias-bg-base: #fcfdf8; background: #fcfdf8;
         }
         [data-agent-isles-town] [data-slot="conversation.session.header"],
-        [data-agent-isles-town] [data-width-handle],
-        [data-agent-isles-town] [data-composer-seat] > * { display: none !important; }
-        [data-agent-isles-town] [data-composer-seat] {
-          height: 0; min-height: 0; padding: 0; margin: 0;
-        }
+        [data-agent-isles-town] [data-width-handle] { display: none !important; }
         [data-agent-isles-town]:not([data-details-collapsed]) [data-slot="details"] {
           display: block !important; position: fixed; z-index: 22;
           top: ${box.top}px; right: ${Math.max(0, window.innerWidth - box.right)}px;
