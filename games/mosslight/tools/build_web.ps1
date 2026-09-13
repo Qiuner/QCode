@@ -18,6 +18,8 @@ if ($LASTEXITCODE -ne 0) { throw 'Web export failed. Install the matching Web ex
 & $Godot --headless --path $project --export-pack Neighbors (Join-Path $output 'neighbors.pck')
 if ($LASTEXITCODE -ne 0) { throw 'Neighbor regions export failed.' }
 Copy-Item -LiteralPath (Join-Path $project 'web\cover.webp') -Destination $output
+Copy-Item -LiteralPath (Join-Path $project 'web\cover-2560.webp') -Destination $output
+Copy-Item -LiteralPath (Join-Path $project 'web\cover-3840.webp') -Destination $output
 Copy-Item -LiteralPath (Join-Path $project 'web\_headers') -Destination $output
 Copy-Item -LiteralPath (Join-Path $project 'assets\fonts\OFL.txt') -Destination (Join-Path $output 'font-license.txt')
 Copy-Item -LiteralPath (Join-Path $project 'assets\xi4u-LICENSE.txt') -Destination $output

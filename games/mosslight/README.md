@@ -22,6 +22,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/build_web.ps1
 
 若换电脑，先在 Godot 中安装 **4.7.2** 导出模板，或运行 `python tools/fetch_web_template.py`（仅下载官方归档中的两个 Web 单线程模板）。自定义引擎路径可通过 `-Godot '完整路径'` 传入构建脚本。
 
+更新加载封面时，在仓库根目录运行 `godot --path games/mosslight --script res://tools/render_cover.gd`（需要显卡渲染，不能加 `--headless`），再运行 `python games/mosslight/tools/encode_cover.py`（需要 Pillow）。前者从三岛场景渲染 3840×1564 的源图到忽略目录 `build/cover-source.png`，后者生成 1920、2560、3840 三档 WebP；网页通过 `srcset` 按屏幕宽度与像素密度选择。之后重新导出世界，两套 Web 导出脚本都会复制全部封面。
+
 将 **build/web/** 内全部文件部署到任意支持 HTTPS 的静态网站，保留文件之间的相对路径。构建脚本还会生成 **build/mosslight-web.zip**，可用于上传部署。可在现有网页中通过 iframe 嵌入：
 
 ```html

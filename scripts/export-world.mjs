@@ -40,6 +40,8 @@ child.once('exit', (code, signal) => {
   if (process.exitCode === 0) {
     for (const [source, target] of [
       ['web/cover.webp', 'cover.webp'],
+      ['web/cover-2560.webp', 'cover-2560.webp'],
+      ['web/cover-3840.webp', 'cover-3840.webp'],
       ['web/_headers', '_headers'],
       ['assets/fonts/OFL.txt', 'font-license.txt'],
       ['assets/xi4u-LICENSE.txt', 'xi4u-LICENSE.txt'],
