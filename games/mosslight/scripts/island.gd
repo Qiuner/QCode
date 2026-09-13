@@ -24,6 +24,7 @@ const GARDEN_INVENTORY = preload("res://scripts/garden_inventory.gd")
 const WEB_RENDERING = preload("res://scripts/web_rendering.gd")
 const ECHO_OBJECTS = preload("res://scripts/echo_objects.gd")
 const SANCTUARY_COMPUTER = preload("res://scripts/sanctuary_computer.gd")
+const RESIDENT_DIALOGUE = preload("res://scripts/review_dialogue.gd")
 enum ViewMode { OVERVIEW, THIRD_PERSON, FIRST_PERSON }
 
 var player: CharacterBody3D
@@ -80,13 +81,8 @@ var mouse_was_captured := false
 var first_person_feedback: Node3D
 var camera_motion := true
 var residents: Node3D
-var talking_to: StaticBody3D
-var dialogue_panel: Panel
-var dialogue_name: Label
-var dialogue_text: Label
-var dialogue_count: Label
-var dialogue_left := 0.0
 var garden: Node3D
+var resident_dialogue: CanvasLayer
 var sanctuary_computer: Node3D
 var agent_isles_message_handler: JavaScriptObject
 var agent_isles_bridge: JavaScriptObject
@@ -128,6 +124,8 @@ func _ready() -> void:
 	_setup_agent_isles_bridge()
 	garden = GARDEN_INVENTORY.new()
 	add_child(garden)
+	resident_dialogue = RESIDENT_DIALOGUE.new()
+	add_child(resident_dialogue)
 	sanctuary_computer = SANCTUARY_COMPUTER.new()
 	add_child(sanctuary_computer)
 	_apply_embedded_hud()
@@ -290,9 +288,7 @@ func _on_agent_isles_message(arguments: Array) -> void:
 			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	# Functional panels replace local dialogue; background updates leave villagers talking.
 	if panel_open:
-		talking_to = null
-		dialogue_panel.visible = false
-		dialogue_left = 0
+		resident_dialogue.close()
 	prompt.visible = not panel_open
 	agent_isles_session_id = str(payload.get("sessionId", ""))
 	for resident: Dictionary in payload.get("residents", []):
@@ -875,29 +871,19 @@ func _interact() -> void:
 	elif streamside != null and streamside.at_lookout(player.global_position):
 		_show_toast("听风台 · 树梢就在身旁，溪水从脚下流过。歇一会儿，再去别处走走吧。", 7)
 	else:
-		if talking_to != null and dialogue_panel.visible and residents.nearest(player) == talking_to:
-			dialogue_name.text = talking_to.get_meta("display_name")
-			dialogue_text.text = residents.talk(talking_to, learned)
-			var progress: Vector2i = residents.dialogue_progress(talking_to, learned)
-			dialogue_count.text = "%d / %d" % [progress.x, progress.y]
-			return
 		var npc: StaticBody3D = residents.nearest(player)
 		if npc != null:
-			if (embedded_mode or agent_isles_connected) and npc.get_meta("agent_isles_id") != "gardener":
-				talking_to = null
-				dialogue_panel.visible = false
-				dialogue_left = 0
-				mouse_was_captured = false
-				Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-				_emit_agent_isles("resident:selected", {"residentId": npc.get_meta("agent_isles_id")})
-				return
-			talking_to = npc
-			dialogue_name.text = npc.get_meta("display_name")
-			dialogue_text.text = residents.talk(npc, learned)
-			dialogue_left = 0
-			var progress: Vector2i = residents.dialogue_progress(npc, learned)
-			dialogue_count.text = "%d / %d" % [progress.x, progress.y]
-			dialogue_panel.visible = true
+			var resident_id := str(npc.get_meta("agent_isles_id"))
+			var followup_id := resident_id if (embedded_mode or agent_isles_connected) and resident_id != "gardener" else ""
+			var lines: Array[String]
+			if followup_id.is_empty():
+				lines = residents.dialogue_lines(npc, learned)
+			else:
+				var handoff: Dictionary = residents.agent_isles_talk(npc, not agent_isles_workspace_id.is_empty())
+				lines = [str(handoff.text)]
+			resident_dialogue.open_dialogue(
+				residents.dialogue_name(npc), residents.dialogue_role(npc), lines,
+				residents.dialogue_portrait(npc), followup_id)
 			toast.visible = false
 
 
@@ -1008,12 +994,6 @@ func _process(delta: float) -> void:
 		streamside.advance(delta, nature_motion)
 	garden.advance(delta)
 	residents.advance(delta, player.position, nature_motion, not photo_mode)
-	if talking_to != null:
-		dialogue_left -= delta
-		if dialogue_left <= 0 or residents.nearest(player) != talking_to:
-			talking_to = null
-			dialogue_panel.visible = false
-			toast.visible = true
 	for i in range(motes.size()):
 		var origin: Vector3 = motes[i].get_meta("origin")
 		motes[i].position = origin + Vector3(sin(nature_time * .35 + i) * .35, sin(nature_time * .7 + i) * .18, cos(nature_time * .4 + i) * .3)
@@ -1203,24 +1183,6 @@ func _build_ui() -> void:
 		prompt.offset_bottom = -60
 		toast.offset_top = -144
 		toast.offset_bottom = -108
-	dialogue_panel = _panel(Vector2.ZERO, Vector2(1040, 140), Color(.055, .15, .16, .96))
-	dialogue_panel.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	dialogue_panel.offset_left = -520
-	dialogue_panel.offset_right = 520
-	dialogue_panel.offset_top = -350
-	dialogue_panel.offset_bottom = -210
-	if embedded_mode:
-		dialogue_panel.offset_top = -250
-		dialogue_panel.offset_bottom = -110
-	dialogue_name = _label("", Vector2(26, 14), 21, Color("efce87"), dialogue_panel)
-	dialogue_text = _label("", Vector2(26, 49), 23, Color("fff3d8"), dialogue_panel)
-	dialogue_text.size = Vector2(988, 58)
-	dialogue_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	dialogue_count = _label("", Vector2(900, 18), 14, Color("a5c4b9"), dialogue_panel)
-	dialogue_count.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	dialogue_count.size = Vector2(90, 24)
-	_label("E 继续 · Esc 离开 · 走远自动结束", Vector2(26, 111), 14, Color("a5c4b9"), dialogue_panel)
-	dialogue_panel.visible = false
 	pause_panel = _panel(Vector2.ZERO, Vector2(360, 210), Color("f4f7f2"))
 	pause_panel.set_anchors_preset(Control.PRESET_CENTER)
 	pause_panel.offset_left = -180
@@ -1305,9 +1267,6 @@ func _update_hud() -> void:
 func _show_toast(text: String, seconds: float) -> void:
 	if toast == null:
 		return
-	talking_to = null
-	if dialogue_panel != null:
-		dialogue_panel.visible = false
 	toast.visible = true
 	toast.text = text
 	toast.modulate.a = 1

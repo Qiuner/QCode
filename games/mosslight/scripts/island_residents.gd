@@ -2,6 +2,12 @@ extends Node3D
 ## Original Blender residents; fixed homes keep the puzzle routes unobstructed.
 const MODELS = [preload("res://assets/npc_gardener.glb"), preload("res://assets/npc_fisher.glb"), preload("res://assets/npc_keeper.glb"), preload("res://assets/npc_keeper.glb")]
 const FONT = preload("res://assets/fonts/MosslightUI.ttf")
+const DIALOGUE_PORTRAITS := {
+	"gardener": preload("res://assets/portraits/gardener.png"),
+	"file_keeper": preload("res://assets/portraits/file_keeper.png"),
+	"teacher": preload("res://assets/portraits/teacher.png"),
+	"coordinator": preload("res://assets/portraits/coordinator.png"),
+}
 var residents: Array[StaticBody3D] = []
 var time := 0.0
 signal tutorial_motion(encounter_id: String, status: String)
@@ -174,6 +180,24 @@ func agent_isles_talk(npc: StaticBody3D, has_workspace: bool) -> Dictionary:
 		"name": identity[0],
 		"text": identity[1] + (" 请在居民面板里继续。" if has_workspace else " 请找向导选择项目文件夹，绑定工作区后就能开始。"),
 	}
+
+
+func dialogue_name(npc: StaticBody3D) -> String:
+	return str(npc.get_meta("display_name")).get_slice(" · ", 0)
+
+
+func dialogue_role(npc: StaticBody3D) -> String:
+	var roles := {
+		"gardener": "园丁",
+		"file_keeper": "文件整理",
+		"teacher": "项目与对话管理",
+		"coordinator": "项目接待",
+	}
+	return roles.get(str(npc.get_meta("agent_isles_id")), "居民")
+
+
+func dialogue_portrait(npc: StaticBody3D) -> Texture2D:
+	return DIALOGUE_PORTRAITS.get(str(npc.get_meta("agent_isles_id")))
 
 
 func talk(npc: StaticBody3D, learned: bool) -> String:

@@ -156,7 +156,7 @@ func run() -> void:
 	game.player.position = Vector3(-7.2, .05, 2.45)
 	await tick(5)
 	game._interact()
-	check(game.dialogue_panel.visible, "resident dialogue remains available outside the grab zone")
+	check(game.resident_dialogue.opened and game.resident_dialogue.speaker.text == "芽芽", "shared resident dialogue remains available outside the grab zone")
 	check(game.residents.residents[0].get_meta("agent_isles_id") == "gardener", "gardener no longer owns the coder session")
 	print("MOSSLIGHT_COMPUTER_TESTS_COMPLETE failures=", failures)
 	game.queue_free()

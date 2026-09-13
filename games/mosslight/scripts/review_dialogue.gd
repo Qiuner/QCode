@@ -1,5 +1,5 @@
 extends CanvasLayer
-## One-shot, in-world handoff from completed recall to the existing coder conversation.
+## Shared in-world resident dialogue presentation and optional Host handoff.
 const LINE := "我输出完了，快点验收！"
 const PLAYER_PORTRAIT := preload("res://assets/portraits/player.png")
 const Q_PORTRAIT := preload("res://assets/portraits/q.png")
@@ -14,11 +14,14 @@ var count: Label
 var continue_hint: Label
 var escape_hint: Label
 var elapsed := 0.0
+var lines: Array[String] = []
+var line_index := 0
+var next_resident_id := ""
 var portraits: Array[TextureRect] = []
 var portrait_shadows: Array[TextureRect] = []
 
 func _ready() -> void:
-	game = get_parent().game
+	game = get_parent()
 	layer = 30
 	overlay = Control.new()
 	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -26,7 +29,7 @@ func _ready() -> void:
 	add_child(overlay)
 	_add_gradient()
 	_add_portrait(PLAYER_PORTRAIT, "PlayerPortrait", false)
-	_add_portrait(Q_PORTRAIT, "QPortrait", true)
+	_add_portrait(Q_PORTRAIT, "ResidentPortrait", true)
 	speaker = _add_label("Speaker", "Q", Color("f4d37b"))
 	role = _add_label("Role", "创作伙伴", Color("89d9de"))
 	count = _add_label("Count", "1 / 1", Color("a6b9b5"))
@@ -136,9 +139,22 @@ func _set_label_rect(label: Label, position: Vector2, size: Vector2, font_size: 
 	label.add_theme_font_size_override("font_size", font_size)
 
 func open() -> void:
+	open_dialogue("Q", "创作伙伴", [LINE], Q_PORTRAIT, "coder")
+
+
+func open_dialogue(resident_name: String, resident_role: String, dialogue_lines: Array[String], portrait: Texture2D, followup_resident_id := "") -> void:
+	if dialogue_lines.is_empty():
+		return
 	opened = true
-	elapsed = 0
-	words.visible_characters = 0
+	lines = dialogue_lines
+	line_index = 0
+	next_resident_id = followup_resident_id
+	speaker.text = resident_name
+	role.text = resident_role
+	portraits[1].texture = portrait
+	portrait_shadows[1].texture = portrait
+	continue_hint.text = "E / 点击  继续，打开面板" if not next_resident_id.is_empty() else "E / 点击  继续"
+	_show_line()
 	overlay.show()
 	game.player.velocity = Vector3.ZERO
 	game.mouse_was_captured = false
@@ -147,17 +163,34 @@ func open() -> void:
 		Input.action_release(action)
 
 func close() -> void:
+	var was_opened := opened
 	opened = false
 	overlay.hide()
 	game.mouse_was_captured = false
+	lines.clear()
+	next_resident_id = ""
+	if was_opened and not game.agent_isles_panel_open and game.toast != null:
+		game.toast.visible = true
+
+
+func _show_line() -> void:
+	elapsed = 0
+	words.text = lines[line_index]
+	words.visible_characters = 0
+	count.text = "%d / %d" % [line_index + 1, lines.size()]
 
 func advance() -> void:
-	if words.visible_characters < LINE.length():
+	if words.visible_characters < words.text.length():
 		elapsed = 100
-		words.visible_characters = LINE.length()
+		words.visible_characters = words.text.length()
+	elif line_index + 1 < lines.size():
+		line_index += 1
+		_show_line()
 	else:
+		var followup := next_resident_id
 		close()
-		game._emit_agent_isles("resident:selected", {"residentId": "coder"})
+		if not followup.is_empty():
+			game._emit_agent_isles("resident:selected", {"residentId": followup})
 
 func _process(delta: float) -> void:
 	if not opened:
@@ -166,7 +199,7 @@ func _process(delta: float) -> void:
 		close()
 		return
 	elapsed += delta
-	words.visible_characters = mini(LINE.length(), int(elapsed * 24))
+	words.visible_characters = mini(words.text.length(), int(elapsed * 24))
 
 func _input(event: InputEvent) -> void:
 	if not opened:

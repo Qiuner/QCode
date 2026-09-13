@@ -191,6 +191,9 @@ PowerShell（将程序路径替换为本机安装路径）：
 
 # 游戏内实机截图，输出到 captures/，截图后退出
 & 'D:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe' --path . -- --capture
+# 从现有居民模型重新生成剧情对白透明立绘
+& 'D:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64.exe' --path . --script res://tools/render_resident_portraits.gd -- --dialogue-assets-only
+
 & 'D:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe' --path . -- --portrait
 ```
 

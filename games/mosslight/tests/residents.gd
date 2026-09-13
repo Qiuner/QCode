@@ -39,10 +39,13 @@ func run() -> void:
 		game.player.velocity = Vector3.ZERO
 		await tick(4)
 		game._interact()
-		check(game.dialogue_panel.visible and game.talking_to == npc and game.dialogue_name.text == npc.get_meta("display_name"), "nearby interaction opens " + npc.name + " dialogue")
-		var previous: String = game.dialogue_text.text
-		game._interact()
-		check(game.dialogue_text.text != previous, "repeated interaction advances " + npc.name + " dialogue")
+		check(game.resident_dialogue.opened and game.resident_dialogue.speaker.text == game.residents.dialogue_name(npc), "nearby interaction opens shared " + npc.name + " dialogue")
+		check(game.resident_dialogue.role.text == game.residents.dialogue_role(npc) and game.resident_dialogue.portraits[1].texture == game.residents.dialogue_portrait(npc), "shared dialogue uses " + npc.name + " identity and portrait")
+		var previous: String = game.resident_dialogue.words.text
+		game.resident_dialogue.advance()
+		game.resident_dialogue.advance()
+		check(game.resident_dialogue.words.text != previous, "shared dialogue advances " + npc.name + " pages")
+		game.resident_dialogue.close()
 	var gardener: StaticBody3D = game.residents.residents[0]
 	game.player.position = gardener.position + Vector3(0, 0, 1.2)
 	await tick(4)
@@ -57,7 +60,6 @@ func run() -> void:
 	await tick(30)
 	Input.action_release("walk_up")
 	check(game.player.position.z > gardener.position.z + .57, "resident body stops player walking through it")
-	game._interact()
 	game.nature_motion = false
 	var visual: Node3D = gardener.get_meta("visual")
 	var still: Transform3D = visual.transform
@@ -65,14 +67,13 @@ func run() -> void:
 	check(visual.transform == still, "reduced nature motion freezes resident animation")
 	game.nature_motion = true
 	game.set_game_paused(true)
-	var remaining: float = game.dialogue_left
 	still = visual.transform
 	await tick(6)
-	check(visual.transform == still and game.dialogue_left == remaining, "pause freezes residents and dialogue timeout")
+	check(visual.transform == still, "pause freezes resident animation")
 	game.set_game_paused(false)
 	game.player.position = game.START
 	await tick(4)
-	check(not game.dialogue_panel.visible and game.talking_to == null, "walking away closes conversation")
+	check(not game.resident_dialogue.opened, "closed shared dialogue returns to exploration")
 	for npc in game.residents.residents:
 		for learned in [false, true]:
 			var first: String = game.residents.talk(npc, learned)

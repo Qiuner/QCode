@@ -85,8 +85,7 @@ func _ready() -> void:
 	status_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	status_label.outline_size = 7
 	add_child(status_label)
-	review_dialogue = preload("res://scripts/review_dialogue.gd").new()
-	add_child(review_dialogue)
+	review_dialogue = game.resident_dialogue
 	set_status("idle")
 	var solid := StaticBody3D.new()
 	solid.name = "ComputerHousing"
