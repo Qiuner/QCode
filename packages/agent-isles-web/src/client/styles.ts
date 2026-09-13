@@ -210,6 +210,9 @@ export const WORLD_STYLES = `
 .town-project-preparation[open] { display: grid; gap: 10px; }
 .town-results { margin: 0 0 16px; border: 0; }
 .town-results > [role='status'] { font-size: 12px; color: #637460; }
+.town-completion-notice { display: flex; align-items: center; gap: 8px; margin: 8px 0; padding: 8px 10px; border: 1px solid #d0d7de; border-radius: 6px; background: #f6f8fa; color: #1f2329; font-size: 12px; }
+.town-completion-notice span { color: #57606a; }
+.town-completion-notice button { min-height: 28px; margin-left: auto; padding: 3px 8px; font-size: 12px; }
 .town-current-line { font-size: 15px; line-height: 1.75; }
 .town-results .town-current-line { padding: 0; border: 0; }
 .town-current-line p { margin: 8px 0 14px; }

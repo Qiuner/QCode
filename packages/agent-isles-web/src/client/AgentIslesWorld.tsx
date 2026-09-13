@@ -50,12 +50,22 @@ const DRAFTS_KEY = 'agent-isles.resident-drafts.v1'
 
 function SessionResult({ binding, name, project, run, waiting }: { binding: SessionBinding; name: string; project?: string; run?: TutorialRun; waiting: boolean }) {
   const [stopError, setStopError] = useState('')
+  const [completedNotice, setCompletedNotice] = useState(false)
+  const wasRunning = useRef(false)
   const state = useSyncExternalStore(binding.session.subscribe.bind(binding.session), binding.session.getSnapshot.bind(binding.session))
   const events = useSyncExternalStore(binding.eventSource.subscribe.bind(binding.eventSource), binding.eventSource.getSnapshot.bind(binding.eventSource))
   const result = projectResidentEvents(events.entries)
+  useEffect(() => {
+    if (state.running || state.awaitingFirstTurn) wasRunning.current = true
+    else if (wasRunning.current && result.status === 'completed') {
+      wasRunning.current = false
+      setCompletedNotice(true)
+    }
+  }, [state.running, state.awaitingFirstTurn, result.status])
   const narrative = workNarrative({ run, loading: state.openState === 'loading', running: state.running || state.awaitingFirstTurn, pending: waiting, failed: !!(state.openError || state.promptError || state.lastAgentError) || result.status === 'failed', finished: result.status === 'completed' })
   return <div className="town-results">
     <span className="town-session-status" role="status" title={narrative.text}>{state.awaitingFirstTurn ? '任务已接收，等待开始…' : narrative.title}</span>
+    {completedNotice && <div className="town-completion-notice" role="status"><strong>{name} 已完成这一轮</strong><span>可以查看结果，或继续告诉它下一步怎么改。</span><button type="button" onClick={() => setCompletedNotice(false)}>知道了</button></div>}
     {state.queue.length > 0 && <p role="status">还有 {state.queue.length} 条消息等待处理。</p>}
     {(state.openError || state.promptError || state.lastAgentError) && <div role="alert"><p>这一步遇到了问题。请查看原因，再决定怎样继续。</p><details><summary>查看错误详情</summary><p>{state.openError?.message ?? state.promptError?.error.message ?? state.lastAgentError}</p></details></div>}
     {stopError && <p role="alert">{stopError}</p>}
