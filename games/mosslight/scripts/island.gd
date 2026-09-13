@@ -214,7 +214,15 @@ func _on_agent_isles_message(arguments: Array) -> void:
 		return
 	if message.get("type") == "world:pause-action":
 		var action: String = str(message.get("payload", {}).get("action", ""))
-		if action == "resume":
+		if action == "developer":
+			set_game_paused(true)
+		elif action == "preview-review":
+			set_game_paused(false)
+			if agent_isles_panel_open or sanctuary_computer.active or sanctuary_computer.remote_active or garden.opened:
+				_show_toast("请结束当前交互后再预览对白。", 3)
+			else:
+				sanctuary_computer.review_dialogue.open()
+		elif action == "resume":
 			set_game_paused(false)
 		elif action == "mute":
 			AudioServer.set_bus_mute(0, not AudioServer.is_bus_mute(0))

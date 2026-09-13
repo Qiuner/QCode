@@ -18,5 +18,15 @@ func run() -> void:
 	assert(not game.nature_motion)
 	game._on_agent_isles_message([JSON.stringify({"source": "agent-isles-host", "version": 1, "type": "world:pause-action", "payload": {"action": "resume"}})])
 	assert(not game.game_paused and not game.pause_panel.visible)
+	game._on_agent_isles_message([JSON.stringify({"source": "agent-isles-host", "version": 1, "type": "world:pause-action", "payload": {"action": "developer"}})])
+	assert(game.game_paused, "developer panel pauses the world")
+	var previous_status: String = game.sanctuary_computer.task_status
+	game._on_agent_isles_message([JSON.stringify({"source": "agent-isles-host", "version": 1, "type": "world:pause-action", "payload": {"action": "preview-review"}})])
+	assert(not game.game_paused and game.sanctuary_computer.review_dialogue.opened, "preview replaces pause with the real dialogue")
+	assert(game.sanctuary_computer.task_status == previous_status, "preview does not fake task completion")
+	game.sanctuary_computer.review_dialogue.close()
+	game.sanctuary_computer.active = true
+	game._on_agent_isles_message([JSON.stringify({"source": "agent-isles-host", "version": 1, "type": "world:pause-action", "payload": {"action": "preview-review"}})])
+	assert(not game.sanctuary_computer.review_dialogue.opened, "preview cannot interrupt transport")
 	print("PAUSE_MENU_TESTS_PASSED")
 	quit()

@@ -53,6 +53,8 @@
     #pause-settings input { width: 18px; height: 18px; accent-color: #286657; }
     #pause-settings button { margin-top: 20px; }
     #pause-menu #pause-task { margin: 20px 0 0; font-size: 12px; }
+    #developer-menu p { color: #64726c; font-size: 13px; line-height: 1.7; }
+    #developer-talk { background: #172d29; color: #fff; }
     main:fullscreen { height: 100vh; }
     body[data-embedded] nav { display: none; }
     body[data-embedded] main { min-height: 0; }
@@ -248,6 +250,44 @@
       if (!pause.open && !guideFromPause) { pause.showModal(); backToPause(); }
     };
     document.getElementById('pause-resume').onclick = () => pauseAction('resume');
+    const developer = document.createElement('dialog');
+    developer.id = 'developer-menu';
+    developer.setAttribute('aria-labelledby', 'developer-title');
+    developer.innerHTML = `<h2 id="developer-title">开发者面板</h2><p>直接预览角色演出，无需等待 AI 完成或自动召回。不会修改任务状态。</p><div class="pause-actions"><button id="developer-talk">触发 Qiuner 剧情对话</button><button id="developer-close">返回暂停菜单</button></div>`;
+    document.body.appendChild(developer);
+    let developerClicks = 0;
+    let developerLastClick = 0;
+    document.addEventListener('pointerdown', event => {
+      if (!started || !godotMessageHandler || developer.open || guide.open || document.pointerLockElement || event.button !== 0) return;
+      // Match the lower-right blank area, including the pause dialog's backdrop.
+      if (event.clientX < innerWidth * .85 || event.clientY < innerHeight * .75) {
+        developerClicks = 0;
+        return;
+      }
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      const now = performance.now();
+      developerClicks = now - developerLastClick <= 800 ? developerClicks + 1 : 1;
+      developerLastClick = now;
+      if (developerClicks < 5) return;
+      developerClicks = 0;
+      pauseAction('developer');
+      pause.close();
+      developer.showModal();
+      document.getElementById('developer-talk').focus();
+    }, true);
+    const closeDeveloper = () => {
+      developer.close();
+      pause.showModal();
+      backToPause();
+    };
+    document.getElementById('developer-close').onclick = closeDeveloper;
+    developer.addEventListener('cancel', event => { event.preventDefault(); closeDeveloper(); });
+    document.getElementById('developer-talk').onclick = () => {
+      developer.close();
+      pauseAction('preview-review');
+      canvas.focus();
+    };
     document.getElementById('pause-options').onclick = () => { pauseHome.hidden = true; pauseSettings.hidden = false; document.getElementById('pause-title').textContent = '声音与画面'; document.getElementById('pause-sound').focus(); };
     document.getElementById('pause-back').onclick = backToPause;
     for (const [id, action] of [['sound', 'mute'], ['nature', 'nature'], ['camera', 'camera']]) document.getElementById(`pause-${id}`).onchange = () => pauseAction(action);
