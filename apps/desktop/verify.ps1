@@ -6,7 +6,7 @@ $setup = Start-Process -FilePath (Join-Path $buildRoot 'agent-isles-setup-x64.ex
 if ($setup.ExitCode -ne 0) { throw 'Installer extraction failed' }
 $links = Get-ChildItem -LiteralPath $extractRoot -Recurse -Attributes ReparsePoint
 if ($links) { throw 'Distribution contains links to external files' }
-$env:AGENT_ISLES_DATA_HOME = Join-Path $buildRoot ('isolated data ' + [guid]::NewGuid().ToString('N'))
+$env:AGENT_ISLES_DATA_HOME = Join-Path ([IO.Path]::GetTempPath()) ('agent-isles isolated data ' + [guid]::NewGuid().ToString('N'))
 $launcher = Start-Process -FilePath (Join-Path $extractRoot 'agent-isles.exe') -ArgumentList '--smoke-test' -WindowStyle Hidden -PassThru
 if (-not $launcher.WaitForExit(110000)) { Stop-Process -Id $launcher.Id; throw 'Launcher timed out' }
 if ($launcher.ExitCode -ne 0 -or -not (Test-Path (Join-Path $env:AGENT_ISLES_DATA_HOME 'smoke-ok.txt'))) { throw 'Launcher smoke failed; inspect isolated data/launcher.log' }
@@ -17,7 +17,7 @@ try {
     & './runtime/node.exe' -e "for(const name of ['fs-ext','koffi','node-pty','node-addon-require-builtin']) {require(name); console.log(name+' loaded')}"
     if ($LASTEXITCODE -ne 0) { throw 'Native module loading failed' }
 } finally { Pop-Location }
-$env:AGENT_ISLES_DATA_HOME = Join-Path $buildRoot ('instance data ' + [guid]::NewGuid().ToString('N'))
+$env:AGENT_ISLES_DATA_HOME = Join-Path ([IO.Path]::GetTempPath()) ('agent-isles instance data ' + [guid]::NewGuid().ToString('N'))
 $first = Start-Process -FilePath (Join-Path $extractRoot 'agent-isles.exe') -ArgumentList @('--smoke-test', '--smoke-hold') -WindowStyle Hidden -PassThru
 try {
     $deadline = (Get-Date).AddSeconds(95)

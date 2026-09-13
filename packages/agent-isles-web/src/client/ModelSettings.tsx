@@ -24,7 +24,7 @@ const MODEL_SETTINGS_STYLES = `
 @media (max-width: 600px) { .town-model-settings { right: 12px; width: calc(100% - 24px); top: 92px; bottom: 164px; padding: 14px; } }
 `
 
-// The town owns key setup; the upstream welcome notice still runs normally.
+// The town owns first-use guidance and defers key setup until it is needed.
 export function TownModelOnboarding({ complete }: PropsRuntime<'settings.onboarding'>) {
   useEffect(() => { complete() }, [complete])
   return null

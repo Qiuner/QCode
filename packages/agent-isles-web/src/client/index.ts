@@ -133,6 +133,10 @@ export function apply(ctx: Omit<ClientContext, 'sessions' | 'connection'> & { se
   ctx.effect(() => applyDocumentBranding(document), 'agent-isles-web: document branding')
 
   ctx.slots.inject('settings.onboarding', () => ctx.slots.register({
+    name: 'settings.onboarding', id: 'welcome-notice', priority: -100, order: -100,
+  }, TownModelOnboarding))
+
+  ctx.slots.inject('settings.onboarding', () => ctx.slots.register({
     name: 'settings.onboarding', id: 'deepseek-official', priority: -100, order: 0,
   }, TownModelOnboarding))
 
