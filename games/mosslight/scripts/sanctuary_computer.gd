@@ -8,6 +8,12 @@ const MAGIC_HAT = preload("res://assets/q_magic_hat.glb")
 const MAGIC_DOVE = preload("res://assets/q_magic_dove.glb")
 const MAGIC_STAR = preload("res://assets/q_magic_star.glb")
 const MAGIC_STAND = preload("res://assets/q_magic_stand.glb")
+const TRICK_CARD = preload("res://assets/q_trick_card.glb")
+const TRICK_CUP = preload("res://assets/q_trick_cup.glb")
+const TRICK_TRAY = preload("res://assets/q_trick_tray.glb")
+const TRICK_BALL = preload("res://assets/q_trick_ball.glb")
+const TRICK_LEMON = preload("res://assets/q_trick_lemon.glb")
+const MAGIC_TRICKS := ["starlight", "cards", "cups"]
 const MAGIC_DURATION := 8.8
 const MAGIC_HAT_REST := Vector3(1.28, .62, 1.45)
 const ORIGIN := Vector3(1.2, 2.12, -6.8)
@@ -18,6 +24,7 @@ const LIFT_TIME := .85
 const CARRY_TIME := 1.0
 const LOWER_TIME := .65
 const RELEASE_TIME := .50
+const REMOTE_ROUTE_HEIGHT := 7.0
 const TRANSPORT_END := REACH_TIME + LIFT_TIME + CARRY_TIME + LOWER_TIME
 const REMOTE_CALL_TIME := 1.25
 const LOOK_TIME := .55
@@ -60,6 +67,13 @@ var magic_time := MAGIC_DURATION
 var magic_preview := false
 var magic_pending := false
 var magic_review_after := false
+var magic_trick := "starlight"
+var magic_next := 0
+var trick_cards: Array[Node3D] = []
+var trick_cups: Array[Node3D] = []
+var trick_tray: Node3D
+var trick_ball: Node3D
+var trick_lemon: Node3D
 var grab_tips: Array[Vector3] = []
 var grab_rotations: Array[Quaternion] = []
 
@@ -109,6 +123,23 @@ func _ready() -> void:
 		spark.visible = false
 		add_child(spark)
 		magic_sparks.append(spark)
+	for index in 7:
+		var card := TRICK_CARD.instantiate()
+		card.visible = false
+		add_child(card)
+		trick_cards.append(card)
+	trick_tray = TRICK_TRAY.instantiate()
+	trick_tray.visible = false
+	add_child(trick_tray)
+	for index in 3:
+		var cup := TRICK_CUP.instantiate()
+		trick_tray.add_child(cup)
+		trick_cups.append(cup)
+	trick_ball = TRICK_BALL.instantiate()
+	trick_tray.add_child(trick_ball)
+	trick_lemon = TRICK_LEMON.instantiate()
+	trick_lemon.visible = false
+	trick_tray.add_child(trick_lemon)
 	idle_random.randomize()
 	idle_delay = idle_random.randf_range(20, 40)
 	player_near = game.player.global_position.distance_to(LANDING) < 6
@@ -306,8 +337,12 @@ func advance(delta: float) -> void:
 	sleep_amount = move_toward(sleep_amount, 0, delta / .35)
 	_update_signal()
 	time += delta
-	var lift := start + Vector3.UP * 3.0
-	var above := LANDING + Vector3.UP * 1.6
+	# Remote recalls travel on a high, obstacle-free rail.  The player is
+	# lifted above the island before the horizontal leg, then lowered only at
+	# the central platform; local grabs keep their shorter presentation.
+	var route_height := REMOTE_ROUTE_HEIGHT if remote_transport else 3.0
+	var lift := start + Vector3.UP * route_height
+	var above := LANDING + Vector3.UP * route_height
 	var target := start
 	if time > REACH_TIME and time <= REACH_TIME + LIFT_TIME:
 		target = start.lerp(lift, smoothstep(0, 1, (time - REACH_TIME) / LIFT_TIME))
@@ -421,9 +456,29 @@ func _advance_idle(delta: float) -> void:
 func _advance_magic(delta: float) -> void:
 	magic_time = minf(magic_time + delta, MAGIC_DURATION)
 	var t := magic_time
-	for cue in [Vector2(1.35, 880), Vector2(3.05, 660), Vector2(4.25, 1175), Vector2(6.35, 988)]:
+	var cues := [Vector2(1.35, 880), Vector2(3.05, 660), Vector2(4.25, 1175), Vector2(6.35, 988)]
+	if magic_trick == "cards":
+		cues = [Vector2(.85, 740), Vector2(2.2, 880), Vector2(4.4, 988), Vector2(6.6, 1175)]
+	elif magic_trick == "cups":
+		cues = [Vector2(1.5, 660), Vector2(3.4, 740), Vector2(5.1, 440), Vector2(6.6, 1175)]
+	for cue in cues:
 		if t - delta < cue.x and t >= cue.x:
 			game._tone(cue.y, .12, .035)
+	match magic_trick:
+		"cards": _advance_cards(delta)
+		"cups": _advance_cups(delta)
+		_: _advance_starlight(delta)
+	sleep_amount = move_toward(sleep_amount, 0, delta / .35)
+	_update_signal()
+	if magic_time >= MAGIC_DURATION:
+		var show_review := magic_review_after and task_status == "completed"
+		_reset_magic()
+		if show_review:
+			review_dialogue.open()
+
+
+func _advance_starlight(delta: float) -> void:
+	var t := magic_time
 	# One trick, with readable pauses: empty palms, pluck, toss, two knocks,
 	# dove, catch, vanish, bow. Only this function owns the arms during the act.
 	var left_rest := Vector3(-1.33, .65, .75)
@@ -503,13 +558,77 @@ func _advance_magic(delta: float) -> void:
 	head_pivot.rotation.x = lerpf(head_pivot.rotation.x, bow * .22, blend)
 	head_pivot.rotation.y = lerp_angle(head_pivot.rotation.y, sin(smoothstep(4.25, 6.5, t) * PI) * -.14, blend)
 	head_pivot.rotation.z = lerpf(head_pivot.rotation.z, curiosity * -.12, blend)
-	sleep_amount = move_toward(sleep_amount, 0, delta / .35)
-	_update_signal()
-	if magic_time >= MAGIC_DURATION:
-		var show_review := magic_review_after and task_status == "completed"
-		_reset_magic()
-		if show_review:
-			review_dialogue.open()
+
+
+func _advance_cards(delta: float) -> void:
+	var t := magic_time
+	var blend := 1.0 - exp(-delta * 14.0)
+	var left_rest := Vector3(-1.33, .65, .75)
+	var right_rest := Vector3(1.33, .65, .75)
+	var left := left_rest.lerp(Vector3(-1.55, 1.42, 1.95), smoothstep(0, .8, t))
+	var right := right_rest.lerp(Vector3(1.55, 1.35, 1.90), smoothstep(0, .8, t))
+	_set_arm(0, hands[0].position.lerp(left, blend), hands[0].quaternion.slerp(Quaternion.IDENTITY, blend))
+	_set_arm(1, hands[1].position.lerp(right, blend), hands[1].quaternion.slerp(Quaternion.IDENTITY, blend))
+	trick_tray.visible = true
+	trick_tray.position = Vector3(0, .62, 1.55)
+	for index in trick_cups.size():
+		trick_cups[index].visible = false
+	trick_ball.visible = false
+	trick_lemon.visible = false
+	for index in trick_cards.size():
+		var card := trick_cards[index]
+		card.visible = t >= .65 and t < 7.7
+		if not card.visible:
+			continue
+		var progress := smoothstep(.65, 1.25, t)
+		var from_pos := left + Vector3(0, .18, 0)
+		var to_pos := right + Vector3(0, .18, 0)
+		var phase := clampf((t - .75 - index * .38) / 2.6, 0, 1)
+		var arc := from_pos.lerp(to_pos, phase) + Vector3.UP * sin(phase * PI) * (.35 + index * .025)
+		card.position = arc
+		card.rotation = Vector3(0, lerpf(-.45, .45, phase), sin(phase * PI) * .55)
+		if t > 4.9:
+			var finale := smoothstep(4.9, 6.3, t)
+			card.position = arc.lerp(Vector3(0, 2.25, 1.85) + Vector3((index - 3) * .16, abs(index - 3) * .05, 0), finale)
+			card.rotation.z = lerpf(card.rotation.z, (index - 3) * .12, finale)
+		if t > 6.3:
+			card.position = card.position.lerp(Vector3(0, .70, 1.70), smoothstep(6.3, 7.7, t))
+			card.scale = Vector3.ONE * lerpf(1.0, .2, smoothstep(6.3, 7.7, t))
+	var settle := smoothstep(7.3, 8.8, t)
+	_set_arm(0, hands[0].position.lerp(left_rest, settle * blend), hands[0].quaternion.slerp(Quaternion(Vector3.UP, Vector3.DOWN), settle * blend))
+	_set_arm(1, hands[1].position.lerp(right_rest, settle * blend), hands[1].quaternion.slerp(Quaternion(Vector3.UP, Vector3.DOWN), settle * blend))
+
+
+func _advance_cups(delta: float) -> void:
+	var t := magic_time
+	var blend := 1.0 - exp(-delta * 14.0)
+	var left_rest := Vector3(-1.33, .65, .75)
+	var right_rest := Vector3(1.33, .65, .75)
+	var left := left_rest.lerp(Vector3(-1.45, 1.25, 1.85), smoothstep(0, .8, t))
+	var right := right_rest.lerp(Vector3(1.45, 1.15, 1.85), smoothstep(0, .8, t))
+	_set_arm(0, hands[0].position.lerp(left, blend), hands[0].quaternion.slerp(Quaternion.IDENTITY, blend))
+	_set_arm(1, hands[1].position.lerp(right, blend), hands[1].quaternion.slerp(Quaternion.IDENTITY, blend))
+	trick_tray.visible = true
+	trick_tray.position = Vector3(0, .62, 1.58)
+	for index in trick_cups.size():
+		var cup := trick_cups[index]
+		cup.visible = true
+		cup.position = Vector3(-.66 + index * .66, .08, 0)
+		var swap := 1.0 if int(t / 1.4) % 2 == index % 2 else 0.0
+		cup.position.x = lerpf(cup.position.x, .66 - index * .66, swap * smoothstep(1.4, 2.5, t))
+		cup.rotation.x = PI if t < 2.7 else 0.0
+	trick_ball.visible = t < 4.85
+	trick_ball.position = Vector3(-.66 + fmod(maxf(t, 0.0), 2.0) * .66, .22, .04)
+	if t > 4.85:
+		trick_ball.visible = false
+	trick_lemon.visible = t >= 5.7 and t < 7.8
+	trick_lemon.position = Vector3(.66, .08, .02)
+	var reveal := smoothstep(5.2, 6.0, t)
+	if trick_lemon.visible:
+		trick_lemon.scale = Vector3.ONE * lerpf(.15, 1.0, reveal)
+	var settle := smoothstep(7.4, 8.8, t)
+	_set_arm(0, hands[0].position.lerp(left_rest, settle * blend), hands[0].quaternion.slerp(Quaternion(Vector3.UP, Vector3.DOWN), settle * blend))
+	_set_arm(1, hands[1].position.lerp(right_rest, settle * blend), hands[1].quaternion.slerp(Quaternion(Vector3.UP, Vector3.DOWN), settle * blend))
 
 
 func _reset_magic() -> void:
@@ -528,10 +647,23 @@ func _reset_magic() -> void:
 		wing.rotation = Vector3.ZERO
 	for spark in magic_sparks:
 		spark.visible = false
+	for card in trick_cards:
+		card.visible = false
+		card.scale = Vector3.ONE
+	if trick_tray != null:
+		trick_tray.visible = false
+		trick_tray.transform = Transform3D.IDENTITY
+		trick_ball.visible = false
+		trick_lemon.visible = false
+		for cup in trick_cups:
+			cup.transform = Transform3D.IDENTITY
 
 
-func _start_magic(for_review: bool) -> void:
+func _start_magic(for_review: bool, trick: String = "") -> void:
 	_reset_magic()
+	magic_trick = trick if not trick.is_empty() else MAGIC_TRICKS[magic_next]
+	if trick.is_empty():
+		magic_next = (magic_next + 1) % MAGIC_TRICKS.size()
 	magic_time = 0.0
 	magic_review_after = for_review
 	idle_action = "rest"
@@ -541,10 +673,12 @@ func _start_magic(for_review: bool) -> void:
 	greeting_cooldown = 35
 
 
-func preview_magic() -> bool:
+func preview_magic(trick: String = "starlight") -> bool:
+	if trick not in MAGIC_TRICKS:
+		return false
 	if active or remote_active or review_dialogue.opened or game.game_paused or game.agent_isles_panel_open or game.garden.opened or not game.nature_motion or magic_time < MAGIC_DURATION:
 		return false
-	_start_magic(false)
+	_start_magic(false, trick)
 	magic_preview = true
 	return true
 

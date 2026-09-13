@@ -222,7 +222,8 @@ func _on_agent_isles_message(arguments: Array) -> void:
 				sanctuary_computer.review_dialogue.open()
 		elif action == "preview-magic":
 			set_game_paused(false)
-			if not sanctuary_computer.preview_magic():
+			var trick := str(message.get("payload", {}).get("trick", "starlight"))
+			if not sanctuary_computer.preview_magic(trick):
 				_show_toast("请结束当前交互后再预览魔术。", 3)
 		elif action == "resume":
 			set_game_paused(false)

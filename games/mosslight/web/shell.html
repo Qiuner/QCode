@@ -54,7 +54,7 @@
     #pause-settings button { margin-top: 20px; }
     #pause-menu #pause-task { margin: 20px 0 0; font-size: 12px; }
     #developer-menu p { color: #64726c; font-size: 13px; line-height: 1.7; }
-    #developer-talk, #developer-magic { background: #172d29; color: #fff; }
+    #developer-talk, #developer-magic, #developer-cards, #developer-cups { background: #172d29; color: #fff; }
     main:fullscreen { height: 100vh; }
     body[data-embedded] nav { display: none; }
     body[data-embedded] main { min-height: 0; }
@@ -240,7 +240,7 @@
     let guideFromPause = false;
     const pauseHome = document.getElementById('pause-home');
     const pauseSettings = document.getElementById('pause-settings');
-    const pauseAction = action => godotMessageHandler?.(JSON.stringify({ source: 'agent-isles-host', version: 1, type: 'world:pause-action', payload: { action } }));
+    const pauseAction = (action, extra = {}) => godotMessageHandler?.(JSON.stringify({ source: 'agent-isles-host', version: 1, type: 'world:pause-action', payload: { action, ...extra } }));
     const backToPause = () => { pauseSettings.hidden = true; pauseHome.hidden = false; document.getElementById('pause-title').textContent = '休息一下'; document.getElementById('pause-resume').focus(); };
     window.showIslandPause = state => {
       if (!state.open) { pause.close(); canvas.focus(); return; }
@@ -253,7 +253,7 @@
     const developer = document.createElement('dialog');
     developer.id = 'developer-menu';
     developer.setAttribute('aria-labelledby', 'developer-title');
-    developer.innerHTML = `<h2 id="developer-title">开发者面板</h2><p>直接预览角色演出，无需等待 AI 完成或自动召回。不会修改任务状态。</p><div class="pause-actions"><button id="developer-talk">触发 Q 剧情对话</button><button id="developer-magic">播放 Q 魔术</button><button id="developer-close">返回暂停菜单</button></div>`;
+    developer.innerHTML = `<h2 id="developer-title">开发者面板</h2><p>直接预览角色演出，无需等待 AI 完成或自动召回。不会修改任务状态。</p><div class="pause-actions"><button id="developer-talk">触发 Q 剧情对话</button><button id="developer-magic">掌中星光</button><button id="developer-cards">飞牌归一</button><button id="developer-cups">杯中奇遇</button><button id="developer-close">返回暂停菜单</button></div>`;
     document.body.appendChild(developer);
     let developerClicks = 0;
     let developerLastClick = 0;
@@ -290,7 +290,17 @@
     };
     document.getElementById('developer-magic').onclick = () => {
       developer.close();
-      pauseAction('preview-magic');
+      pauseAction('preview-magic', { trick: 'starlight' });
+      canvas.focus();
+    };
+    document.getElementById('developer-cards').onclick = () => {
+      developer.close();
+      pauseAction('preview-magic', { trick: 'cards' });
+      canvas.focus();
+    };
+    document.getElementById('developer-cups').onclick = () => {
+      developer.close();
+      pauseAction('preview-magic', { trick: 'cups' });
       canvas.focus();
     };
     document.getElementById('pause-options').onclick = () => { pauseHome.hidden = true; pauseSettings.hidden = false; document.getElementById('pause-title').textContent = '声音与画面'; document.getElementById('pause-sound').focus(); };

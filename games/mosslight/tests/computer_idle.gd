@@ -226,6 +226,15 @@ func run() -> void:
 	game.player.position = game.START
 	advance(.1)
 	check(not computer.magic_star.visible and not computer.magic_review_after and computer.magic_time == computer.MAGIC_DURATION, "leaving the audience area cancels the act and its handoff")
+	for trick in ["cards", "cups"]:
+		check(computer.preview_magic(trick), trick + " preview starts from the developer entry")
+		advance(2.5)
+		if trick == "cards":
+			check(computer.trick_cards.any(func(card): return card.visible), "flying cards are visible during the card act")
+		else:
+			check(computer.trick_cups.all(func(cup): return cup.visible), "three cups stay visible during the cup act")
+		advance(6.5)
+		check(not computer.trick_tray.visible and not computer.trick_lemon.visible, trick + " props return to storage")
 	print("MOSSLIGHT_COMPUTER_IDLE_TESTS_COMPLETE failures=", failures)
 	game.queue_free()
 	await process_frame
