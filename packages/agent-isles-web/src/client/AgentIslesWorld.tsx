@@ -18,6 +18,7 @@ import { ProjectFiles } from './ProjectFiles.js'
 import { workNarrative } from './work-narrative.js'
 import { ResidentNotifications, type NotificationSession } from './ResidentNotifications.js'
 import { type TutorialActions, type TutorialRun } from '../tutorial-types.js'
+import { requestProjectFullscreen } from './project-fullscreen.js'
 
 export interface AgentIslesWorldInjected {
   connectionState?: { getSnapshot(): string | undefined; subscribe(listener: () => void): () => void }
@@ -157,6 +158,12 @@ export function AgentIslesWorld(props: Props) {
   const [followingKeeper, setFollowingKeeper] = useState(false)
   const skipAutoProject = useRef(false)
   useEffect(() => {
+    if (!workspace || document.fullscreenElement) return
+    const enter = () => requestProjectFullscreen()
+    window.addEventListener('pointerdown', enter, { capture: true, once: true })
+    return () => window.removeEventListener('pointerdown', enter, true)
+  }, [workspace?.workspaceId])
+  useEffect(() => {
     let active = true
     setRestoring(true); setRestoreError('')
     void props.restoreProject().then(id => {
@@ -220,6 +227,7 @@ export function AgentIslesWorld(props: Props) {
   async function enterLearning(run?: TutorialRun) {
     if (busy || tutorial.busy || !props.tutorials) return
     if (modelState.ready !== true) { setShowModels(true); setError(modelState.ready === null ? '正在读取模型配置…' : '先连接模型，Qiuner 才能带你完成第一个作品。'); return }
+    requestProjectFullscreen()
     setBusy(true); setError('')
     try {
       let next = run
@@ -238,6 +246,7 @@ export function AgentIslesWorld(props: Props) {
 
   async function enterCreation() {
     if (busy) return
+    requestProjectFullscreen()
     setBusy(true); setError('')
     try {
       moveKeeper('cancel'); setFollowingKeeper(false)
