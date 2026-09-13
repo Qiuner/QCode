@@ -621,9 +621,11 @@ func _material(color: Color, roughness: float, glow: bool = false) -> StandardMa
 
 
 func _physics_process(delta: float) -> void:
-	if game_paused or agent_isles_panel_open:
+	if game_paused or agent_isles_panel_open or sanctuary_computer.review_dialogue.opened:
 		return
 	sanctuary_computer.advance(delta)
+	if sanctuary_computer.review_dialogue.opened:
+		return
 	if sanctuary_computer.active:
 		_update_camera(delta)
 		_update_hud()
@@ -968,6 +970,8 @@ func _update_view_hint() -> void:
 
 
 func _process(delta: float) -> void:
+	if sanctuary_computer.review_dialogue.opened:
+		return
 	distance_haze.set_shader_parameter("focus_position", player.global_position)
 	distance_haze.set_shader_parameter("clear_radius", 10.0 if view_mode == ViewMode.OVERVIEW else 7.0)
 	if game_paused:
@@ -979,7 +983,7 @@ func _process(delta: float) -> void:
 		if coder_completion_recall_left <= 0:
 			coder_completion_recall_left = -1.0
 			if sanctuary_computer.can_remote_grab():
-				sanctuary_computer.remote_grab()
+				sanctuary_computer.remote_grab(true)
 	var captured := Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
 	if mouse_was_captured and not captured and view_mode != ViewMode.OVERVIEW:
 		# Browsers may consume Escape to exit pointer lock before Godot sees the key.
@@ -1015,7 +1019,7 @@ func _process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if agent_isles_panel_open:
+	if agent_isles_panel_open or sanctuary_computer.review_dialogue.opened:
 		return
 	if garden.opened:
 		if event.is_action_pressed("inventory") or event.is_action_pressed("close_game"):

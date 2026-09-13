@@ -26,6 +26,9 @@ func run() -> void:
 	await tick(12)
 	var computer: Node3D = game.sanctuary_computer
 	check(computer.status_label.text == "Qiuner", "computer is named Qiuner")
+	var monitors: Array[Node] = computer.head_pivot.find_children("Monitor*", "MeshInstance3D", true, false)
+	check(not monitors.is_empty() and computer.signal_pivot.get_parent() == computer.head_pivot, "monitor mesh and waveform share the head pivot")
+	check(computer.housing.find_children("Monitor*", "MeshInstance3D", true, false).is_empty(), "all monitor meshes move with the head")
 	computer.set_status("approval")
 	check(computer.status_label.text.contains("等待确认"), "computer displays pending approval")
 	computer.set_status("idle")
@@ -47,17 +50,47 @@ func run() -> void:
 	computer.remote_transport = true
 	computer.active = true
 	computer.time = 2.0
+	computer.look_left = 0
 	game.player.position = Vector3(15, .05, -3.5)
 	game.player.velocity = Vector3.ZERO
 	await tick(2)
 	check(not computer.active and game.player.position.distance_to(computer.LANDING) < .12, "blocked cross-region transport falls back to safe landing")
+	check(computer.review_dialogue.opened, "automatic completion recall speaks after landing")
+	var landed: Vector3 = game.player.position
+	Input.action_press("walk_right")
+	await tick(10)
+	Input.action_release("walk_right")
+	check(game.player.position.distance_to(landed) < .01, "review dialogue freezes player movement")
+	computer.review_dialogue.words.visible_characters = 0
+	computer.review_dialogue.advance()
+	check(computer.review_dialogue.opened and computer.review_dialogue.words.visible_characters == computer.review_dialogue.LINE.length(), "first advance reveals the whole line")
+	var escape := InputEventAction.new()
+	escape.action = "close_game"
+	escape.pressed = true
+	computer.review_dialogue._input(escape)
+	check(not computer.review_dialogue.opened and not game.game_paused, "Escape dismisses review without opening pause")
+	computer.review_dialogue.open()
+	computer.set_status("working")
+	check(not computer.review_dialogue.opened, "new work dismisses stale review")
+	computer.set_status("completed")
+	computer.review_on_landing = true
+	computer._finish_review_recall()
+	computer.review_dialogue.advance()
+	computer.review_dialogue.advance()
+	check(not computer.review_dialogue.opened and not computer.review_on_landing, "confirm finishes the one-shot review handoff")
 	game.player.position = Vector3(18, .05, 3)
 	game.player.velocity = Vector3.ZERO
 	await tick(3)
 	check(computer.can_remote_grab(), "distant players can request remote recall")
 	check(computer.remote_grab(), "remote recall starts from a distant location")
-	await tick(300)
+	var before_look: Vector3 = game.player.position
+	await tick(8)
+	check(absf(computer.head_pivot.rotation.y) > .1, "computer looks toward the player before reaching")
+	check(computer.remote_time == 0 and game.player.position.distance_to(before_look) < .12, "look phase precedes reaching and transport")
+	check(not computer.review_dialogue.opened, "manual recall clears review dialogue")
+	await tick(360)
 	check(not computer.remote_active and game.player.position.distance_to(computer.LANDING) < .12, "remote recall returns player to the computer")
+	check(not computer.review_dialogue.opened, "manual recall does not announce task completion")
 	for mode in [game.ViewMode.OVERVIEW, game.ViewMode.THIRD_PERSON, game.ViewMode.FIRST_PERSON]:
 		game.set_view_mode(mode)
 		await approach()
@@ -69,7 +102,7 @@ func run() -> void:
 		check(not computer.grab(), "repeat grab is ignored while carrying")
 		Input.action_press("walk_down")
 		Input.action_press("jump")
-		await tick(50)
+		await tick(85)
 		Input.action_release("walk_down")
 		Input.action_release("jump")
 		check(game.player.position.y > .5, "tentacles lift the player despite movement input")

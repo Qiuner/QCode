@@ -65,7 +65,31 @@ export(signal, 'grabber_signal.glb')
 active = body
 for x in [-.59, -.49, -.39]:
     box('Screen / status mark', (x, 1.84, .67), (.057, .018, .012), 'rim', .004)
-export(body, 'grabber_computer.glb')
+# Keep two material batches so the monitor can look around without rotating its pedestal.
+batches = []
+for prefix, is_head in [('Monitor', True), ('Pedestal', False)]:
+    bpy.ops.object.select_all(action='DESELECT')
+    copies = []
+    for obj in list(body.objects):
+        if obj.name.startswith(('Monitor', 'Screen')) != is_head:
+            continue
+        copy = obj.copy()
+        copy.data = obj.data.copy()
+        bpy.context.scene.collection.objects.link(copy)
+        copy.select_set(True)
+        copies.append(copy)
+    bpy.context.view_layer.objects.active = copies[0]
+    bpy.ops.object.join()
+    merged = bpy.context.view_layer.objects.active
+    merged.name = prefix + ' / material batches'
+    batches.append(merged)
+bpy.ops.object.select_all(action='DESELECT')
+for obj in batches:
+    obj.select_set(True)
+bpy.ops.export_scene.gltf(filepath=str(OUT/'grabber_computer.glb'), export_format='GLB',
+                          use_selection=True, export_yup=True, export_animations=False)
+for obj in batches:
+    bpy.data.objects.remove(obj, do_unlink=True)
 
 active = bpy.data.collections.new('ARM PART - unit length along Y')
 bpy.context.scene.collection.children.link(active)

@@ -14,10 +14,13 @@ const LOWER_TIME := .65
 const RELEASE_TIME := .50
 const TRANSPORT_END := REACH_TIME + LIFT_TIME + CARRY_TIME + LOWER_TIME
 const REMOTE_CALL_TIME := 1.25
+const LOOK_TIME := .55
 
 var active := false
 var remote_active := false
 var remote_transport := false
+var review_on_landing := false
+var review_dialogue: CanvasLayer
 var remote_time := 0.0
 var time := 0.0
 var idle_time := 0.0
@@ -26,6 +29,8 @@ var released := false
 var arms: Array[Node3D] = []
 var hands: Array[Node3D] = []
 var housing: Node3D
+var head_pivot: Node3D
+var look_left := 0.0
 var game: Node3D
 var status_label: Label3D
 var task_status := "idle"
@@ -52,6 +57,13 @@ func _ready() -> void:
 	signal_pivot = Node3D.new()
 	signal_pivot.position.y = 2.13
 	add_child(signal_pivot)
+	head_pivot = Node3D.new()
+	head_pivot.position = Vector3(0, 1.40, -.08)
+	add_child(head_pivot)
+	for mesh: MeshInstance3D in housing.find_children("*", "MeshInstance3D", true, false):
+		if str(mesh.name).begins_with("Monitor") or str(mesh.name).begins_with("Screen"):
+			mesh.reparent(head_pivot, true)
+	signal_pivot.reparent(head_pivot, true)
 	var waveform: Node3D = SIGNAL.instantiate()
 	waveform.position.y = -2.13
 	signal_pivot.add_child(waveform)
@@ -73,6 +85,8 @@ func _ready() -> void:
 	status_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	status_label.outline_size = 7
 	add_child(status_label)
+	review_dialogue = preload("res://scripts/review_dialogue.gd").new()
+	add_child(review_dialogue)
 	set_status("idle")
 	var solid := StaticBody3D.new()
 	solid.name = "ComputerHousing"
@@ -99,11 +113,14 @@ func _ready() -> void:
 
 
 func can_use() -> bool:
-	return not active and not game.game_paused and not game.agent_isles_panel_open and not game.garden.opened and game.player.global_position.distance_to(LANDING) < 1.25
+	return not active and not review_dialogue.opened and not game.game_paused and not game.agent_isles_panel_open and not game.garden.opened and game.player.global_position.distance_to(LANDING) < 1.25
 
 
 func set_status(status: String) -> void:
 	task_status = status
+	if status != "completed":
+		review_on_landing = false
+		review_dialogue.close()
 	if status not in ["idle", "completed"]:
 		idle_action = "rest"
 		action_time = 0
@@ -124,9 +141,9 @@ func can_grab() -> bool:
 	return absf(point.x - ORIGIN.x) < 1.65 and point.z > -3.65 and point.z < -.7 and absf(point.y) < .25
 
 func can_remote_grab() -> bool:
-	return not active and not remote_active and not game.game_paused and not game.agent_isles_panel_open and not game.garden.opened and game.player.global_position.distance_to(LANDING) > 4.0
+	return not active and not remote_active and not review_dialogue.opened and not game.game_paused and not game.agent_isles_panel_open and not game.garden.opened and game.player.global_position.distance_to(LANDING) > 4.0
 
-func remote_grab() -> bool:
+func remote_grab(for_review: bool = false) -> bool:
 	if not can_remote_grab():
 		return false
 	var query := PhysicsShapeQueryParameters3D.new()
@@ -138,6 +155,9 @@ func remote_grab() -> bool:
 		game._show_toast("中央平台被占用了，请先清出位置。", 3)
 		return false
 	remote_active = true
+	look_left = LOOK_TIME if game.nature_motion else .10
+	review_on_landing = for_review
+	review_dialogue.close()
 	remote_time = 0.0
 	game.player.velocity = Vector3.ZERO
 	game.set_echo_active(false)
@@ -160,6 +180,7 @@ func grab() -> bool:
 	time = 0
 	released = false
 	active = true
+	look_left = LOOK_TIME if game.nature_motion else .10
 	grab_tips.clear()
 	grab_rotations.clear()
 	for hand: Node3D in hands:
@@ -180,7 +201,20 @@ func grab() -> bool:
 
 
 func advance(delta: float) -> void:
+	if game.agent_isles_panel_open:
+		review_dialogue.close()
 	if game.game_paused or game.agent_isles_panel_open or game.garden.opened:
+		return
+	var direction: Vector3 = game.player.global_position - head_pivot.global_position
+	var watching := active or remote_active
+	var target_yaw := atan2(direction.x, direction.z) if watching else 0.0
+	var target_pitch := clampf(-atan2(direction.y + .9, Vector2(direction.x, direction.z).length()), -.35, .35) if watching else 0.0
+	var blend := 1.0 - exp(-delta * 10)
+	head_pivot.rotation.y = lerp_angle(head_pivot.rotation.y, target_yaw, blend) if game.nature_motion else target_yaw
+	head_pivot.rotation.x = lerp_angle(head_pivot.rotation.x, target_pitch, blend) if game.nature_motion else target_pitch
+	if look_left > 0:
+		look_left = maxf(0, look_left - delta)
+		game.player.velocity = Vector3.ZERO
 		return
 	if remote_active:
 		remote_time += delta
@@ -236,6 +270,7 @@ func advance(delta: float) -> void:
 				game.first_person_feedback.reset()
 				_pose(0)
 				game._show_toast("路径被建筑挡住，已安全传送回中央平台。", 3)
+				_finish_review_recall()
 				return
 			released = true
 			time = TRANSPORT_END
@@ -254,6 +289,13 @@ func advance(delta: float) -> void:
 		_pose(0)
 		grab_tips.clear()
 		grab_rotations.clear()
+		_finish_review_recall()
+
+
+func _finish_review_recall() -> void:
+	if review_on_landing and task_status == "completed":
+		review_dialogue.open()
+	review_on_landing = false
 
 
 func _advance_idle(delta: float) -> void:
