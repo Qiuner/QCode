@@ -83,9 +83,15 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/build_web.ps1
 
 空闲时，Q 每隔 20～40 秒交替整理两条机械臂。玩家进入台前约 6 米范围时挥手招呼，离开 8 米才重新计算一次靠近，招呼间隔至少 35 秒；附近无人约一分钟后双手下垂、屏幕波形收平并减弱发光，玩家回来时唤醒。执行、思考、等待确认和错误状态阻止整理与打盹；按 E 可以随时从当前姿势转入抓取。N 关闭待机动作与计时，抓取仍可用；重新开启后继续，不补播关闭期间的动作。待机不发声、不弹窗，也不会主动抓人。
 
+Q 的近景魔术是一段约 8.8 秒的「掌中星光」：展示空手、指间变星、抛入帽子、帽子轻跳两次、纸鸽振翅飞出、落在左手、化光消失，最后点头谢幕。右手全程托帽，演完放回独立的小托台；帽子有真实内腔，纸鸽有独立翼轴。工作完成后先等玩家进入台前 4 米内，或自动召回落地后才开演，演完再进入成果对白。它表示本轮结束，不表示验收通过。
+
+表演期间不叠加招呼或整理动作。暂停、背包和网页面板冻结表演；主动打开网页面板会取消演完后的重复成果弹窗。新任务、手动抓取或走离 6 米范围会收纳道具；N 减少动态跳过正在进行的表演并继续待交接对白，不补播。开发者面板的「播放 Q 魔术」可独立预览，预览不改变任务状态、不进入成果对白；请在 Q 附近观看。
+
 机械臂连接座位于显示器下方，软管分两段从身体两侧绕到前方，整理动作在支柱前完成，挥手时掌缘与屏幕保持间隔。`tests/computer_idle.gd` 逐帧检查普通待机、挥手及左右整理的软管与机壳 / 支柱间隔、两条软管间距和手部顶点；这是预设动作的几何回归，不是任意场景障碍的软体碰撞系统。
 
-`art/generate_grabber.py` 使用本机 Blender 独立生成可编辑的 `art/grabber.blend`，导出 `assets/grabber_computer.glb`、`grabber_segment.glb`、`grabber_claw.glb` 和独立波形 `grabber_signal.glb`。源文件保留外壳、屏幕、分节软管和机械手的独立对象；Godot 的 `scripts/sanctuary_computer.gd` 组装并驱动机械臂与波形。重新制作只需运行该生成脚本，无须重建整个岛屿。
+`art/generate_grabber.py` 维护计算机、机械臂与波形及其 `art/grabber.blend`。新魔术由 `art/generate_q_magic.py` 独立生成 `art/q_magic.blend` 和 `assets/q_magic_{hat,stand,dove,star}.glb`，不重建计算机或岛屿；旧版牌盒和三杯球资产不再由运行场景加载。`scripts/sanctuary_computer.gd` 驱动整段演出，`tests/computer_idle.gd` 包含完整魔术轨迹的机壳、支柱、双臂及手部顶点间距检查。
+
+生成模型：`& 'D:\Blender\blender.exe' --background --factory-startup --python games/mosslight/art/generate_q_magic.py`（仓库根目录）。使用 Godot `--path games/mosslight --fixed-fps 30 --write-movie res://captures/q-magic.avi --script res://tools/capture_magic.gd` 录制实际渲染，截图和录像保存在被忽略的 `captures/`。
 
 ## 晴沙绿洲 · 第二地块
 

@@ -61,7 +61,9 @@ func run() -> void:
 	game.player.velocity = Vector3.ZERO
 	await tick(2)
 	check(not computer.active and game.player.position.distance_to(computer.LANDING) < .12, "blocked cross-region transport falls back to safe landing")
-	check(computer.review_dialogue.opened, "automatic completion recall speaks after landing")
+	check(not computer.review_dialogue.opened and computer.magic_time < computer.MAGIC_DURATION, "automatic completion recall performs magic after landing")
+	await tick(540)
+	check(computer.review_dialogue.opened, "automatic completion recall speaks after the magic act")
 	var landed: Vector3 = game.player.position
 	Input.action_press("walk_right")
 	await tick(10)
@@ -81,6 +83,7 @@ func run() -> void:
 	computer.set_status("completed")
 	computer.review_on_landing = true
 	computer._finish_review_recall()
+	await tick(540)
 	computer.review_dialogue.advance()
 	computer.review_dialogue.advance()
 	check(not computer.review_dialogue.opened and not computer.review_on_landing, "confirm finishes the one-shot review handoff")

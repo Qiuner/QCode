@@ -220,6 +220,10 @@ func _on_agent_isles_message(arguments: Array) -> void:
 				_show_toast("请结束当前交互后再预览对白。", 3)
 			else:
 				sanctuary_computer.review_dialogue.open()
+		elif action == "preview-magic":
+			set_game_paused(false)
+			if not sanctuary_computer.preview_magic():
+				_show_toast("请结束当前交互后再预览魔术。", 3)
 		elif action == "resume":
 			set_game_paused(false)
 		elif action == "mute":
@@ -289,6 +293,7 @@ func _on_agent_isles_message(arguments: Array) -> void:
 	# Functional panels replace local dialogue; background updates leave villagers talking.
 	if panel_open:
 		resident_dialogue.close()
+		sanctuary_computer.magic_review_after = false
 	prompt.visible = not panel_open
 	agent_isles_session_id = str(payload.get("sessionId", ""))
 	for resident: Dictionary in payload.get("residents", []):
@@ -296,7 +301,7 @@ func _on_agent_isles_message(arguments: Array) -> void:
 			var next_status := str(resident.get("status", "idle"))
 			if next_status == "completed" and coder_agent_status != "completed":
 				coder_completion_recall_left = 5.0
-			elif next_status in ["working", "thinking", "approval"]:
+			elif next_status != "completed":
 				coder_completion_recall_left = -1.0
 			coder_agent_status = next_status
 			sanctuary_computer.set_status(next_status)

@@ -4,6 +4,12 @@ const COMPUTER = preload("res://assets/grabber_computer.glb")
 const SEGMENT = preload("res://assets/grabber_segment.glb")
 const CLAW = preload("res://assets/grabber_claw.glb")
 const SIGNAL = preload("res://assets/grabber_signal.glb")
+const MAGIC_HAT = preload("res://assets/q_magic_hat.glb")
+const MAGIC_DOVE = preload("res://assets/q_magic_dove.glb")
+const MAGIC_STAR = preload("res://assets/q_magic_star.glb")
+const MAGIC_STAND = preload("res://assets/q_magic_stand.glb")
+const MAGIC_DURATION := 8.8
+const MAGIC_HAT_REST := Vector3(1.28, .62, 1.45)
 const ORIGIN := Vector3(1.2, 2.12, -6.8)
 const LANDING := Vector3(1.2, 1.56, -4.85)
 const SEGMENTS := 18
@@ -45,6 +51,15 @@ var tidy_side := 0
 var idle_random := RandomNumberGenerator.new()
 var signal_pivot: Node3D
 var signal_materials: Array[StandardMaterial3D] = []
+var magic_hat: Node3D
+var magic_star: Node3D
+var magic_pigeon: Node3D
+var magic_wings: Array[Node3D] = []
+var magic_sparks: Array[Node3D] = []
+var magic_time := MAGIC_DURATION
+var magic_preview := false
+var magic_pending := false
+var magic_review_after := false
 var grab_tips: Array[Vector3] = []
 var grab_rotations: Array[Quaternion] = []
 
@@ -74,6 +89,26 @@ func _ready() -> void:
 				material.diffuse_mode = BaseMaterial3D.DIFFUSE_LAMBERT
 			mesh.set_surface_override_material(surface, material)
 			signal_materials.append(material)
+	magic_hat = MAGIC_HAT.instantiate()
+	magic_hat.position = MAGIC_HAT_REST
+	add_child(magic_hat)
+	var magic_stand := MAGIC_STAND.instantiate()
+	magic_stand.position = Vector3(MAGIC_HAT_REST.x, 0, MAGIC_HAT_REST.z)
+	add_child(magic_stand)
+	magic_star = MAGIC_STAR.instantiate()
+	magic_star.visible = false
+	add_child(magic_star)
+	magic_pigeon = MAGIC_DOVE.instantiate()
+	magic_pigeon.visible = false
+	add_child(magic_pigeon)
+	for wing_name in ["WingLeft", "WingRight"]:
+		magic_wings.append(magic_pigeon.find_child(wing_name, true, false))
+	for index in 12:
+		var spark := MAGIC_STAR.instantiate()
+		spark.scale = Vector3.ONE * .12
+		spark.visible = false
+		add_child(spark)
+		magic_sparks.append(spark)
 	idle_random.randomize()
 	idle_delay = idle_random.randf_range(20, 40)
 	player_near = game.player.global_position.distance_to(LANDING) < 6
@@ -116,10 +151,16 @@ func can_use() -> bool:
 
 
 func set_status(status: String) -> void:
+	var previous := task_status
 	task_status = status
+	if status == "completed" and previous != "completed" and game.nature_motion:
+		_reset_magic()
+		magic_pending = true
 	if status != "completed":
 		review_on_landing = false
 		review_dialogue.close()
+		if previous != status:
+			_reset_magic()
 	if status not in ["idle", "completed"]:
 		idle_action = "rest"
 		action_time = 0
@@ -129,7 +170,7 @@ func set_status(status: String) -> void:
 			sleep_amount = 0
 			_update_signal()
 	var labels := {"working": "执行中", "thinking": "思考中", "approval": "等待确认", "completed": "本轮结束", "failed": "遇到问题"}
-	status_label.text = "Qiuner" + (" · " + str(labels[status]) if labels.has(status) else "")
+	status_label.text = "Q" + (" · " + str(labels[status]) if labels.has(status) else "")
 
 
 func can_grab() -> bool:
@@ -140,7 +181,7 @@ func can_grab() -> bool:
 	return absf(point.x - ORIGIN.x) < 1.65 and point.z > -3.65 and point.z < -.7 and absf(point.y) < .25
 
 func can_remote_grab() -> bool:
-	return not active and not remote_active and not review_dialogue.opened and not game.game_paused and not game.agent_isles_panel_open and not game.garden.opened and game.player.global_position.distance_to(LANDING) > 4.0
+	return not active and not remote_active and magic_time >= MAGIC_DURATION and not review_dialogue.opened and not game.game_paused and not game.agent_isles_panel_open and not game.garden.opened and game.player.global_position.distance_to(LANDING) > 4.0
 
 func remote_grab(for_review: bool = false) -> bool:
 	if not can_remote_grab():
@@ -154,13 +195,14 @@ func remote_grab(for_review: bool = false) -> bool:
 		game._show_toast("中央平台被占用了，请先清出位置。", 3)
 		return false
 	remote_active = true
+	_reset_magic()
 	look_left = LOOK_TIME if game.nature_motion else .10
 	review_on_landing = for_review
 	review_dialogue.close()
 	remote_time = 0.0
 	game.player.velocity = Vector3.ZERO
 	game.set_echo_active(false)
-	game._show_toast("Qiuner 正在发出召回信号…", 2)
+	game._show_toast("Q 正在发出召回信号…", 2)
 	return true
 
 
@@ -185,6 +227,7 @@ func grab() -> bool:
 	for hand: Node3D in hands:
 		grab_tips.append(hand.position)
 		grab_rotations.append(hand.quaternion)
+	_reset_magic()
 	idle_action = "rest"
 	action_time = 0
 	alone_time = 0
@@ -202,15 +245,24 @@ func grab() -> bool:
 func advance(delta: float) -> void:
 	if game.agent_isles_panel_open:
 		review_dialogue.close()
+		magic_review_after = false
 	if game.game_paused or game.agent_isles_panel_open or game.garden.opened:
 		return
+	if not game.nature_motion and (magic_time < MAGIC_DURATION or magic_pending):
+		var show_review := magic_review_after
+		_reset_magic()
+		if show_review and task_status == "completed":
+			review_dialogue.open()
+			return
 	var direction: Vector3 = game.player.global_position - head_pivot.global_position
 	var watching := active or remote_active
 	var target_yaw := atan2(direction.x, direction.z) if watching else 0.0
 	var target_pitch := clampf(-atan2(direction.y + .9, Vector2(direction.x, direction.z).length()), -.35, .35) if watching else 0.0
 	var blend := 1.0 - exp(-delta * 10)
-	head_pivot.rotation.y = lerp_angle(head_pivot.rotation.y, target_yaw, blend) if game.nature_motion else target_yaw
-	head_pivot.rotation.x = lerp_angle(head_pivot.rotation.x, target_pitch, blend) if game.nature_motion else target_pitch
+	if magic_time >= MAGIC_DURATION:
+		head_pivot.rotation.y = lerp_angle(head_pivot.rotation.y, target_yaw, blend) if game.nature_motion else target_yaw
+		head_pivot.rotation.x = lerp_angle(head_pivot.rotation.x, target_pitch, blend) if game.nature_motion else target_pitch
+		head_pivot.rotation.z = lerp_angle(head_pivot.rotation.z, 0, blend)
 	if look_left > 0:
 		look_left = maxf(0, look_left - delta)
 		game.player.velocity = Vector3.ZERO
@@ -239,6 +291,14 @@ func advance(delta: float) -> void:
 			game._tone(620, .20, .12)
 		return
 	if not active:
+		if magic_pending and game.player.global_position.distance_to(LANDING) <= 4.0 and not review_dialogue.opened:
+			_start_magic(true)
+		if magic_time < MAGIC_DURATION:
+			if not magic_preview and game.player.global_position.distance_to(LANDING) > 6.0:
+				_reset_magic()
+			else:
+				_advance_magic(delta)
+				return
 		if game.nature_motion:
 			idle_time += delta
 			_advance_idle(delta)
@@ -293,7 +353,10 @@ func advance(delta: float) -> void:
 
 func _finish_review_recall() -> void:
 	if review_on_landing and task_status == "completed":
-		review_dialogue.open()
+		if game.nature_motion:
+			_start_magic(true)
+		else:
+			review_dialogue.open()
 	review_on_landing = false
 
 
@@ -353,6 +416,137 @@ func _advance_idle(delta: float) -> void:
 				tip = tip.lerp(Vector3(side * 1.40, .65, 1.40), weight)
 		_set_arm(index, hands[index].position.lerp(tip, blend), hands[index].quaternion.slerp(rotation, blend))
 	_update_signal()
+
+
+func _advance_magic(delta: float) -> void:
+	magic_time = minf(magic_time + delta, MAGIC_DURATION)
+	var t := magic_time
+	for cue in [Vector2(1.35, 880), Vector2(3.05, 660), Vector2(4.25, 1175), Vector2(6.35, 988)]:
+		if t - delta < cue.x and t >= cue.x:
+			game._tone(cue.y, .12, .035)
+	# One trick, with readable pauses: empty palms, pluck, toss, two knocks,
+	# dove, catch, vanish, bow. Only this function owns the arms during the act.
+	var left_rest := Vector3(-1.33, .65, .75)
+	var right_rest := Vector3(1.33, .65, .75)
+	var present := smoothstep(0, .7, t)
+	var settle := smoothstep(7.8, 8.8, t)
+	var left := left_rest.lerp(Vector3(-1.65, 1.30, 2.20), present)
+	left = left.lerp(Vector3(-1.85, 1.65, 2.20), smoothstep(.8, 1.35, t))
+	left = left.lerp(Vector3(-1.35, 1.50, 2.20), smoothstep(1.6, 2.15, t))
+	left.y += sin(smoothstep(2.15, 2.65, t) * PI) * .32
+	left = left.lerp(Vector3(-1.65, 1.22, 2.20), smoothstep(2.8, 3.2, t))
+	left = left.lerp(Vector3(-1.55, 1.62, 2.20), smoothstep(5.3, 6.1, t))
+	left = left.lerp(left_rest, settle)
+	var right := right_rest.lerp(Vector3(1.20, .78, 1.50), present)
+	var knock := 0.0
+	for beat in [3.35, 3.85]:
+		knock += sin(clampf((t - beat) / .25, 0, 1) * PI) * .075
+	right.y += knock
+	right = right.lerp(right_rest, settle)
+	var rest_rotation := Quaternion(Vector3.UP, Vector3.DOWN)
+	var palm_rotation := rest_rotation.slerp(Quaternion.IDENTITY, present * (1.0 - settle))
+	var blend := 1.0 - exp(-delta * 14.0)
+	_set_arm(0, hands[0].position.lerp(left, blend), hands[0].quaternion.slerp(palm_rotation, blend))
+	_set_arm(1, hands[1].position.lerp(right, blend), hands[1].quaternion.slerp(palm_rotation, blend))
+	# The hat is attached to the supporting hand while lifted, with a real
+	# dark cavity. It returns to exactly the same place after every show.
+	var held_hat: Vector3 = hands[1].position + Vector3(0, .57, 0)
+	magic_hat.position = MAGIC_HAT_REST.lerp(held_hat, present * (1.0 - settle))
+	magic_hat.rotation.z = sin(t * 30) * knock
+	var rim := magic_hat.position + Vector3(0, .60, 0)
+	var pluck := Vector3(-1.85, 2.30, 2.20)
+	var throw_from := Vector3(-1.35, 2.15, 2.20)
+	magic_star.visible = t >= 1.35 and t < 3.05
+	if magic_star.visible:
+		magic_star.position = pluck.lerp(throw_from, smoothstep(1.6, 2.15, t))
+		if t >= 2.2:
+			var toss := smoothstep(2.2, 3.05, t)
+			magic_star.position = throw_from.lerp(rim + Vector3(0, -.25, 0), toss) + Vector3.UP * sin(toss * PI) * .85
+		magic_star.rotation = Vector3(0, .2 + sin(t * 3) * .25, t * .9)
+		magic_star.scale = Vector3.ONE * lerpf(1.2, 1.35, smoothstep(1.35, 1.55, t))
+	magic_pigeon.visible = t >= 4.25 and t < 7.35
+	var perch := Vector3(-1.55, 2.28, 2.20)
+	if magic_pigeon.visible:
+		var launch := smoothstep(4.25, 4.95, t)
+		var flight := smoothstep(4.95, 6.35, t)
+		var high := Vector3(1.50, 3.65, 1.55)
+		magic_pigeon.position = (rim + Vector3(0, -.12, 0)).lerp(high, launch)
+		if t >= 4.95:
+			magic_pigeon.position = high.bezier_interpolate(Vector3(.4, 4.0, 2.0), Vector3(-1.8, 3.2, 2.1), perch, flight)
+		magic_pigeon.rotation = Vector3(-.12 * sin(flight * PI), lerpf(-.8, .15, flight), .18 * sin(flight * TAU))
+		magic_pigeon.scale = Vector3.ONE * lerpf(.65, 1.0, launch)
+		var flap := sin((t - 4.25) * 19.0) * .65 * (1.0 - smoothstep(6.1, 6.5, t))
+		for index in magic_wings.size():
+			magic_wings[index].rotation.z = (-1.0 if index == 0 else 1.0) * (flap + smoothstep(6.1, 6.5, t) * -.5)
+	# Small authored stars form brief, bounded bursts rather than a particle
+	# emitter that can keep advancing while the world is paused.
+	for index in magic_sparks.size():
+		var spark := magic_sparks[index]
+		var burst_time := t - 1.35
+		var center := pluck
+		if t >= 4.25:
+			burst_time = t - 4.25
+			center = rim + Vector3.UP * .3
+		if t >= 7.35:
+			burst_time = t - 7.35
+			center = perch
+		spark.visible = burst_time >= 0 and burst_time < .55
+		if spark.visible:
+			var fraction := burst_time / .55
+			var angle := index * TAU / magic_sparks.size()
+			spark.position = center + Vector3(cos(angle), sin(angle), sin(angle * 2) * .25) * (.08 + fraction * .62)
+			spark.position.y -= fraction * fraction * .18
+			spark.scale = Vector3.ONE * (.20 * (1.0 - fraction))
+			spark.rotation.z = angle + fraction * 2
+	var bow := smoothstep(7.55, 8.0, t) * (1.0 - smoothstep(8.15, 8.8, t))
+	var curiosity := smoothstep(3.05, 3.4, t) * (1.0 - smoothstep(4.25, 4.6, t))
+	head_pivot.rotation.x = lerpf(head_pivot.rotation.x, bow * .22, blend)
+	head_pivot.rotation.y = lerp_angle(head_pivot.rotation.y, sin(smoothstep(4.25, 6.5, t) * PI) * -.14, blend)
+	head_pivot.rotation.z = lerpf(head_pivot.rotation.z, curiosity * -.12, blend)
+	sleep_amount = move_toward(sleep_amount, 0, delta / .35)
+	_update_signal()
+	if magic_time >= MAGIC_DURATION:
+		var show_review := magic_review_after and task_status == "completed"
+		_reset_magic()
+		if show_review:
+			review_dialogue.open()
+
+
+func _reset_magic() -> void:
+	magic_time = MAGIC_DURATION
+	magic_pending = false
+	magic_preview = false
+	magic_review_after = false
+	if magic_hat != null:
+		magic_hat.transform = Transform3D(Basis.IDENTITY, MAGIC_HAT_REST)
+	if magic_star != null:
+		magic_star.visible = false
+	if magic_pigeon != null:
+		magic_pigeon.transform = Transform3D.IDENTITY
+		magic_pigeon.visible = false
+	for wing in magic_wings:
+		wing.rotation = Vector3.ZERO
+	for spark in magic_sparks:
+		spark.visible = false
+
+
+func _start_magic(for_review: bool) -> void:
+	_reset_magic()
+	magic_time = 0.0
+	magic_review_after = for_review
+	idle_action = "rest"
+	action_time = 0
+	alone_time = 0
+	idle_delay = idle_random.randf_range(20, 40)
+	greeting_cooldown = 35
+
+
+func preview_magic() -> bool:
+	if active or remote_active or review_dialogue.opened or game.game_paused or game.agent_isles_panel_open or game.garden.opened or not game.nature_motion or magic_time < MAGIC_DURATION:
+		return false
+	_start_magic(false)
+	magic_preview = true
+	return true
 
 
 func _update_signal() -> void:

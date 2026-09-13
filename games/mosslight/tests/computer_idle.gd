@@ -106,7 +106,7 @@ func run() -> void:
 	check(computer.hands[1].position == before_grab, "starting grab does not snap a raised hand")
 	computer.advance(1.0 / 60)
 	check(computer.hands[1].position.distance_to(before_grab) < .05, "grab reaches from the actual idle pose")
-	for i in range(240):
+	for i in range(ceili((computer.LOOK_TIME + computer.TRANSPORT_END + computer.RELEASE_TIME + .1) * 60)):
 		computer.advance(1.0 / 60)
 		await physics_frame
 	check(not computer.active and game.player.position.distance_to(computer.LANDING) < .12, "interrupted greeting completes the original transport")
@@ -132,6 +132,52 @@ func run() -> void:
 	advance(1)
 	check(computer.idle_action == "tidy", "re-enabling motion resumes instead of replaying elapsed actions")
 	computer.set_status("completed")
+	advance(10)
+	check(computer.magic_pending and computer.magic_time == computer.MAGIC_DURATION and not computer.review_dialogue.opened, "completed work waits for its audience instead of performing off screen")
+	game.player.position = computer.LANDING
+	advance(.8)
+	check(not computer.magic_pending and not computer.magic_star.visible and not computer.magic_pigeon.visible, "Q first presents empty hands and the hat")
+	check(computer.magic_hat != null and computer.magic_wings.size() == 2 and computer.magic_wings.all(func(wing): return wing != null), "Blender hollow hat and both articulated dove wings load")
+	check(computer.idle_action == "rest", "greeting and grooming cannot take over the magic hands")
+	advance(1)
+	check(computer.magic_star.visible and not computer.magic_pigeon.visible, "starlight appears before the dove reveal")
+	var magic_clock: float = computer.magic_time
+	var magic_hand: Transform3D = computer.hands[0].transform
+	var magic_hat: Transform3D = computer.magic_hat.transform
+	game.set_game_paused(true)
+	advance(5)
+	check(computer.magic_time == magic_clock and computer.hands[0].transform == magic_hand and computer.magic_hat.transform == magic_hat, "pause freezes the whole magic act")
+	game.set_game_paused(false)
+	game.agent_isles_panel_open = true
+	advance(3)
+	check(computer.magic_time == magic_clock and not computer.magic_review_after, "opening the work panel freezes the act and cancels redundant results handoff")
+	game.agent_isles_panel_open = false
+	computer.magic_review_after = true
+	game.garden.opened = true
+	advance(3)
+	check(computer.magic_time == magic_clock, "inventory freezes the magic timeline")
+	game.garden.opened = false
+	computer.set_status("completed")
+	check(computer.magic_time == magic_clock, "repeated completed sync does not restart the act")
+	advance(1.5)
+	check(not computer.magic_star.visible and not computer.magic_pigeon.visible, "starlight disappears inside the hat before the reveal")
+	advance(1.7)
+	check(computer.magic_pigeon.visible and computer.magic_pigeon.position.y > 3.4, "dove emerges above the monitor with flapping wings")
+	advance(1.8)
+	check(computer.magic_pigeon.visible and computer.magic_pigeon.position.distance_to(computer.hands[0].position + Vector3(0, .66, 0)) < .03, "dove lands on the waiting left hand")
+	advance(2.1)
+	check(not computer.magic_pigeon.visible and not computer.magic_star.visible and computer.magic_hat.position.is_equal_approx(computer.MAGIC_HAT_REST), "all magic props are stored after the bow")
+	check(computer.review_dialogue.opened, "results dialogue waits until the act has finished")
+	computer.review_dialogue.close()
+	computer.set_status("working")
+	computer.set_status("completed")
+	advance(1.5)
+	game.nature_motion = false
+	advance(.1)
+	check(not computer.magic_pigeon.visible and not computer.magic_star.visible and computer.magic_hat.position.is_equal_approx(computer.MAGIC_HAT_REST), "reduced motion immediately stores the magic props")
+	check(computer.review_dialogue.opened, "reduced motion skips directly to the pending results dialogue")
+	computer.review_dialogue.close()
+	game.nature_motion = true
 	game.player.position = game.START
 	advance(65)
 	check(computer.idle_action == "sleep", "completed work permits idle behavior again")
@@ -139,6 +185,13 @@ func run() -> void:
 	computer.set_status("approval")
 	check(computer.sleep_amount == 0 and computer.signal_pivot.scale.y > .9, "approval stays readable even when decorative motion is disabled")
 	game.nature_motion = true
+	computer.set_status("idle")
+	check(computer.preview_magic(), "developer preview starts without a task")
+	advance(1)
+	computer.set_status("idle")
+	check(computer.magic_preview and computer.magic_time < computer.MAGIC_DURATION, "same idle status sync preserves developer preview")
+	computer.set_status("working")
+	check(computer.magic_time == computer.MAGIC_DURATION and not computer.magic_review_after and not computer.magic_preview, "new work cancels magic and its pending dialogue")
 	computer.set_status("idle")
 	game.player.position = computer.LANDING
 	computer.player_near = true
@@ -156,6 +209,23 @@ func run() -> void:
 			if not violation.is_empty():
 				break
 		check(violation.is_empty(), action + " full path clears monitor and mast: " + violation)
+	computer.preview_magic()
+	var magic_violation := ""
+	for frame in range(540):
+		computer.advance(1.0 / 60)
+		magic_violation = arm_clearance()
+		if not magic_violation.is_empty():
+			break
+	check(magic_violation.is_empty(), "entire magic act clears monitor, mast and opposite arm: " + magic_violation)
+	check(not computer.review_dialogue.opened, "developer preview never opens the results dialogue")
+	game.nature_motion = false
+	check(not computer.preview_magic(), "reduced motion rejects invisible developer previews")
+	game.nature_motion = true
+	computer.set_status("completed")
+	advance(1.6)
+	game.player.position = game.START
+	advance(.1)
+	check(not computer.magic_star.visible and not computer.magic_review_after and computer.magic_time == computer.MAGIC_DURATION, "leaving the audience area cancels the act and its handoff")
 	print("MOSSLIGHT_COMPUTER_IDLE_TESTS_COMPLETE failures=", failures)
 	game.queue_free()
 	await process_frame
