@@ -30,7 +30,7 @@
 
 > 项目介绍站已放在 `docs/`，并配置了 GitHub Pages 工作流；首次推送到 GitHub 后，页面地址会由仓库的 Pages 设置提供。
 
-<img src="docs/images/agent-isles-workspace.png" alt="agent-isles 群岛世界与项目向导" width="100%">
+<img src="docs/images/agent-isles-world-current.png" alt="当前版本苔光之屿与中央 Q 计算机的世界实景" width="100%">
 
 > [!IMPORTANT]
 > agent-isles 仍处于早期开发阶段。目前提供本地 Web MVP 和 Windows x64 启动器、安装包预览版。安装与构建说明见 [Windows 启动器](apps/desktop/README.md)。
@@ -63,19 +63,13 @@ Windows 预览版通过安装包安装后，点击 agent-isles 图标即可启�
 
 ## 产品画面
 
-### 和 Q 一起完成任务
+### 当前小岛与 Q
 
-Q 在绑定的项目中读取和修改文件。对话、进度与最终结果直接显示在制作面板中，完整工具调用仍可在高级工作台查看。
+以下为 2026-09-13 从当前源码重新渲染的 Godot 世界实景，隐藏 HUD 以展示模型；不是网页聊天面板截图。
 
-![agent-isles 的 Q 制作伙伴执行真实项目任务](docs/images/agent-isles-coder.png)
+![中央平台上的 Q 与双机械臂](docs/images/agent-isles-q-current.png)
 
-### 在不同尺寸下使用
-
-居民选择、项目绑定和对话面板支持窄屏布局。
-
-<p align="center">
-  <img src="docs/images/agent-isles-mobile.png" alt="agent-isles 移动端项目向导" width="390">
-</p>
+Q 连接真实项目的原生对话与执行过程；项目和历史由苔伯管理，文件由阿澜查阅。网页面板和窄屏截图待重新采集，已移除旧版画面，避免与当前界面混淆。
 
 ## 快速开始
 
