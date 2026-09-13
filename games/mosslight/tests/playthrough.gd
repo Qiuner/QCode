@@ -111,7 +111,7 @@ func run() -> void:
 		Input.action_release(action)
 	await tick(30)
 	check(game.player.is_on_floor() and game.player.position.y > .85, "jump lands on echo crate")
-	# Fill the capacity through separate valid placements; verify FIFO replacement.
+	# The raised shared capacity keeps the first four separate placements.
 	for x in [3.0, 5.0, -2.0]:
 		game.player.position = Vector3(x, .05, 6)
 		game.player.velocity = Vector3.ZERO
@@ -119,10 +119,10 @@ func run() -> void:
 		await tick(5)
 		check(game.place_echo(), "separate open placement at x=" + str(x))
 		await tick(3)
-	check(game.echoes.size() == 3, "echo capacity stays at three")
-	check(not is_instance_valid(crate), "fourth echo removes oldest collider and art")
+	check(game.echoes.size() == 4, "raised echo capacity keeps four placed echoes")
+	check(is_instance_valid(crate), "fourth echo preserves the oldest collider and art")
 	game.placement_valid = false
-	check(not game.place_echo() and game.echoes.size() == 3, "invalid placement preserves existing echoes")
+	check(not game.place_echo() and game.echoes.size() == 4, "invalid placement preserves existing echoes")
 	# The second jump must clear the sanctuary lip, not merely reach a box.
 	game.player.position = Vector3(1.0, .05, -2.0)
 	game.player.velocity = Vector3.ZERO

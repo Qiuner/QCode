@@ -5,7 +5,7 @@ const START := Vector3(0, 0.15, 6.5)
 const SOURCE := Vector3(-3.6, 0.28, 4.0)
 const SHRINE := Vector3(1.2, 1.52, -6.8)
 const CRATE_SIZE := Vector3(0.96, 0.9, 0.96)
-const MAX_ECHOES := 3
+const MAX_ECHOES := 6
 const SPEED := 4.2
 const JUMP := 6.8
 const GRAVITY := 20.0
@@ -1174,7 +1174,7 @@ func _build_ui() -> void:
 	echo_label = _label("01   未知回响", Vector2(22, 12), 21, Color("fae6b7"), game_hud)
 	_label("WASD 移动    空格 跳跃    E 互动    F 拿出 / 放置    C 回响    T 转向    右键 收起    Q 撤回", Vector2(400, 15), 16, Color("eef2df"), game_hud)
 	_label("Shift 奔跑    滚轮 缩放    V 视角    Tab 隐藏界面    N 动态    M 静音    R 重开    Esc 暂停", Vector2(400, 45), 14, Color("a5c4b9"), game_hud)
-	_label("回响之杖  /  最多保留 3 个造物", Vector2(22, 45), 13, Color("a5c4b9"), game_hud)
+	_label("回响之杖  /  最多保留 %d 个造物" % MAX_ECHOES, Vector2(22, 45), 13, Color("a5c4b9"), game_hud)
 	game_hud.visible = not embedded_mode
 	prompt = _label("", Vector2(0, -185), 22, Color("fff5d6"))
 	prompt.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
@@ -1262,7 +1262,7 @@ func _label(text: String, at: Vector2, font_size: int, color: Color, parent: Con
 
 
 func _update_hud() -> void:
-	echo_label.text = "%s回响    %d / 3" % [ECHO_OBJECTS.NAMES[selected_echo], echoes.size()] if knows_echo(selected_echo) else "未知回响"
+	echo_label.text = "%s回响    %d / %d" % [ECHO_OBJECTS.NAMES[selected_echo], echoes.size(), MAX_ECHOES] if knows_echo(selected_echo) else "未知回响"
 	if sanctuary_computer != null and sanctuary_computer.active:
 		prompt.text = "Qiuner 正在接你上台"
 		return
