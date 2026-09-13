@@ -8,13 +8,28 @@ const root = fileURLToPath(new URL('../../', import.meta.url))
 const out = path.join(root, 'dist', `desktop-${Date.now()}`)
 const app = path.join(out, 'app')
 const compiler = path.join(process.env.WINDIR ?? 'C:/Windows', 'Microsoft.NET/Framework64/v4.0.30319/csc.exe')
-const iscc = process.env.ISCC ?? 'C:/Users/Qiuner/AppData/Local/Programs/Inno Setup 6/ISCC.exe'
+const iscc = process.env.ISCC ?? [
+  path.join(process.env.LOCALAPPDATA ?? '', 'Programs/Inno Setup 6/ISCC.exe'),
+  path.join(process.env['ProgramFiles(x86)'] ?? '', 'Inno Setup 6/ISCC.exe'),
+].find(existsSync)
+if (!iscc || !existsSync(iscc)) throw new Error('请安装 Inno Setup 6，或通过 ISCC 指定编译器路径')
 if (process.platform !== 'win32' || process.arch !== 'x64' || !existsSync(compiler)) throw new Error('需要 Windows x64 和 .NET Framework 4.x 编译器')
 for (const file of ['packages/agent-isles-web/lib/client.js', 'games/mosslight/build/web/index.pck']) {
   if (!existsSync(path.join(root, file))) throw new Error(`缺少 ${file}，请先构建 Web 和世界`)
 }
 mkdirSync(app, { recursive: true })
-function copy(source, destination) { cpSync(path.join(root, source), path.join(app, destination ?? source), { recursive: true, dereference: true }) }
+let excludedFiles = 0
+function copy(source, destination) {
+  cpSync(path.join(root, source), path.join(app, destination ?? source), {
+    recursive: true, dereference: true,
+    filter: file => {
+      // Keep executable sources, package metadata and all licenses. Only omit
+      // type declarations and JS debugging maps, never entire source folders.
+      if (/\.(?:[cm]?js\.map|d\.[cm]?ts(?:\.map)?)$/i.test(file)) { excludedFiles++; return false }
+      return true
+    },
+  })
+}
 // Preserve the installed dynamic plugin dependency tree. Workspace junctions are materialized separately.
 for (const item of readdirSync(path.join(root, 'node_modules'), { withFileTypes: true })) {
   if (item.name === '.bin' || item.name === '@agent-isles' || item.name === '.yarn-state.yml') continue
@@ -49,8 +64,7 @@ compile('apps/desktop/Launcher.cs', path.join(app, 'agent-isles.exe'), [brandIco
 const zip = path.join(out, 'agent-isles-windows-x64.zip')
 const pack = spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', 'Add-Type -AssemblyName System.IO.Compression.FileSystem; [IO.Compression.ZipFile]::CreateFromDirectory($env:AGENT_ISLES_PACK_SOURCE, $env:AGENT_ISLES_PACK_ZIP)'], { env: { ...process.env, AGENT_ISLES_PACK_SOURCE: app, AGENT_ISLES_PACK_ZIP: zip }, stdio: 'inherit' })
 if (pack.status !== 0) throw new Error('压缩安装资源失败')
-const payload = path.join(out, 'payload')
-cpSync(app, payload, { recursive: true, dereference: true })
+console.log(`发行文件已排除 ${excludedFiles} 个声明及调试映射文件`)
 const iss = path.join(out, 'agent-isles.iss')
 const template = readFileSync(path.join(root, 'apps/desktop/agent-isles.iss'), 'utf8')
 writeFileSync(iss, template.replace(/\{#SourcePath\}/g, path.join(out, '').replace(/\\/g, '/')))

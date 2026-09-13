@@ -1,8 +1,11 @@
 param([Parameter(Mandatory=$true)][string]$BuildDirectory)
 $ErrorActionPreference = 'Stop'
 $buildRoot = (Resolve-Path -LiteralPath $BuildDirectory).Path
-$extractRoot = Join-Path $buildRoot ('isolated install ' + [guid]::NewGuid().ToString('N'))
-$setup = Start-Process -FilePath (Join-Path $buildRoot 'agent-isles-setup-x64.exe') -ArgumentList @('--extract', ('"' + $extractRoot + '"')) -WindowStyle Hidden -Wait -PassThru
+$extractRoot = Join-Path ([IO.Path]::GetTempPath()) ('isles app ' + [guid]::NewGuid().ToString('N').Substring(0, 8))
+$installWatch = [Diagnostics.Stopwatch]::StartNew()
+$setup = Start-Process -FilePath (Join-Path $buildRoot 'agent-isles-setup-x64.exe') -ArgumentList @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/TESTINSTALL=1', ('/DIR="' + $extractRoot + '"'), ('/LOG="' + (Join-Path $buildRoot 'install-test.log') + '"')) -WindowStyle Hidden -Wait -PassThru
+$installWatch.Stop()
+Write-Output ('Install elapsed seconds: ' + [math]::Round($installWatch.Elapsed.TotalSeconds, 1))
 if ($setup.ExitCode -ne 0) { throw 'Installer extraction failed' }
 $links = Get-ChildItem -LiteralPath $extractRoot -Recurse -Attributes ReparsePoint
 if ($links) { throw 'Distribution contains links to external files' }
