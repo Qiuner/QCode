@@ -164,7 +164,7 @@ func nearest(traveler: CharacterBody3D) -> StaticBody3D:
 
 func agent_isles_talk(npc: StaticBody3D, has_workspace: bool) -> Dictionary:
 	var identities := {
-		"gardener": ["芽芽 · 园丁", "我在这里照顾花草。想制作项目，可以去高台找 Qiuner。"],
+		"gardener": ["芽芽 · 园丁", "我在这里照顾花草。想制作项目，可以去高台找 Q。"],
 		"file_keeper": ["File Keeper · 整理", "我负责阅读项目、整理文件和维护资料。"],
 		"teacher": ["苔伯 · 项目与对话管理", "我帮你找回已有项目和历史对话，接着上次的事情。"],
 		"coordinator": ["向导 · 项目接待", "欢迎来到小镇。我负责绑定项目文件夹，也可以帮你切换项目。"],
@@ -205,5 +205,5 @@ func dialogue_lines(npc: StaticBody3D, learned: bool) -> Array[String]:
 			if not learned:
 				lines[1] = "先去南边石座上的木箱旁按 E。学会回响，就能搭出上台的落脚点。"
 		3:
-			lines = ["欢迎来到小镇，我是项目向导。", "制作找高台上的 Qiuner，查看文件找阿澜。", "项目需要安顿或更换的时候，来入口找我就好。"]
+			lines = ["欢迎来到小镇，我是项目向导。", "制作找高台上的 Q，查看文件找阿澜。", "项目需要安顿或更换的时候，来入口找我就好。"]
 	return lines

@@ -55,8 +55,8 @@ func run() -> void:
 	message.payload.panelOpen = true
 	message.payload.residents = [{"id": "coder", "status": "working"}]
 	game._on_agent_isles_message([JSON.stringify(message)])
-	check(game.sanctuary_computer.status_label.text.contains("执行中"), "coder status is shown on Qiuner")
-	check(not game.dialogue_panel.visible, "Qiuner host panel clears local dialogue")
+	check(game.sanctuary_computer.status_label.text.contains("执行中"), "coder status is shown on Q")
+	check(not game.dialogue_panel.visible, "Q host panel clears local dialogue")
 	print("MOSSLIGHT_EMBEDDED_HUD_TESTS_COMPLETE failures=%d" % failures)
 	quit(1 if failures else 0)
 

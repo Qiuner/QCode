@@ -851,7 +851,7 @@ func _interact() -> void:
 			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 			_emit_agent_isles("resident:selected", {"residentId": "coder"})
 		else:
-			_show_toast("Qiuner · 在小岛网页版中打开项目对话。", 4)
+			_show_toast("Q · 在小岛网页版中打开项目对话。", 4)
 		return
 	if sanctuary_computer.can_grab():
 		sanctuary_computer.grab()
@@ -1272,13 +1272,13 @@ func _label(text: String, at: Vector2, font_size: int, color: Color, parent: Con
 func _update_hud() -> void:
 	echo_label.text = "%s回响    %d / %d" % [ECHO_OBJECTS.NAMES[selected_echo], echoes.size(), MAX_ECHOES] if knows_echo(selected_echo) else "未知回响"
 	if sanctuary_computer != null and sanctuary_computer.active:
-		prompt.text = "Qiuner 正在接你上台"
+		prompt.text = "Q 正在接你上台"
 		return
 	if sanctuary_computer != null and sanctuary_computer.can_use():
-		prompt.text = "[ E ]  使用 Qiuner"
+		prompt.text = "[ E ]  使用 Q"
 		return
 	if sanctuary_computer != null and sanctuary_computer.can_grab():
-		prompt.text = "[ E ]  让 Qiuner 接你上台"
+		prompt.text = "[ E ]  让 Q 接你上台"
 		return
 	if sanctuary_computer != null and sanctuary_computer.can_remote_grab():
 		prompt.text = ""

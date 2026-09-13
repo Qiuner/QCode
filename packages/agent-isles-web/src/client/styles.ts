@@ -307,7 +307,7 @@ export const WORLD_STYLES = `
 .agent-isles-resident-copy small { color: #b9d0c2; font-size: 11px; }
 .agent-isles-hero-mark { border-radius: 5px; }
 span:has(.agent-isles-hero-mark) + span { font-size: 0; }
-span:has(.agent-isles-hero-mark) + span::after { content: '和 Qiuner 一起创作'; font-size: 26px; }
+span:has(.agent-isles-hero-mark) + span::after { content: '和 Q 一起创作'; font-size: 26px; }
 span:has(.agent-isles-hero-mark) + span + span { font-size: 0; }
 span:has(.agent-isles-hero-mark) + span + span::after { content: '自由创作'; font-size: 12px; }
 .agent-isles-prompt { display: grid; gap: 7px; margin: 10px 4px 2px; padding-top: 10px; border-top: 1px solid #42665a; }

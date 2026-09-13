@@ -215,7 +215,7 @@ export function AgentIslesWorld(props: Props) {
     setProjectMenuOpen(false)
     setShowModels(false)
     setGuideView('welcome')
-    if (id === 'coder' && modelState.ready === false) { setShowModels(true); setError('先连接模型，Qiuner 才能开始制作。'); return }
+    if (id === 'coder' && modelState.ready === false) { setShowModels(true); setError('先连接模型，Q 才能开始制作。'); return }
     const next = workspace && !loadingProjects && !recoveryFailed || id === 'coordinator' || id === 'teacher' || id === 'file_keeper' ? id : 'coordinator'
     if (id === 'file_keeper' && followingKeeper) { setFollowingKeeper(false); moveKeeper('cancel') }
     if (next === selected) return
@@ -226,7 +226,7 @@ export function AgentIslesWorld(props: Props) {
 
   async function enterLearning(run?: TutorialRun) {
     if (busy || tutorial.busy || !props.tutorials) return
-    if (modelState.ready !== true) { setShowModels(true); setError(modelState.ready === null ? '正在读取模型配置…' : '先连接模型，Qiuner 才能带你完成第一个作品。'); return }
+    if (modelState.ready !== true) { setShowModels(true); setError(modelState.ready === null ? '正在读取模型配置…' : '先连接模型，Q 才能带你完成第一个作品。'); return }
     requestProjectFullscreen()
     setBusy(true); setError('')
     try {
@@ -317,7 +317,7 @@ export function AgentIslesWorld(props: Props) {
     setProjectMenuOpen(false)
     skipAutoProject.current = false
     setGuideView('welcome')
-    if (id === 'coder' && modelState.ready === false) { setShowModels(true); setError('先连接模型，Qiuner 才能开始制作。'); return }
+    if (id === 'coder' && modelState.ready === false) { setShowModels(true); setError('先连接模型，Q 才能开始制作。'); return }
     if (id === projectId) return
     ++operation.current
     setProjectId(id)
@@ -351,7 +351,7 @@ export function AgentIslesWorld(props: Props) {
 
   async function send(text: string, clearDraft = true) {
     if (!workspace || !selected || selected === 'coordinator' || busy || !text.trim()) return
-    if (selected === 'coder' && modelState.ready === false) { setShowModels(true); setError('先连接模型，Qiuner 才能开始制作。'); return }
+    if (selected === 'coder' && modelState.ready === false) { setShowModels(true); setError('先连接模型，Q 才能开始制作。'); return }
     const ticket = operation.current
     const key = draftKey
     setBusy(true); setError('')
@@ -476,11 +476,11 @@ export function AgentIslesWorld(props: Props) {
           {loadingProjects && !recoveryFailed ? <p role="status">正在恢复项目和创作手册…</p> : recoveryFailed ? <div role="alert"><p>{recoveryFailed}</p><button onClick={() => { setRestoreAttempt(value => value + 1) }}>重试恢复</button><button onClick={() => window.location.reload()}>重新连接</button></div> : <>
           {!workspace && projectId && <p role="alert">上次项目已不在当前项目列表中，请选择已有项目或重新绑定。原会话不会被自动替换。</p>}
           {guideView === 'records' && <div className="town-handbook">
-            <section><img src={RESIDENT_PORTRAITS.coder} alt="" /><div><h3>自由创作</h3><p>带上自己的想法或已有项目，和 Qiuner 一起制作，按自己的节奏探索和修改。</p><button disabled={busy} onClick={() => void enterCreation()}>开始创作</button></div></section>
+            <section><img src={RESIDENT_PORTRAITS.coder} alt="" /><div><h3>自由创作</h3><p>带上自己的想法或已有项目，和 Q 一起制作，按自己的节奏探索和修改。</p><button disabled={busy} onClick={() => void enterCreation()}>开始创作</button></div></section>
           </div>}
-          {guideView === 'welcome' && <><p className="town-dialogue-line">{workspace ? `你正在项目「${workspace.title}」里，要继续和Qiuner制作吗？` : '欢迎来到小岛。想做点什么，或先认识这里？'}</p>
+          {guideView === 'welcome' && <><p className="town-dialogue-line">{workspace ? `你正在项目「${workspace.title}」里，要继续和Q制作吗？` : '欢迎来到小岛。想做点什么，或先认识这里？'}</p>
           <div className="town-dialogue-choices">
-            {!workspace ? <button className="town-primary" onClick={() => setGuideView('projects')}>我想做一个东西</button> : !modelState.ready ? <button className="town-primary" disabled={modelState.ready === null} onClick={() => setShowModels(true)}>{modelState.ready === null ? '正在准备…' : '连接模型，开始制作'}</button> : <button className="town-primary" onClick={() => choose('coder')}>找Qiuner聊聊</button>}
+            {!workspace ? <button className="town-primary" onClick={() => setGuideView('projects')}>我想做一个东西</button> : !modelState.ready ? <button className="town-primary" disabled={modelState.ready === null} onClick={() => setShowModels(true)}>{modelState.ready === null ? '正在准备…' : '连接模型，开始制作'}</button> : <button className="town-primary" onClick={() => choose('coder')}>找 Q聊聊</button>}
             <button onClick={closeConversation}>先逛逛</button>
             <button onClick={() => setGuideView('residents')}>带我认识这里</button>
           </div></>}
@@ -495,12 +495,12 @@ export function AgentIslesWorld(props: Props) {
           <p className="town-dialogue-line">把项目文件夹的路径告诉我。</p>
           <form onSubmit={event => { event.preventDefault(); void bind(path.trim()) }}><label htmlFor="town-folder">文件夹路径</label><input id="town-folder" value={path} onChange={event => setPath(event.target.value)} placeholder="D:\Projects\MyProject" /><button disabled={busy || !path.trim()}>安顿在这里</button></form>
         </>}
-        {guideView === 'residents' && <><p className="town-dialogue-line">Qiuner帮你制作功能，苔伯帮你找回项目和对话，阿澜帮你查阅文件。靠近居民按 E 就能交谈。</p><div className="town-dialogue-choices">{RESIDENTS.filter(item => item.id !== 'coordinator').map(item => {
+        {guideView === 'residents' && <><p className="town-dialogue-line">Q 帮你制作功能，苔伯帮你找回项目和对话，阿澜帮你查阅文件。靠近居民按 E 就能交谈。</p><div className="town-dialogue-choices">{RESIDENTS.filter(item => item.id !== 'coordinator').map(item => {
           const id = workspace ? props.sessionForResident(workspace.workspaceId, item.id) : undefined
           const summary = id ? sessionState.byId[id as SessionId] : undefined
           const savedDraft = workspace ? drafts[`${workspace.workspaceId}:${item.id}`] : undefined
           const continuing = !!savedDraft || !!summary && !summary.blank
-          return <button key={item.id} onClick={() => choose(item.id)}>{continuing ? `继续找${item.name.split(' · ')[0]}` : item.id === 'coder' ? '找Qiuner制作功能' : item.id === 'teacher' ? '找苔伯管理项目与对话' : '找阿澜查看文件'}{continuing && <small>{savedDraft ? '有草稿' : summary?.running ? '正在工作' : '继续会话'}</small>}</button>
+          return <button key={item.id} onClick={() => choose(item.id)}>{continuing ? `继续找${item.name.split(' · ')[0]}` : item.id === 'coder' ? '找 Q制作功能' : item.id === 'teacher' ? '找苔伯管理项目与对话' : '找阿澜查看文件'}{continuing && <small>{savedDraft ? '有草稿' : summary?.running ? '正在工作' : '继续会话'}</small>}</button>
         })}</div></>}
         {guideView === 'options' && <><p className="town-dialogue-line">还有什么需要我帮忙的？</p><nav className="town-dialogue-choices" aria-label="小镇设置与帮助"><button onClick={() => setGuideView('projects')}>管理项目</button><button onClick={() => setShowModels(true)}>模型设置</button><button aria-haspopup="dialog" onClick={() => { closeConversation(); openWorldGuide() }}>操作帮助</button><a href="/workbench">高级工作台 ↗</a></nav></>}
         <footer className="town-dialogue-footer">{guideView === 'welcome' ? <><button className="town-text-action" onClick={() => setGuideView('projects')}>{workspace ? '更换项目' : '已有项目 / 输入路径'}</button><button className="town-text-action" onClick={() => setGuideView('options')}>还有件事…</button></> : <button className="town-text-action" onClick={() => { setGuideView('welcome'); setError('') }}>返回对话</button>}</footer>
@@ -528,7 +528,7 @@ export function AgentIslesWorld(props: Props) {
 
         {!workOpen && <details className="town-path"><summary>当前项目：{workspace?.title}</summary><p>{workspace?.path}</p></details>}
         {interaction && <div className="town-approval" role="status"><strong>需要你的确认</strong>{approval ? <>
-          {tutorialPanel && <p>Qiuner需要你决定是否执行下面的操作。请查看原因与具体内容；允许或拒绝都不会直接推进教程。拒绝后可以让Qiuner说明替代办法。</p>}<p>{approval.toolName}：{approval.reason ?? '本次工具调用需要批准'}</p>
+          {tutorialPanel && <p>Q需要你决定是否执行下面的操作。请查看原因与具体内容；允许或拒绝都不会直接推进教程。拒绝后可以让 Q说明替代办法。</p>}<p>{approval.toolName}：{approval.reason ?? '本次工具调用需要批准'}</p>
           <pre>{binding && projectResidentEvents(binding.eventSource.getSnapshot().entries).tools.find(tool => tool.key === approval.callId)?.arguments}</pre>
           <button onClick={() => { void approval.answer('allowed-once').catch(reason => setError(String(reason))) }}>仅允许这一次</button>
           <button onClick={() => { void approval.answer('rejected').catch(reason => setError(String(reason))) }}>拒绝</button>
@@ -537,7 +537,7 @@ export function AgentIslesWorld(props: Props) {
         {tutorialPanel && (workOpen && bindingId ? <details className="town-course-disclosure"><summary>首课进度</summary>{tutorialPanel}</details> : tutorialPanel)}
         {!workOpen && <nav className="town-guide-tools" aria-label="会话导航"><button onClick={() => choose('coordinator')}>返回向导</button><button onClick={() => setShowModels(true)}>模型设置</button></nav>}
         {!bindingId && (!tutorialPanel || tutorial.run?.paused || tutorial.run?.step === 'complete') && composerTarget && createPortal(<form onSubmit={event => { event.preventDefault(); void send(draft) }}>
-          <label htmlFor="town-request">{selected === 'coder' ? '告诉Qiuner你的想法或想改的地方' : '文件相对路径'}</label>
+          <label htmlFor="town-request">{selected === 'coder' ? '告诉 Q你的想法或想改的地方' : '文件相对路径'}</label>
           <textarea id="town-request" rows={3} value={draft} disabled={busy} placeholder={selected === 'coder' ? '例如：给首页加一个待办清单，可以添加和完成事项。请验证这两个操作。' : undefined} onChange={event => setDrafts(value => ({ ...value, [draftKey]: event.target.value }))} />
           {draft && <small>{draftStorageError ? '草稿暂时只能保留在当前页面，刷新前请复制保存。' : '草稿保存在此浏览器，回来可以继续填写。'}</small>}
           <button title={binding?.session.getSnapshot().running ? '发送补充（排队）' : resident.action} disabled={busy || !binding || !draft.trim()}>{busy ? '连接中' : '发送'}</button>

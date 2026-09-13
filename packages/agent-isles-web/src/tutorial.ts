@@ -77,7 +77,7 @@ export function createTutorialHandler(ctx: Context, runs: KvTable<string, Tutori
         if (cmd.draft === undefined) throw new TutorialError('缺少草稿。', 400)
         run.draft = cmd.draft; break
       case 'idea':
-        if (run.step !== 'idea' || !cmd.draft?.trim()) throw new TutorialError('先告诉Qiuner想做什么。')
+        if (run.step !== 'idea' || !cmd.draft?.trim()) throw new TutorialError('先告诉 Q想做什么。')
         run.draft = cmd.draft; run.step = 'folder'; break
       case 'seen': run.encounterSeen = true; break
       case 'bind': {
@@ -116,10 +116,10 @@ export function createTutorialHandler(ctx: Context, runs: KvTable<string, Tutori
         const events = await eventsFor(cmd.sessionId)
         if (cmd.action === 'followup') {
           const previous = run.submission!
-          if (previous.sessionId !== cmd.sessionId) throw new TutorialError('请在原会话回答Qiuner。', 400)
+          if (previous.sessionId !== cmd.sessionId) throw new TutorialError('请在原会话回答 Q。', 400)
           const index = events.findIndex(event => event.type === 'user/message' && 'rpcId' in event.data.source && event.data.source.rpcId === previous.requestId)
           const start = events.slice(0, index).reverse().find(event => event.type === 'turn/start')
-          if (index < 0 || start?.type !== 'turn/start' || !events.some(event => event.type === 'turn/end' && event.data.turn === start.data.turn)) throw new TutorialError('Qiuner仍在执行或等待审批，请先处理当前请求。')
+          if (index < 0 || start?.type !== 'turn/start' || !events.some(event => event.type === 'turn/end' && event.data.turn === start.data.turn)) throw new TutorialError('Q 仍在执行或等待审批，请先处理当前请求。')
         }
         run.submission = { sessionId: cmd.sessionId, requestId: cmd.submissionId, text: cmd.text, from: events.length, stage: run.step as 'build' | 'improve' }
         run.evidence = undefined
@@ -160,7 +160,7 @@ export function createTutorialHandler(ctx: Context, runs: KvTable<string, Tutori
         const start = events.slice(0, userIndex).reverse().find(event => event.type === 'turn/start')
         const end = start?.type === 'turn/start' ? events.find(event => event.type === 'turn/end' && event.data.turn === start.data.turn) : undefined
         if (userIndex < 0 || !end || end.type !== 'turn/end' || end.data.reason.kind !== 'completed') throw new TutorialError('本轮尚未确认完成，请查看执行或等待后再检查。')
-        if (!events.some(event => event.type === 'tool/result' && event.data.turn === end.data.turn && !event.data.error && !event.data.message.content[0].isError)) throw new TutorialError('还没有可核对的工具执行记录，请让Qiuner实际制作并验证。')
+        if (!events.some(event => event.type === 'tool/result' && event.data.turn === end.data.turn && !event.data.error && !event.data.message.content[0].isError)) throw new TutorialError('还没有可核对的工具执行记录，请让 Q实际制作并验证。')
         await ctx.sessionPersistence.flush()
         const result = await artifact(run)
         if (!/<(?:html|body|!doctype)\b/i.test(result.html)) throw new TutorialError('项目根目录还没有可预览的 HTML 作品。')
@@ -171,7 +171,7 @@ export function createTutorialHandler(ctx: Context, runs: KvTable<string, Tutori
       }
       case 'confirm':
         if (!run.evidence || !['inspect', 'review'].includes(run.step)) throw new TutorialError('先核对本轮作品。')
-        if ((await artifact(run)).hash !== run.evidence.hash) throw new TutorialError('作品已经变化，请回到Qiuner重新核对，不能确认旧预览。')
+        if ((await artifact(run)).hash !== run.evidence.hash) throw new TutorialError('作品已经变化，请回到 Q重新核对，不能确认旧预览。')
         if (run.step === 'inspect') { run.firstHash = run.evidence.hash; run.step = 'improve' } else run.step = 'return'
         run.submission = undefined
         break

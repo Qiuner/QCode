@@ -19,13 +19,13 @@ test('running work cannot open an unverified preview', () => {
 test('pending request takes precedence over preview and generic answer prompts', () => {
   const html = render({ waiting: true })
   assert.match(html, /disabled="">请先处理上面的请求/)
-  assert.match(html, /处理请求后，告诉Qiuner你的决定/)
+  assert.match(html, /处理请求后，告诉 Q你的决定/)
 })
 test('idle submitted work offers verification rather than claiming success', () => {
   const html = render({})
   assert.match(html, /检查成果，打开作品/)
   assert.match(html, /核对通过后会打开预览/)
-  assert.match(html, /告诉Qiuner想改哪里，或补充说明/)
+  assert.match(html, /告诉 Q想改哪里，或补充说明/)
 })
 
 test('native session keeps tutorial checks without rendering a second composer', () => {

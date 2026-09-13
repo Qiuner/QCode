@@ -235,7 +235,7 @@
     const pause = document.createElement('dialog');
     pause.id = 'pause-menu';
     pause.setAttribute('aria-labelledby', 'pause-title');
-    pause.innerHTML = `<h2 id="pause-title">休息一下</h2><p>已暂停</p><div id="pause-home" class="pause-actions"><button id="pause-resume" autofocus>继续探索</button><button id="pause-options">声音与画面</button><button id="pause-help">操作指南</button></div><div id="pause-settings" hidden><label>声音<input type="checkbox" id="pause-sound"></label><label>环境动态<input type="checkbox" id="pause-nature"></label><label>镜头动态<input type="checkbox" id="pause-camera"></label><div class="pause-actions"><button id="pause-back">返回</button></div></div><p id="pause-task" hidden>Qiuner 仍在处理任务</p>`;
+    pause.innerHTML = `<h2 id="pause-title">休息一下</h2><p>已暂停</p><div id="pause-home" class="pause-actions"><button id="pause-resume" autofocus>继续探索</button><button id="pause-options">声音与画面</button><button id="pause-help">操作指南</button></div><div id="pause-settings" hidden><label>声音<input type="checkbox" id="pause-sound"></label><label>环境动态<input type="checkbox" id="pause-nature"></label><label>镜头动态<input type="checkbox" id="pause-camera"></label><div class="pause-actions"><button id="pause-back">返回</button></div></div><p id="pause-task" hidden>Q 仍在处理任务</p>`;
     document.body.appendChild(pause);
     let guideFromPause = false;
     const pauseHome = document.getElementById('pause-home');
@@ -253,7 +253,7 @@
     const developer = document.createElement('dialog');
     developer.id = 'developer-menu';
     developer.setAttribute('aria-labelledby', 'developer-title');
-    developer.innerHTML = `<h2 id="developer-title">开发者面板</h2><p>直接预览角色演出，无需等待 AI 完成或自动召回。不会修改任务状态。</p><div class="pause-actions"><button id="developer-talk">触发 Qiuner 剧情对话</button><button id="developer-close">返回暂停菜单</button></div>`;
+    developer.innerHTML = `<h2 id="developer-title">开发者面板</h2><p>直接预览角色演出，无需等待 AI 完成或自动召回。不会修改任务状态。</p><div class="pause-actions"><button id="developer-talk">触发 Q 剧情对话</button><button id="developer-close">返回暂停菜单</button></div>`;
     document.body.appendChild(developer);
     let developerClicks = 0;
     let developerLastClick = 0;
