@@ -44,6 +44,13 @@ func run() -> void:
 	check(computer.remote_active or computer.active, "completed work starts recall when no panel is opened")
 	computer.remote_active = false
 	computer.active = false
+	computer.remote_transport = true
+	computer.active = true
+	computer.time = 2.0
+	game.player.position = Vector3(15, .05, -3.5)
+	game.player.velocity = Vector3.ZERO
+	await tick(2)
+	check(not computer.active and game.player.position.distance_to(computer.LANDING) < .12, "blocked cross-region transport falls back to safe landing")
 	game.player.position = Vector3(18, .05, 3)
 	game.player.velocity = Vector3.ZERO
 	await tick(3)

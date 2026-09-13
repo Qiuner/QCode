@@ -177,7 +177,22 @@ func agent_isles_talk(npc: StaticBody3D, has_workspace: bool) -> Dictionary:
 
 
 func talk(npc: StaticBody3D, learned: bool) -> String:
+	var lines := dialogue_lines(npc, learned)
 	var phase := "learned" if learned else "new"
+	if npc.get_meta("dialogue_phase") != phase:
+		npc.set_meta("line_index", 0)
+		npc.set_meta("dialogue_phase", phase)
+	var index := int(npc.get_meta("line_index")) % lines.size()
+	npc.set_meta("line_index", index + 1)
+	return lines[index]
+
+
+func dialogue_progress(npc: StaticBody3D, learned: bool) -> Vector2i:
+	var lines := dialogue_lines(npc, learned)
+	return Vector2i(int(npc.get_meta("line_index")), lines.size())
+
+
+func dialogue_lines(npc: StaticBody3D, learned: bool) -> Array[String]:
 	var lines: Array[String] = []
 	match int(npc.get_meta("resident_id")):
 		0:
@@ -191,9 +206,4 @@ func talk(npc: StaticBody3D, learned: bool) -> String:
 				lines[1] = "先去南边石座上的木箱旁按 E。学会回响，就能搭出上台的落脚点。"
 		3:
 			lines = ["欢迎来到小镇，我是项目向导。", "制作找高台上的 Qiuner，查看文件找阿澜。", "项目需要安顿或更换的时候，来入口找我就好。"]
-	if npc.get_meta("dialogue_phase") != phase:
-		npc.set_meta("line_index", 0)
-		npc.set_meta("dialogue_phase", phase)
-	var index := int(npc.get_meta("line_index")) % lines.size()
-	npc.set_meta("line_index", index + 1)
-	return lines[index]
+	return lines

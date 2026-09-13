@@ -84,6 +84,7 @@ var talking_to: StaticBody3D
 var dialogue_panel: Panel
 var dialogue_name: Label
 var dialogue_text: Label
+var dialogue_count: Label
 var dialogue_left := 0.0
 var garden: Node3D
 var sanctuary_computer: Node3D
@@ -864,6 +865,12 @@ func _interact() -> void:
 	elif streamside != null and streamside.at_lookout(player.global_position):
 		_show_toast("听风台 · 树梢就在身旁，溪水从脚下流过。歇一会儿，再去别处走走吧。", 7)
 	else:
+		if talking_to != null and dialogue_panel.visible and residents.nearest(player) == talking_to:
+			dialogue_name.text = talking_to.get_meta("display_name")
+			dialogue_text.text = residents.talk(talking_to, learned)
+			var progress: Vector2i = residents.dialogue_progress(talking_to, learned)
+			dialogue_count.text = "%d / %d" % [progress.x, progress.y]
+			return
 		var npc: StaticBody3D = residents.nearest(player)
 		if npc != null:
 			if (embedded_mode or agent_isles_connected) and npc.get_meta("agent_isles_id") != "gardener":
@@ -877,7 +884,9 @@ func _interact() -> void:
 			talking_to = npc
 			dialogue_name.text = npc.get_meta("display_name")
 			dialogue_text.text = residents.talk(npc, learned)
-			dialogue_left = 10
+			dialogue_left = 0
+			var progress: Vector2i = residents.dialogue_progress(npc, learned)
+			dialogue_count.text = "%d / %d" % [progress.x, progress.y]
 			dialogue_panel.visible = true
 			toast.visible = false
 
@@ -1195,7 +1204,10 @@ func _build_ui() -> void:
 	dialogue_text = _label("", Vector2(26, 49), 23, Color("fff3d8"), dialogue_panel)
 	dialogue_text.size = Vector2(988, 58)
 	dialogue_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_label("E 再聊一句 · 走远自动结束", Vector2(26, 111), 14, Color("a5c4b9"), dialogue_panel)
+	dialogue_count = _label("", Vector2(900, 18), 14, Color("a5c4b9"), dialogue_panel)
+	dialogue_count.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	dialogue_count.size = Vector2(90, 24)
+	_label("E 继续 · Esc 离开 · 走远自动结束", Vector2(26, 111), 14, Color("a5c4b9"), dialogue_panel)
 	dialogue_panel.visible = false
 	pause_panel = _panel(Vector2.ZERO, Vector2(360, 210), Color("f4f7f2"))
 	pause_panel.set_anchors_preset(Control.PRESET_CENTER)

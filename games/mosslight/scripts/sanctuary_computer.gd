@@ -17,6 +17,7 @@ const REMOTE_CALL_TIME := 1.25
 
 var active := false
 var remote_active := false
+var remote_transport := false
 var remote_time := 0.0
 var time := 0.0
 var idle_time := 0.0
@@ -193,6 +194,7 @@ func advance(delta: float) -> void:
 		if remote_time >= REMOTE_CALL_TIME:
 			remote_active = false
 			active = true
+			remote_transport = true
 			time = 0.0
 			start = game.player.global_position
 			released = false
@@ -224,6 +226,17 @@ func advance(delta: float) -> void:
 		# Sweep the actual player capsule every frame; never carry through props or placed echoes.
 		var hit: KinematicCollision3D = game.player.move_and_collide(target - game.player.global_position)
 		if hit != null:
+			if remote_transport:
+				# A cross-region arm can be visually occluded by a building. The
+				# safe landing is the authoritative fallback once the route fails.
+				game.player.global_position = LANDING
+				game.player.velocity = Vector3.ZERO
+				active = false
+				remote_transport = false
+				game.first_person_feedback.reset()
+				_pose(0)
+				game._show_toast("路径被建筑挡住，已安全传送回中央平台。", 3)
+				return
 			released = true
 			time = TRANSPORT_END
 			game._show_toast("前面有东西挡住了，先在这里放下。", 3)
@@ -235,6 +248,7 @@ func advance(delta: float) -> void:
 	_pose(reach)
 	if time >= TRANSPORT_END + RELEASE_TIME:
 		active = false
+		remote_transport = false
 		game.player.velocity = Vector3.ZERO
 		game.first_person_feedback.reset()
 		_pose(0)
