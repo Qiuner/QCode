@@ -5,9 +5,10 @@
 ## 从这里开始
 
 - **使用产品**：先看根目录 [README](../README.md)，再看教程或自由创作相关说明。
-- **开发新岛屿**：先看[岛屿与插件开发指南](plugin-development.md)，再看[岛屿接入契约](world-integration-contract.md)。
+- **开发新岛屿**：先看[岛屿与插件开发指南](../packages/agent-isles-web/docs/plugin-development.md)，再看[岛屿接入契约](world-integration-contract.md)。
 - **理解系统**：先看[总体架构](architecture.md)，再按领域阅读专项契约。
 - **维护与发布**：看运行恢复、启动性能、发布检查和施工记录。
+- **维护文档**：先看[文档维护指南](documentation-guide.md)，了解文档类型、状态和证据规则。
 
 ## 当前文档
 
@@ -20,7 +21,8 @@
 | [网页定制](web-customization.md) | DSH Web profile 的定制方式 |
 | [世界网页方案](world-web-plan.md) | Godot 世界与 Harness Web 的组合方案 |
 | [岛屿接入契约](world-integration-contract.md) | 新增岛屿必须遵守的宿主边界、对象映射、桥接协议与验收条件 |
-| [岛屿与插件开发指南](plugin-development.md) | 新增岛屿、Host / Client 插件的开发路径与最小交付物 |
+| [岛屿与插件开发指南](../packages/agent-isles-web/docs/plugin-development.md) | 新增岛屿、Host / Client 插件的开发路径与最小交付物 |
+| [文档维护指南](documentation-guide.md) | 文档分类、状态标记、证据位置与更新规则 |
 | [网页优先 MVP](agent-isles-mvp-plan.md) | 当前最小业务闭环 |
 | [实施计划](plan.md) | 当前进度与后续阶段 |
 | [施工记录](construction-plan.md) | 工作闭环的实际交付、验证与后续施工顺序 |
@@ -38,3 +40,4 @@
 - `.agents/notes/implemented/` 保存已经采用的长期决策。
 - `.agents/notes/proposed/` 只在确有待评审方案时使用；提案不能写成已实现能力。
 - `deepseek-harness/` 是固定版本的上游源码，其文档不属于 agent-isles 文档。
+
