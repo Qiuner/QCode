@@ -1,0 +1,100 @@
+msgid ""
+msgstr ""
+"Language: en\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "resident.gardener.name"
+msgstr "Sprout · Gardener"
+
+msgid "resident.file_keeper.name"
+msgstr "Alan · Fisher"
+
+msgid "resident.teacher.name"
+msgstr "Uncle Moss · Well Keeper"
+
+msgid "resident.status.working"
+msgstr "Working"
+
+msgid "resident.status.thinking"
+msgstr "Thinking"
+
+msgid "resident.status.approval"
+msgstr "Awaiting approval"
+
+msgid "resident.status.completed"
+msgstr "Completed"
+
+msgid "resident.status.failed"
+msgstr "Needs attention"
+
+msgid "action.use_q"
+msgstr "[ E ]  Use Q"
+
+msgid "action.q_lift"
+msgstr "[ E ]  Ask Q for a lift"
+
+msgid "action.q_lifting"
+msgstr "Q is lifting you onto the platform"
+
+msgid "action.talk"
+msgstr "[ E ]  Talk to %s"
+
+msgid "region.reload"
+msgstr "[ E ]  Reload nearby regions"
+
+msgid "region.loading"
+msgstr "Nearby regions are loading…"
+
+msgid "region.streamside"
+msgstr "Streamside Garden"
+
+msgid "region.desert"
+msgstr "Sunlit Oasis"
+
+msgid "region.failed"
+msgstr "Unavailable · load failed"
+
+msgid "region.preparing"
+msgstr "Region preparing"
+
+msgid "role.gardener"
+msgstr "Gardener"
+
+msgid "role.file_keeper"
+msgstr "File keeper"
+
+msgid "role.teacher"
+msgstr "Projects, folders and history"
+
+msgid "dialogue.gardener.1"
+msgstr "I'm Sprout. This little flower is for Uncle Moss."
+
+msgid "dialogue.gardener.2"
+msgstr "The rabbit on the left keeps eyeing my carrots. Don't cover for it."
+
+msgid "dialogue.gardener.learn"
+msgstr "The wooden crate on the stone plinth is special. Walk up and press E to remember its shape."
+
+msgid "dialogue.gardener.learned"
+msgstr "You learned the crate echo? Place one with F and recall it with Q, but mind my seedlings."
+
+msgid "dialogue.keeper.1"
+msgstr "Shh, I'm waiting for a fish. The duck arrived first."
+
+msgid "dialogue.keeper.2"
+msgstr "The western garden is shady, and the eastern stone bridge leads to the desert."
+
+msgid "dialogue.keeper.3"
+msgstr "There is no hurry here. Rest by the water when your feet get tired."
+
+msgid "dialogue.teacher.1"
+msgstr "I'm Uncle Moss. I tend this place and help everyone manage their projects."
+
+msgid "dialogue.teacher.2"
+msgstr "Place a crate before the platform, jump onto it, then jump onto the stone ledge."
+
+msgid "dialogue.teacher.learn"
+msgstr "First visit the crate on the southern stone plinth and press E. Its echo gives you a step onto the platform."
+
+msgid "dialogue.teacher.3"
+msgstr "Come to me whenever you need to choose a project or recover an earlier conversation."

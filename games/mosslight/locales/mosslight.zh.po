@@ -1,0 +1,100 @@
+msgid ""
+msgstr ""
+"Language: zh\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "resident.gardener.name"
+msgstr "芽芽 · 园丁"
+
+msgid "resident.file_keeper.name"
+msgstr "阿澜 · 钓鱼人"
+
+msgid "resident.teacher.name"
+msgstr "苔伯 · 守井人"
+
+msgid "resident.status.working"
+msgstr "工作中"
+
+msgid "resident.status.thinking"
+msgstr "思考中"
+
+msgid "resident.status.approval"
+msgstr "等待确认"
+
+msgid "resident.status.completed"
+msgstr "已完成"
+
+msgid "resident.status.failed"
+msgstr "遇到问题"
+
+msgid "action.use_q"
+msgstr "[ E ]  使用 Q"
+
+msgid "action.q_lift"
+msgstr "[ E ]  让 Q 接你上台"
+
+msgid "action.q_lifting"
+msgstr "Q 正在接你上台"
+
+msgid "action.talk"
+msgstr "[ E ]  与%s交谈"
+
+msgid "region.reload"
+msgstr "[ E ]  重新加载邻近区域"
+
+msgid "region.loading"
+msgstr "邻近区域正在加载…"
+
+msgid "region.streamside"
+msgstr "溪间庭院"
+
+msgid "region.desert"
+msgstr "晴沙绿洲"
+
+msgid "region.failed"
+msgstr "暂未开放 · 加载失败"
+
+msgid "region.preparing"
+msgstr "区域准备中"
+
+msgid "role.gardener"
+msgstr "园丁"
+
+msgid "role.file_keeper"
+msgstr "文件整理"
+
+msgid "role.teacher"
+msgstr "项目、文件夹与历史管理"
+
+msgid "dialogue.gardener.1"
+msgstr "我是芽芽。这盆小花，准备送给苔伯。"
+
+msgid "dialogue.gardener.2"
+msgstr "左边的兔子总惦记我的胡萝卜。你可别替它打掩护。"
+
+msgid "dialogue.gardener.learn"
+msgstr "石座上的木箱很特别。靠近它按 E，试着记住它的模样。"
+
+msgid "dialogue.gardener.learned"
+msgstr "已经学会木箱回响啦？F 放一只，Q 收回，别压到我的菜苗。"
+
+msgid "dialogue.keeper.1"
+msgstr "嘘——我在等鱼。小鸭倒是比鱼先来了。"
+
+msgid "dialogue.keeper.2"
+msgstr "西边庭院的树荫很凉快，东边石桥通往沙漠。"
+
+msgid "dialogue.keeper.3"
+msgstr "这里不赶时间。走累了，就陪我看一会儿水面。"
+
+msgid "dialogue.teacher.1"
+msgstr "我是苔伯，平时在这里照看花草，也替大家管理项目。"
+
+msgid "dialogue.teacher.2"
+msgstr "在高台前放一只木箱：先跳上箱子，再跳上石台。"
+
+msgid "dialogue.teacher.learn"
+msgstr "先去南边石座上的木箱旁按 E。学会回响，就能搭出上台的落脚点。"
+
+msgid "dialogue.teacher.3"
+msgstr "要选择项目或找回以前的对话，都可以来找我。"

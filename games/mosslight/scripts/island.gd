@@ -210,6 +210,9 @@ func _on_agent_isles_message(arguments: Array) -> void:
 	var message := parsed as Dictionary
 	if message.get("source") != "agent-isles-host" or int(message.get("version", 0)) != 1:
 		return
+	if message.get("type") == "world:locale":
+		_set_world_locale(str(message.get("payload", {}).get("locale", "zh")))
+		return
 	if message.get("type") == "world:pause-action":
 		var action: String = str(message.get("payload", {}).get("action", ""))
 		if action == "developer":
@@ -282,6 +285,7 @@ func _on_agent_isles_message(arguments: Array) -> void:
 		return
 	agent_isles_connected = true
 	var payload: Dictionary = message.get("payload", {})
+	_set_world_locale(str(payload.get("locale", "zh")))
 	var panel_open := bool(payload.get("panelOpen", false))
 	if panel_open != agent_isles_panel_open:
 		agent_isles_panel_open = panel_open
@@ -316,6 +320,17 @@ func _on_agent_isles_message(arguments: Array) -> void:
 	var workspace_title := str((workspace as Dictionary).get("title", ""))
 	if not workspace_title.is_empty() and agent_isles_workspace_id != previous_workspace_id:
 		_show_toast("已连接工作区：%s" % workspace_title, 4.0)
+
+
+func _set_world_locale(locale: String) -> void:
+	if locale not in ["zh", "en"] or TranslationServer.get_locale() == locale:
+		return
+	TranslationServer.set_locale(locale)
+	if residents != null:
+		residents.refresh_locale()
+	_update_region_signs()
+	if garden != null and prompt != null:
+		_update_hud()
 
 
 func _setup_input() -> void:
@@ -392,7 +407,7 @@ func _build_world() -> void:
 			sign.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 			sign.no_depth_test = true
 			sign.render_priority = 110
-			sign.set_meta("region_name", "溪间庭院" if x < 0 else "晴沙绿洲")
+			sign.set_meta("region_name_key", "region.streamside" if x < 0 else "region.desert")
 			barrier.add_child(sign)
 			region_signs.append(sign)
 		_update_region_signs()
@@ -526,7 +541,7 @@ func _install_neighbor_regions(staged: bool = false) -> bool:
 
 func _update_region_signs() -> void:
 	for sign: Label3D in region_signs:
-		sign.text = str(sign.get_meta("region_name")) + ("\n暂未开放 · 加载失败" if regions_error else "\n区域准备中")
+		sign.text = tr(str(sign.get_meta("region_name_key"))) + ("\n" + tr("region.failed") if regions_error else "\n" + tr("region.preparing"))
 		sign.modulate = Color("ffb6a3") if regions_error else Color("fff2cb")
 
 
@@ -1261,13 +1276,13 @@ func _label(text: String, at: Vector2, font_size: int, color: Color, parent: Con
 func _update_hud() -> void:
 	echo_label.text = "%s回响    %d / %d" % [ECHO_OBJECTS.NAMES[selected_echo], echoes.size(), MAX_ECHOES] if knows_echo(selected_echo) else "未知回响"
 	if sanctuary_computer != null and sanctuary_computer.active:
-		prompt.text = "Q 正在接你上台"
+		prompt.text = tr("action.q_lifting")
 		return
 	if sanctuary_computer != null and sanctuary_computer.can_use():
-		prompt.text = "[ E ]  使用 Q"
+		prompt.text = tr("action.use_q")
 		return
 	if sanctuary_computer != null and sanctuary_computer.can_grab():
-		prompt.text = "[ E ]  让 Q 接你上台"
+		prompt.text = tr("action.q_lift")
 		return
 	if sanctuary_computer != null and sanctuary_computer.can_remote_grab():
 		prompt.text = ""
@@ -1279,12 +1294,12 @@ func _update_hud() -> void:
 		prompt.text = "[ E ]  在听风台看看风景"
 	else:
 		var npc: StaticBody3D = residents.nearest(player)
-		prompt.text = "[ E ]  与%s交谈" % npc.get_meta("display_name") if npc != null else ""
+		prompt.text = tr("action.talk") % npc.get_meta("display_name") if npc != null else ""
 	var garden_target: Dictionary = garden.target()
 	if not garden_target.is_empty():
 		prompt.text = garden_target.hint
 	if not region_barriers.is_empty() and absf(player.position.x) > 9.5 and absf(player.position.z - 3) < 2:
-		prompt.text = "[ E ]  重新加载邻近区域" if regions_error else "邻近区域正在加载…"
+		prompt.text = tr("region.reload") if regions_error else tr("region.loading")
 	if echo_active:
 		prompt.text += ("\n" if not prompt.text.is_empty() else "") + "F 放置%s · C 切换 · Q 撤回 · 右键收起" % ECHO_OBJECTS.NAMES[selected_echo]
 		if selected_echo == "plank":

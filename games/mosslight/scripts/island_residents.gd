@@ -78,7 +78,7 @@ func guide_keeper(encounter_id: String, action: String, traveler: Vector3, reduc
 
 
 func _ready() -> void:
-	var names := ["芽芽 · 园丁", "阿澜 · 钓鱼人", "苔伯 · 守井人"]
+	var name_keys := ["resident.gardener.name", "resident.file_keeper.name", "resident.teacher.name"]
 	var agent_isles_ids := ["gardener", "file_keeper", "teacher"]
 	var homes := [Vector3(-7.2, .06, 1.3), Vector3(6.6, .06, 2.9), Vector3(-4.25, .06, -4.5)]
 	for i in range(3):
@@ -89,7 +89,9 @@ func _ready() -> void:
 		body.collision_mask = 0
 		body.set_meta("resident_id", i)
 		body.set_meta("agent_isles_id", agent_isles_ids[i])
-		body.set_meta("display_name", names[i])
+		body.set_meta("display_name_key", name_keys[i])
+		body.set_meta("display_name", tr(name_keys[i]))
+		body.set_meta("agent_status", "idle")
 		body.set_meta("home_yaw", [.6, PI, .6][i])
 		body.set_meta("line_index", 0)
 		body.set_meta("dialogue_phase", "")
@@ -106,7 +108,7 @@ func _ready() -> void:
 		body.add_child(visual)
 		body.set_meta("visual", visual)
 		var label := Label3D.new()
-		label.text = names[i]
+		label.text = tr(name_keys[i])
 		label.font = FONT
 		label.font_size = 28
 		label.outline_size = 7
@@ -122,14 +124,22 @@ func _ready() -> void:
 
 
 func set_agent_status(agent_isles_id: String, status: String) -> void:
-	var labels := {"working": "工作中", "thinking": "思考中", "approval": "等待确认", "completed": "已完成", "failed": "遇到问题"}
+	var labels := {"working": "resident.status.working", "thinking": "resident.status.thinking", "approval": "resident.status.approval", "completed": "resident.status.completed", "failed": "resident.status.failed"}
 	for npc: StaticBody3D in residents:
 		if npc.get_meta("agent_isles_id") != agent_isles_id:
 			continue
 		var label := npc.get_meta("name_label") as Label3D
-		var suffix: String = labels.get(status, "")
+		npc.set_meta("agent_status", status)
+		var suffix: String = tr(labels[status]) if labels.has(status) else ""
 		label.text = str(npc.get_meta("display_name")) if suffix.is_empty() else "%s · %s" % [npc.get_meta("display_name"), suffix]
 		label.modulate = Color("efce87") if status == "approval" else (Color("ef9a8c") if status == "failed" else Color("fff0cb"))
+
+
+func refresh_locale() -> void:
+	for npc: StaticBody3D in residents:
+		var display_name := tr(str(npc.get_meta("display_name_key")))
+		npc.set_meta("display_name", display_name)
+		set_agent_status(str(npc.get_meta("agent_isles_id")), str(npc.get_meta("agent_status")))
 
 
 func advance(delta: float, traveler: Vector3, motion_enabled: bool, labels_enabled: bool) -> void:
@@ -184,11 +194,11 @@ func dialogue_name(npc: StaticBody3D) -> String:
 
 func dialogue_role(npc: StaticBody3D) -> String:
 	var roles := {
-		"gardener": "园丁",
-		"file_keeper": "文件整理",
-		"teacher": "项目、文件夹与历史管理",
+		"gardener": "role.gardener",
+		"file_keeper": "role.file_keeper",
+		"teacher": "role.teacher",
 	}
-	return roles.get(str(npc.get_meta("agent_isles_id")), "居民")
+	return tr(roles.get(str(npc.get_meta("agent_isles_id")), "role.gardener"))
 
 
 func dialogue_portrait(npc: StaticBody3D) -> Texture2D:
@@ -215,12 +225,12 @@ func dialogue_lines(npc: StaticBody3D, learned: bool) -> Array[String]:
 	var lines: Array[String] = []
 	match int(npc.get_meta("resident_id")):
 		0:
-			lines = ["我是芽芽。这盆小花，准备送给苔伯。", "左边的兔子总惦记我的胡萝卜。你可别替它打掩护。"]
-			lines.append("石座上的木箱很特别。靠近它按 E，试着记住它的模样。" if not learned else "已经学会木箱回响啦？F 放一只，Q 收回，别压到我的菜苗。")
+			lines = [tr("dialogue.gardener.1"), tr("dialogue.gardener.2")]
+			lines.append(tr("dialogue.gardener.learn") if not learned else tr("dialogue.gardener.learned"))
 		1:
-			lines = ["嘘——我在等鱼。小鸭倒是比鱼先来了。", "西边庭院的树荫很凉快，东边石桥通往沙漠。", "这里不赶时间。走累了，就陪我看一会儿水面。"]
+			lines = [tr("dialogue.keeper.1"), tr("dialogue.keeper.2"), tr("dialogue.keeper.3")]
 		2:
-			lines = ["我是苔伯，平时在这里照看花草，也替大家管理项目。", "在高台前放一只木箱：先跳上箱子，再跳上石台。", "要选择项目或找回以前的对话，都可以来找我。"]
+			lines = [tr("dialogue.teacher.1"), tr("dialogue.teacher.2"), tr("dialogue.teacher.3")]
 			if not learned:
-				lines[1] = "先去南边石座上的木箱旁按 E。学会回响，就能搭出上台的落脚点。"
+				lines[1] = tr("dialogue.teacher.learn")
 	return lines

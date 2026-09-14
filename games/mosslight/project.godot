@@ -15,6 +15,11 @@ window/size/window_height_override=900
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 
+[internationalization]
+
+locale/default="zh"
+locale/translations=PackedStringArray("res://locales/mosslight.zh.po", "res://locales/mosslight.en.po")
+
 [rendering]
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
