@@ -1,4 +1,4 @@
-# agent-isles 世界网页实施方案
+# agent-isles 世界网页实施方案`r`n`r`n> 接入边界、对象映射和桥接消息以[岛屿接入契约](world-integration-contract.md)为准；本文只记录当前组合方式与分阶段落地计划。
 
 ## 产品边界
 
@@ -85,3 +85,4 @@ Host 到世界：
 5. 切到 `/workbench` 后能看到同一个 Workspace 和 Session。
 
 M1 只建立这条链路的可靠基础；居民点击创建 Session 与细粒度事件映射属于 M2 / M3。
+

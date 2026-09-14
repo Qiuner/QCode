@@ -2,7 +2,7 @@
 
 本文定义系统的职责边界、对象生命周期、状态转换、持久化一致性及接口与事件契约。它用于约束设计和实现；开发操作、文件位置、页面交互和施工进度由专项文档维护。
 
-文档分工：本文完整定义跨领域通用契约；[教程架构](tutorial-architecture.md) 只定义教学领域的数据、状态、接口和验收差异。专项文档引用通用契约，不重复定义；教学规则不在本文展开。
+文档分工：本文定义跨领域通用契约；[岛屿接入契约](world-integration-contract.md) 定义新增岛屿必须遵守的边界与桥接协议；[教程架构](tutorial-architecture.md) 只定义教学领域差异。开发新岛屿先阅读接入契约，实施步骤见[世界网页实施方案](world-web-plan.md)。
 
 状态：以下是目标架构契约，复用已有 DSH / Cordis 能力；尚未落实的部分在末节列明。文中的状态名称是业务语义，不要求复制为 DSH 内部枚举，也不要求引入独立状态机框架。
 
@@ -228,3 +228,4 @@ DSH Remote 的事件转发有显式选择范围，并不自动传输全部 Cordi
 详细教学契约见 [教程架构](tutorial-architecture.md)；当前工作恢复与历史验收见 [居民工作闭环](resident-work-loop.md)。这些文档中的当前实现与历史方案须按状态标识阅读，不覆盖本文的目标责任划分。
 
 长期决策：[DSH 插件边界](../.agents/notes/implemented/architecture/2026-09-08-dsh-plugin-runtime-boundary.md)、[轻量 Launcher](../.agents/notes/implemented/architecture/2026-09-09-web-ui-with-thin-windows-launcher.md)、[项目学习记录](../.agents/notes/implemented/architecture/2026-09-11-project-tutorial-runs.md)、[教程基础设施](../.agents/notes/implemented/architecture/2026-09-11-tutorial-plugin-boundary.md)、[教程信任边界](../.agents/notes/implemented/architecture/2026-09-11-declarative-tutorial-content.md)。
+

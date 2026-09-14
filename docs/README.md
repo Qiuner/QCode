@@ -2,6 +2,13 @@
 
 根目录的 [`README.md`](../README.md) 用于快速了解产品。本目录记录当前有效的架构、实现方案和路线；日期化的维护决策放在 [`.agents/notes/implemented/`](../.agents/notes/implemented/) 中，用于解释为什么这样设计，不替代当前文档。
 
+## 从这里开始
+
+- **使用产品**：先看根目录 [README](../README.md)，再看教程或自由创作相关说明。
+- **开发新岛屿**：先看[岛屿与插件开发指南](plugin-development.md)，再看[岛屿接入契约](world-integration-contract.md)。
+- **理解系统**：先看[总体架构](architecture.md)，再按领域阅读专项契约。
+- **维护与发布**：看运行恢复、启动性能、发布检查和施工记录。
+
 ## 当前文档
 
 | 文档 | 内容 |
@@ -12,10 +19,15 @@
 | [角色定义](roles.md) | Coder、File Keeper、Teacher 和 Coordinator |
 | [网页定制](web-customization.md) | DSH Web profile 的定制方式 |
 | [世界网页方案](world-web-plan.md) | Godot 世界与 Harness Web 的组合方案 |
+| [岛屿接入契约](world-integration-contract.md) | 新增岛屿必须遵守的宿主边界、对象映射、桥接协议与验收条件 |
+| [岛屿与插件开发指南](plugin-development.md) | 新增岛屿、Host / Client 插件的开发路径与最小交付物 |
 | [网页优先 MVP](agent-isles-mvp-plan.md) | 当前最小业务闭环 |
 | [实施计划](plan.md) | 当前进度与后续阶段 |
 | [施工记录](construction-plan.md) | 工作闭环的实际交付、验证与后续施工顺序 |
 | [居民工作闭环](resident-work-loop.md) | 项目恢复、居民任务入口与存储边界 |
+| [居民工作闭环契约](resident-work-loop-contract.md) | 居民任务生命周期、入口、结果与状态约束 |
+| [项目与 Workspace 契约](project-workspace-contract.md) | 项目归属、文件边界、创建与恢复规则 |
+| [运行恢复契约](runtime-recovery-contract.md) | 刷新、断线、Host 重启和超时恢复行为 |
 | [居民对话系统](dialogue-system.md) | 世界交互、统一居民面板与输入焦点规则 |
 
 已采用但尚未实施的长期产品边界，也会记录在 `.agents/notes/implemented/`；“已采用”表示方向已经确定，不表示功能已经完成。
