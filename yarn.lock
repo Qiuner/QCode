@@ -14,6 +14,7 @@ __metadata:
     "@deepseek-ai/dsh-api-remotes": "npm:0.1.3-alpha.1"
     "@deepseek-ai/dsh-api-session-controller": "npm:0.1.3-alpha.1"
     "@deepseek-ai/dsh-api-workspace-controller": "npm:0.1.3-alpha.1"
+    "@deepseek-ai/dsh-client-locale": "npm:0.1.3-alpha.1"
     "@deepseek-ai/dsh-client-ui-chat": "npm:0.1.3-alpha.1"
     "@deepseek-ai/dsh-client-ui-conversation": "npm:0.1.3-alpha.1"
     "@deepseek-ai/dsh-client-ui-layout": "npm:0.1.3-alpha.1"

@@ -1,5 +1,6 @@
 import type { SessionEventLikeEntry } from '@deepseek-ai/dsh-api-session-controller/client'
 import type { ResidentId, ResidentStatus } from './world-bridge.js'
+import type { AgentIslesTranslate } from './locales.js'
 
 export const RESIDENTS = [
   { id: 'coordinator', name: '苔伯 · 项目管理', greeting: '先为作品选择一个项目文件夹，也可以继续已有项目。', action: '绑定项目' },
@@ -7,6 +8,15 @@ export const RESIDENTS = [
   { id: 'teacher', name: '苔伯 · 项目与对话管理', greeting: '可以在这里选择或切换项目，也可以找回之前的项目和对话。', action: '查看项目与历史对话' },
   { id: 'file_keeper', name: '阿澜 · File Keeper', greeting: '我帮你查找项目文件，也可以打开指定文件看看。', action: '查看文件' },
 ] as const
+
+export function localizedResidents(t: AgentIslesTranslate): readonly { id: ResidentId; name: string; greeting: string; action: string }[] {
+  return [
+    { id: 'coordinator', name: t('resident.coordinator.name'), greeting: t('resident.coordinator.greeting'), action: t('resident.coordinator.action') },
+    { id: 'coder', name: t('resident.coder.name'), greeting: t('resident.coder.greeting'), action: t('resident.coder.action') },
+    { id: 'teacher', name: t('resident.teacher.name'), greeting: t('resident.teacher.greeting'), action: t('resident.teacher.action') },
+    { id: 'file_keeper', name: t('resident.fileKeeper.name'), greeting: t('resident.fileKeeper.greeting'), action: t('resident.fileKeeper.action') },
+  ]
+}
 
 export function residentPrompt(id: ResidentId, text: string): string {
   const instructions: Record<ResidentId, string> = {

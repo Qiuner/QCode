@@ -12,9 +12,9 @@ test('tutorial presentation receipts require a bounded encounter identity and kn
   assert.equal(isWorldToHostMessage({ ...message, source: 'other' }), false)
 })
 
-test('local world uses a different site while retaining the local server port', () => {
-  assert.equal(worldFrameUrl('http://127.0.0.1:3081/?token=private').href, 'http://localhost:3081/world/?embed=1')
-  assert.equal(worldFrameUrl('http://localhost:3081/').href, 'http://127.0.0.1:3081/world/?embed=1')
+test('local world retains the host origin and never copies credentials', () => {
+  assert.equal(worldFrameUrl('http://127.0.0.1:3081/?token=private').href, 'http://127.0.0.1:3081/world/?embed=1')
+  assert.equal(worldFrameUrl('http://localhost:3081/').href, 'http://localhost:3081/world/?embed=1')
 })
 
 test('remote deployment retains its own origin and never copies credentials', () => {
@@ -79,20 +79,21 @@ test('world accepts only the paired parent and preserves both bridge directions'
   const document = { body: { dataset: {} }, getElementById: () => ({ showModal: () => { helpOpened++ } }) }
   runInNewContext(source, { URL, URLSearchParams, window, document, location: { origin: 'http://localhost:3081', search: '?embed=1' } })
   window.agentIslesWorldBridge.attachGodot(message => received.push(JSON.parse(message)))
-  const data = { source: 'agent-isles-host', version: 1, type: 'world:init', payload: { workspace: { title: 'Test' }, panelOpen: true } }
+  const data = { source: 'agent-isles-host', version: 1, type: 'world:init', payload: { locale: 'en', workspace: { title: 'Test' }, panelOpen: true } }
   listener({ origin: 'https://untrusted.example', source: parent, data })
-  listener({ origin: 'http://127.0.0.1:3081', source: {}, data })
+  listener({ origin: 'http://localhost:3081', source: {}, data })
   assert.equal(received.length, 0)
-  listener({ origin: 'http://127.0.0.1:3081', source: parent, data })
+  listener({ origin: 'http://localhost:3081', source: parent, data })
   assert.equal(received.length, 1)
   assert.equal(document.title, 'Test · agent-isles')
   assert.equal(received[0].payload.panelOpen, true)
-  listener({ origin: 'http://127.0.0.1:3081', source: parent, data: { ...data, payload: { ...data.payload, panelOpen: false } } })
+  assert.equal(received[0].payload.locale, 'en')
+  listener({ origin: 'http://localhost:3081', source: parent, data: { ...data, payload: { ...data.payload, panelOpen: false } } })
   assert.equal(received.at(-1).payload.panelOpen, false)
-  listener({ origin: 'http://127.0.0.1:3081', source: parent, data: { ...data, type: 'world:show-guide' } })
+  listener({ origin: 'http://localhost:3081', source: parent, data: { ...data, type: 'world:show-guide' } })
   assert.equal(helpOpened, 1)
   assert.equal(sent[0][0].type, 'world:ready')
-  assert.equal(sent[0][1], 'http://127.0.0.1:3081')
+  assert.equal(sent[0][1], 'http://localhost:3081')
   // Godot's JavaScriptBridge supports strings, but not Dictionary arguments.
   // Exercise the serialized payload at the actual shell -> host boundary.
   for (const residentId of ['coordinator', 'coder', 'teacher', 'file_keeper']) {

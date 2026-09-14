@@ -7,6 +7,7 @@ import type {} from '@deepseek-ai/dsh-client-ui-layout/client'
 import type {} from '@deepseek-ai/dsh-client-ui-sidebar/client'
 import type {} from '@deepseek-ai/dsh-client-ui-session/client'
 import type {} from '@deepseek-ai/dsh-client-ui-workspace/client'
+import type {} from '@deepseek-ai/dsh-client-locale/client'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import { AgentIslesWorld } from './AgentIslesWorld.js'
 import type { AgentIslesWorldInjected } from './AgentIslesWorld.js'
@@ -24,8 +25,9 @@ import { tutorialActions } from './tutorial-api.js'
 import { FIRST_TUTORIAL } from '../tutorial-types.js'
 import type { ISessions } from '@deepseek-ai/dsh-api-session-controller/client'
 import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
+import { en, NS, zh } from './locales.js'
 
-export const inject = ['connection', 'slots', 'sessions', 'workspaces', 'uiWorkspace', 'uiConversation', 'layout', 'remote', 'remote.settings', 'remote.credentials', 'remote.llm', 'remote.session', 'remote.directoryPicker']
+export const inject = ['connection', 'slots', 'sessions', 'workspaces', 'uiWorkspace', 'uiConversation', 'layout', 'locale', 'remote', 'remote.settings', 'remote.credentials', 'remote.llm', 'remote.session', 'remote.directoryPicker']
 
 const RESIDENT_SESSION_KEY = 'agent-isles.resident-sessions.v1'
 const RESIDENT_NAMES: Readonly<Record<ResidentId, string>> = {
@@ -56,6 +58,7 @@ function writeResidentSession(workspaceId: string, residentId: ResidentId, sessi
 
 /** Replace the generic Web profile branding while retaining its layout and conversation UI. */
 export function apply(ctx: Omit<ClientContext, 'sessions' | 'connection'> & { sessions: ISessions; connection: ConnectionHandle }): void {
+  ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'agent-isles-web: dictionaries')
   const selecting = new Map<string, Promise<string>>()
   let saved: ResidentState = { sessions: {} }
   const stateRequest = async (update?: { projectId: string; residentId?: ResidentId; sessionId?: string }): Promise<ResidentState> => {
@@ -158,7 +161,9 @@ export function apply(ctx: Omit<ClientContext, 'sessions' | 'connection'> & { se
       name: 'shell.overlay',
       id: 'agent-isles-world',
       order: -100,
+      locale: NS,
       inject: (): AgentIslesWorldInjected => ({
+        localeState: ctx.locale,
         connectionState: ctx.connection?.state,
         tutorials: tutorialActions,
         refreshProjects: id => new Promise<void>((resolve, reject) => {

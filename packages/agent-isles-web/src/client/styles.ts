@@ -62,6 +62,11 @@ export const WORLD_STYLES = `
 .town-help-reveal { position: absolute; top: 0; right: 0; z-index: 2; width: 112px; height: 84px; display: flex; align-items: flex-start; justify-content: flex-end; padding: 20px; }
 .town-help-reveal button { width: 40px; height: 40px; min-height: 40px; padding: 0; border-radius: 50%; font-size: 22px; background: #f7faf5f2; box-shadow: 0 3px 12px #17392c20; opacity: 0; pointer-events: none; }
 .town-help-reveal:hover button, .town-help-reveal button:focus-visible { opacity: 1; pointer-events: auto; }
+.town-locale-control { position: absolute; top: 20px; right: 72px; z-index: 3; }
+.town-locale-control > button { display: grid; place-items: center; width: 40px; height: 40px; min-height: 40px; padding: 0; border: 0; border-radius: 50%; background: #f7faf5f2; box-shadow: 0 3px 12px #17392c20; }
+.town-language-menu { position: fixed; inset: 68px 72px auto auto; min-width: 150px; padding: 5px; border: 1px solid #bccbbb; border-radius: 6px; background: #fcfdf8; box-shadow: 0 8px 24px #17392c2b; }
+.town-language-menu button { display: block; width: 100%; border: 0; text-align: left; background: transparent; }
+.town-language-menu button[aria-pressed='true'] { background: #e1eee5; font-weight: 600; }
 .town-regions { position: absolute; left: 20px; bottom: 104px; width: min(320px, calc(100% - 40px)); padding: 12px 14px; border-left: 3px solid #b78325; border-radius: 4px; background: #f5faf4f5; box-shadow: 0 3px 14px #17392c20; }
 .town-regions p { margin: 4px 0 8px; overflow-wrap: anywhere; }
 .town-regions progress { position: static; display: block; width: 100%; height: 4px; accent-color: #267b69; }

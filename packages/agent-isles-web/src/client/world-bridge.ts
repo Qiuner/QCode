@@ -7,6 +7,7 @@ export function worldFrameUrl(hostHref: string): URL {
 
 export type ResidentId = 'coder' | 'file_keeper' | 'teacher' | 'coordinator'
 export type ResidentStatus = 'idle' | 'thinking' | 'working' | 'approval' | 'completed' | 'failed'
+export type WorldLocale = 'zh' | 'en'
 export interface RegionLoadState {
   stage: 'waiting' | 'downloading' | 'installing' | 'failed' | 'ready'
   detail: string
@@ -30,11 +31,18 @@ export type HostToWorldMessage =
       version: typeof WORLD_BRIDGE_VERSION
       type: 'world:init'
       payload: {
+        locale: WorldLocale
         workspace: { workspaceId: string; title: string } | null
         sessionId: string | null
         panelOpen: boolean
         residents: readonly ResidentView[]
       }
+    }
+  | {
+      source: 'agent-isles-host'
+      version: typeof WORLD_BRIDGE_VERSION
+      type: 'world:locale'
+      payload: { locale: WorldLocale }
     }
   | {
       source: 'agent-isles-host'

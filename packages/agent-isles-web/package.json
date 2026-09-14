@@ -27,6 +27,7 @@
         "@deepseek-ai/dsh-client-ui-layout",
         "@deepseek-ai/dsh-client-ui-session",
         "@deepseek-ai/dsh-client-ui-workspace",
+        "@deepseek-ai/dsh-client-locale",
         "@deepseek-ai/dsh-api-session-controller",
         "@deepseek-ai/dsh-api-workspace-controller",
         "@deepseek-ai/dsh-api-remotes"
@@ -44,6 +45,7 @@
     "@deepseek-ai/dsh-api-remotes": "0.1.3-alpha.1",
     "@deepseek-ai/dsh-api-session-controller": "0.1.3-alpha.1",
     "@deepseek-ai/dsh-api-workspace-controller": "0.1.3-alpha.1",
+    "@deepseek-ai/dsh-client-locale": "0.1.3-alpha.1",
     "@deepseek-ai/dsh-client-ui-chat": "0.1.3-alpha.1",
     "@deepseek-ai/dsh-client-ui-conversation": "0.1.3-alpha.1",
     "@deepseek-ai/dsh-client-ui-layout": "0.1.3-alpha.1",
