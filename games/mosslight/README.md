@@ -104,27 +104,24 @@ Q 会轮换三种节目：掌中星光、飞牌归一（七张牌依次从左手
 
 沙漠使用较低亮度的赭沙、陶土与灰绿色配色，以后方的土坯驿站、通风塔与圆顶建立主景。客栈拱门可实际穿行，内部有地毯、长凳和储物箱；屋顶棚架、木格窗、马赛克门槛、陶罐和摊位围绕建筑组织。绕绿洲的小径通向遗迹，岸边增加取水凉亭、休息木台、密集草丛和花；这些生活物件目前只作景观。沙丘提高起伏并加入宽色带，棕榈改为弯曲树干和羽状细叶。水纹与营地小旗使用游戏统一的环境时钟，暂停时停止，N 或系统减少动态设置关闭时保持静止。
 
-沙地上有一只耳廓狐、两只跳鼠和两只沙蜥。耳廓狐在绿洲南岸散步和嗅探，跳鼠在西南沙地间歇蹦跳，沙蜥在东侧沙地短跑后停歇。靠近时会沿各自活动范围退开，停留附近不会反复惊吓；动物没有阻挡玩家和镜头的碰撞体。动作随游戏暂停或关闭自然动态冻结。这些动物只作环境演出，暂不提供喂食、捕捉或任务互动。
+风吹过四片远离路线的沙丘薄痕，绿洲水面有零星流光，三只蜻蜓在水边悬停换位；驿站入口挂着五管铜风铃，靠近时偶尔响起一小段原创铃声。它们共用环境时钟，暂停、静音与减少动态都会生效。
 
-- `art/generate_desert_wildlife.py`、`art/desert_wildlife.blend`、`assets/desert_{fennec,jerboa,lizard}.glb`：独立动物资产；脚本只生成这三只模型及其可编辑源文件，头、耳、脚与尾保留独立活动部件。
-- `scripts/desert_wildlife.gd`：五处固定活动路线，按真实地面碰撞贴地，在新障碍前折返；由岛屿传入玩家世界坐标并统一推进时间。
-- `tests/desert_wildlife.gd`：动物贴地、活动范围、靠近退让、动态冻结和新增障碍验证；`tools/capture_desert_wildlife.gd` 输出三个物种近景及全景，加 `-- --sequence` 输出耳廓狐连续帧。
+- `scripts/desert_atmosphere.gd`、`assets/desert_drift.gdshader`、`assets/desert_chime.wav`：流沙薄痕、水面流光、蜻蜓和近距离风铃；不增加地形碰撞，声音按玩家与风铃的距离衰减。
+- `art/generate_desert_audio.py`：用 Python 标准库重新合成原创风铃音频，只写入 `assets/desert_chime.wav`。
 - `art/generate_desert.py`、`art/desert.blend`：独立沙漠生成脚本和可编辑源场景，不重建原岛。
 - `art/desert_settlement.py`：由沙漠生成器调用，制作土坯驿站、真拱门、通风塔、院内陈设、绿洲休息区与遗迹细节。屋顶不是可达的游玩区域，客栈内外可步行往返。
 - `assets/desert_sand.gdshader`：按真实沙丘高度连续混合沙色，消除离散色带的锯齿边缘；运行时保持同一套世界光照。
 - `assets/desert.glb`、`scenes/desert.tscn`、`scripts/desert.gd`：地块模型与整体偏移的碰撞。导出对象分成 `Terrain`、`Walkable`、`Obstacles`、`Details` 四组，前三组生成行走和相机碰撞，最后一组仅生成相机碰撞。沙丘接收景物阴影但不投射自身阴影，避免 WebGL 下的条纹。手动编辑后按相同分组重新导出，地面形状与碰撞自动保持一致。
 - `tests/desert.gd`：真实输入检查过桥往返、状态保留、回响放置、沙丘行走、边界、客栈拱门通行与镜头。
+- `tests/desert_atmosphere.gd`：验证流沙、水光、蜻蜓、风铃的导入、环境时钟、减少动态和暂停行为。
 - `tools/capture_desert.gd`：使用游戏实际渲染器生成沙漠总览、驿站近景和双岛总览，输出到 `captures/`。
 
 在游戏目录重新生成并验证：
 
 ```powershell
 & 'D:\Blender\blender.exe' --background --factory-startup --python art/generate_desert.py
-# 仅修改动物时，只运行此生成器，无需重建地形。
-& 'D:\Blender\blender.exe' --background --factory-startup --python art/generate_desert_wildlife.py
 & 'D:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe' --headless --path . --editor --import
 & 'D:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe' --headless --path . --fixed-fps 60 --script res://tests/desert.gd
-& 'D:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe' --headless --path . --script res://tests/desert_wildlife.gd
 powershell -NoProfile -ExecutionPolicy Bypass -File tools/build_web.ps1
 ```
 

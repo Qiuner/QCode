@@ -1114,6 +1114,8 @@ func set_game_paused(value: bool) -> void:
 		preview.visible = false
 	if music != null:
 		music.stream_paused = value
+	if desert != null:
+		desert.atmosphere.set_paused(value)
 	if sound != null and value:
 		sound.stop()
 	if first_person_feedback != null and value:

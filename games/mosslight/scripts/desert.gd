@@ -4,7 +4,7 @@ extends Node3D
 var time := 0.0
 var ripples: Array[MeshInstance3D] = []
 var flags: Array[Node3D] = []
-var wildlife: Node3D
+var atmosphere: Node3D
 
 func _ready() -> void:
 	for visual: MeshInstance3D in find_children("*", "MeshInstance3D"):
@@ -39,11 +39,7 @@ func _ready() -> void:
 		shape.shape = box
 		body.add_child(shape)
 		add_child(body)
-	# Add wildlife after static collision generation: animals never block the camera or player.
-	wildlife = preload("res://scripts/desert_wildlife.gd").new()
-	wildlife.name = "DesertWildlife"
-	add_child(wildlife)
-	# Water and pennants share the wildlife's pause-aware ambient clock.
+	# Water and pennants share the pause-aware ambient clock.
 	for i in range(3):
 		var ripple := MeshInstance3D.new()
 		var ring := TorusMesh.new()
@@ -78,6 +74,9 @@ func _ready() -> void:
 		pennant.material_override = material
 		hinge.add_child(pennant)
 		flags.append(hinge)
+	atmosphere = preload("res://scripts/desert_atmosphere.gd").new()
+	atmosphere.name = "DesertAtmosphere"
+	add_child(atmosphere)
 	advance(0, false)
 
 
@@ -91,4 +90,4 @@ func advance(delta: float, motion_enabled: bool, traveler := Vector3(0, 0, 1000)
 		(ripples[i].material_override as StandardMaterial3D).albedo_color.a = sin(progress * PI) * .26
 	for i in range(flags.size()):
 		flags[i].rotation.y = sin(time * 1.2 + i * .6) * .16
-	wildlife.advance(delta, traveler, motion_enabled)
+	atmosphere.advance(delta, motion_enabled, traveler)
