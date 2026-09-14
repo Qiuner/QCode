@@ -995,7 +995,7 @@ func _process(delta: float) -> void:
 		nature_time += delta
 	environment_details.advance(delta, player.position, nature_motion)
 	if desert != null:
-		desert.advance(delta, nature_motion)
+		desert.advance(delta, nature_motion, player.global_position)
 	if streamside != null:
 		streamside.advance(delta, nature_motion)
 	garden.advance(delta)

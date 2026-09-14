@@ -134,8 +134,12 @@ func run() -> void:
 		and game.desert.flags[0].rotation == flag_rotation, "N and reduced motion freeze desert decorations")
 	game.nature_motion = true
 	game.set_game_paused(true)
+	var wildlife_time: float = game.desert.wildlife.time
+	var fox_pose: Transform3D = game.desert.wildlife.animals[0].node.transform
 	await tick(10)
 	check(game.desert.time == ambient_time, "pause freezes desert ambient clock")
+	check(game.desert.wildlife.time == wildlife_time and game.desert.wildlife.animals[0].node.transform == fox_pose,
+		"game pause freezes desert wildlife through the island update loop")
 	print("MOSSLIGHT_DESERT_TESTS_COMPLETE failures=", failures)
 	game.queue_free()
 	await tick(2)

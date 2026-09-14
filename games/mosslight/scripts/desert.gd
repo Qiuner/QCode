@@ -4,6 +4,7 @@ extends Node3D
 var time := 0.0
 var ripples: Array[MeshInstance3D] = []
 var flags: Array[Node3D] = []
+var wildlife: Node3D
 
 func _ready() -> void:
 	for visual: MeshInstance3D in find_children("*", "MeshInstance3D"):
@@ -38,7 +39,11 @@ func _ready() -> void:
 		shape.shape = box
 		body.add_child(shape)
 		add_child(body)
-	# Only the water and a small pennant move; terrain and readable landmarks stay still.
+	# Add wildlife after static collision generation: animals never block the camera or player.
+	wildlife = preload("res://scripts/desert_wildlife.gd").new()
+	wildlife.name = "DesertWildlife"
+	add_child(wildlife)
+	# Water and pennants share the wildlife's pause-aware ambient clock.
 	for i in range(3):
 		var ripple := MeshInstance3D.new()
 		var ring := TorusMesh.new()
@@ -76,7 +81,7 @@ func _ready() -> void:
 	advance(0, false)
 
 
-func advance(delta: float, motion_enabled: bool) -> void:
+func advance(delta: float, motion_enabled: bool, traveler := Vector3(0, 0, 1000)) -> void:
 	# Use the same clock as the island's existing ambient motion; pause never advances it.
 	if motion_enabled:
 		time += delta
@@ -86,3 +91,4 @@ func advance(delta: float, motion_enabled: bool) -> void:
 		(ripples[i].material_override as StandardMaterial3D).albedo_color.a = sin(progress * PI) * .26
 	for i in range(flags.size()):
 		flags[i].rotation.y = sin(time * 1.2 + i * .6) * .16
+	wildlife.advance(delta, traveler, motion_enabled)
