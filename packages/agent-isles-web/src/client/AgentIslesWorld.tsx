@@ -456,7 +456,7 @@ export function AgentIslesWorld(props: Props) {
         event.preventDefault(); closeConversation()
       }
     }}>
-      <header>{guideView !== 'records' && <img className="town-portrait" src={RESIDENT_PORTRAITS[resident.id]} alt="" />}<div className="town-resident-heading"><small>{guideView === 'records' ? workspace?.title ?? '项目工作' : selected === 'coordinator' ? '小镇接待' : selected === 'coder' ? '和你一起做作品' : selected === 'teacher' ? '项目与历史对话' : '查阅文件'}</small><h2>{guideView === 'records' ? '创作手册' : resident.name.split(' · ')[0]}</h2></div>{workOpen && <div className="town-studio-toolbar"><span>{workspace?.title}</span><button type="button" {...{ popovertarget: 'town-work-options' }} onClick={event => {
+      <header>{guideView !== 'records' && <img className="town-portrait" src={RESIDENT_PORTRAITS[resident.id]} alt="" />}<div className="town-resident-heading"><small>{guideView === 'records' ? workspace?.title ?? '项目工作' : selected === 'coordinator' ? '项目管理' : selected === 'coder' ? '和你一起做作品' : selected === 'teacher' ? '项目与历史对话' : '查阅文件'}</small><h2>{guideView === 'records' ? '创作手册' : resident.name.split(' · ')[0]}</h2></div>{workOpen && <div className="town-studio-toolbar"><span>{workspace?.title}</span><button type="button" {...{ popovertarget: 'town-work-options' }} onClick={event => {
         const box = event.currentTarget.getBoundingClientRect()
         const menu = document.getElementById('town-work-options')
         if (menu) { menu.style.top = `${box.bottom + 4}px`; menu.style.right = `${Math.max(8, window.innerWidth - box.right)}px` }
@@ -464,7 +464,7 @@ export function AgentIslesWorld(props: Props) {
         if ((event.target as Element).closest('button, a')) event.currentTarget.hidePopover()
       }}>
         <button onClick={() => setExpandedWork(value => !value)}>{expandedWork ? '收窄工作区' : '展开工作区'}</button>
-        <button onClick={() => choose('coordinator')}>返回向导</button>
+        <button onClick={() => choose('coordinator')}>项目管理</button>
         <button onClick={() => setShowModels(true)}>模型设置</button>
         <a href="/workbench">会话日志与轨迹 ↗</a>
         <small>项目位置：{workspace?.path}</small>
@@ -507,6 +507,7 @@ export function AgentIslesWorld(props: Props) {
       </> : selected === 'teacher' ? <>
         <p className="town-dialogue-line">{resident.greeting}</p>
         <div className="town-dialogue-choices">
+          <button onClick={() => { choose('coordinator'); setGuideView('projects') }}>{workspace ? '选择或切换项目' : '选择项目'}</button>
           <button onClick={() => setHistoryOpen(true)}>查看项目与历史对话</button>
           <button onClick={closeConversation}>下次再来</button>
         </div>
@@ -535,7 +536,7 @@ export function AgentIslesWorld(props: Props) {
         </> : <p>居民正在等待补充信息。</p>}<a href="/workbench">查看完整请求 ↗</a></div>}
         {binding && <SessionResult key={bindingId} binding={binding} name={resident.name.split(' · ')[0]} project={workspace?.title} run={selected === 'coder' && tutorial.run && !tutorial.run.paused ? tutorial.run : undefined} waiting={!!interaction} />}
         {tutorialPanel && (workOpen && bindingId ? <details className="town-course-disclosure"><summary>首课进度</summary>{tutorialPanel}</details> : tutorialPanel)}
-        {!workOpen && <nav className="town-guide-tools" aria-label="会话导航"><button onClick={() => choose('coordinator')}>返回向导</button><button onClick={() => setShowModels(true)}>模型设置</button></nav>}
+        {!workOpen && <nav className="town-guide-tools" aria-label="会话导航"><button onClick={() => choose('coordinator')}>项目管理</button><button onClick={() => setShowModels(true)}>模型设置</button></nav>}
         {!bindingId && (!tutorialPanel || tutorial.run?.paused || tutorial.run?.step === 'complete') && composerTarget && createPortal(<form onSubmit={event => { event.preventDefault(); void send(draft) }}>
           <label htmlFor="town-request">{selected === 'coder' ? '告诉 Q你的想法或想改的地方' : '文件相对路径'}</label>
           <textarea id="town-request" rows={3} value={draft} disabled={busy} placeholder={selected === 'coder' ? '例如：给首页加一个待办清单，可以添加和完成事项。请验证这两个操作。' : undefined} onChange={event => setDrafts(value => ({ ...value, [draftKey]: event.target.value }))} />

@@ -117,8 +117,9 @@ export const WORLD_STYLES = `
 .town-conversation > header button { width: auto; height: auto; min-height: 36px; padding: 6px 8px; font-size: 14px; white-space: nowrap; border: 0; background: transparent; align-self: flex-start; }
 .town-conversation-body { overflow-y: auto; min-height: 0; padding: 0 24px 18px; overscroll-behavior: contain; }
 .town-dialogue-line { font-size: 17px; line-height: 1.7; margin: 12px 0 18px; }
-.town-dialogue-choices { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
-.town-dialogue-choices button { min-height: 42px; padding: 8px 16px; background: #fff; }
+.town-dialogue-choices { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; counter-reset: dialogue-option; }
+.town-dialogue-choices button, .town-dialogue-choices a { min-height: 42px; padding: 8px 16px; background: #fff; text-align: left; }
+.town-dialogue-choices button::before, .town-dialogue-choices a::before { counter-increment: dialogue-option; content: '[' counter(dialogue-option) '] '; color: #6b806f; font-variant-numeric: tabular-nums; }
 .town-dialogue-choices .town-primary { color: #fff; border-color: #326b50; background: #326b50; }
 .town-dialogue-choices .town-primary:hover { background: #24543e; }
 .town-dialogue-choices small { display: block; color: #677766; font-size: 11px; }
@@ -221,8 +222,8 @@ export const WORLD_STYLES = `
 .town-approval { background: #fff3db; border: 1px solid #d8b775; border-radius: 8px; padding: 12px; }
 .town-approval pre { white-space: pre-wrap; overflow-wrap: anywhere; }
 .town-shell .town-conversation:not(.town-studio):not(.town-work-panel) { width: min(580px, calc(100% - 32px)); max-height: 45svh; bottom: 24px; border-radius: 16px; background: #fcfdf8fa; }
-.town-conversation:not(.town-studio) .town-dialogue-choices { gap: 4px 16px; }
-.town-conversation:not(.town-studio) .town-dialogue-choices button { border: 0; background: transparent; color: #326b50; padding: 8px 4px; min-height: 44px; }
+.town-conversation:not(.town-studio) .town-dialogue-choices { gap: 4px; }
+.town-conversation:not(.town-studio) .town-dialogue-choices button, .town-conversation:not(.town-studio) .town-dialogue-choices a { border: 0; background: transparent; color: #326b50; padding: 8px 4px; min-height: 44px; }
 .town-conversation:not(.town-studio) .town-dialogue-choices button:hover { background: #e6eee0; }
 .town-shell[data-workspace='expanded'] .town-tutorial-preview { height: 48svh; }
 .town-preview-pane:empty { display: none; }

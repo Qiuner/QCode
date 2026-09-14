@@ -36,7 +36,7 @@ export async function testPanelDuringWorldLoad(browser, url, sameSite = false) {
     await page.getByRole('button', { name: '关闭居民面板' }).click({ timeout: 1000 })
     assert.equal(await page.locator('.town-panel').count(), 0)
     assert.ok(Date.now() - started < 1000, 'Closing must not wait for world initialization')
-    await page.getByRole('button', { name: '向导 · 项目接待' }).click()
+    await page.getByRole('button', { name: '苔伯 · 项目管理' }).click()
     assert.equal(await page.locator('.town-panel').count(), 1)
     return { closeMs: Date.now() - started }
   } finally {

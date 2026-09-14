@@ -24,7 +24,7 @@ func run() -> void:
 	game.use_echo()
 	game._update_preview()
 	game._process(.016)
-	check(game.player != null and game.residents.residents.size() == 4, "player and residents work before neighbors load")
+	check(game.player != null and game.residents.residents.size() == 3, "player and residents work before neighbors load")
 	check(await game._install_neighbor_regions(), "neighbor scenes install successfully")
 	await physics_frame
 	check(game.region_barriers.is_empty(), "bridges open after terrain is installed")

@@ -882,14 +882,33 @@ func _interact() -> void:
 			var resident_id := str(npc.get_meta("agent_isles_id"))
 			var followup_id := resident_id if (embedded_mode or agent_isles_connected) and resident_id != "gardener" else ""
 			var lines: Array[String]
+			var dialogue_options: Array[Dictionary] = []
 			if followup_id.is_empty():
 				lines = residents.dialogue_lines(npc, learned)
 			else:
 				var handoff: Dictionary = residents.agent_isles_talk(npc, not agent_isles_workspace_id.is_empty())
 				lines = [str(handoff.text)]
+				if resident_id == "coordinator":
+					dialogue_options = [
+						{"label": "找 Q聊聊", "resident_id": "coder"},
+						{"label": "先逛逛", "resident_id": ""},
+						{"label": "带我认识这里", "resident_id": "coordinator"},
+					]
+				elif resident_id == "teacher":
+					dialogue_options = [
+						{"label": "查看项目与历史对话", "resident_id": "teacher"},
+						{"label": "选择或切换项目", "resident_id": "coordinator"},
+						{"label": "先逛逛", "resident_id": ""},
+					]
+				elif resident_id == "file_keeper":
+					dialogue_options = [
+						{"label": "浏览文件", "resident_id": "file_keeper"},
+						{"label": "查看修改", "resident_id": "file_keeper"},
+						{"label": "先逛逛", "resident_id": ""},
+					]
 			resident_dialogue.open_dialogue(
 				residents.dialogue_name(npc), residents.dialogue_role(npc), lines,
-				residents.dialogue_portrait(npc), followup_id)
+				residents.dialogue_portrait(npc), followup_id, dialogue_options)
 			toast.visible = false
 
 

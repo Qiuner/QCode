@@ -2,9 +2,9 @@ import type { SessionEventLikeEntry } from '@deepseek-ai/dsh-api-session-control
 import type { ResidentId, ResidentStatus } from './world-bridge.js'
 
 export const RESIDENTS = [
-  { id: 'coordinator', name: '向导 · 项目接待', greeting: '欢迎来到小镇。先为你的项目选一个文件夹，我会安排大家在这里工作。', action: '绑定项目' },
+  { id: 'coordinator', name: '苔伯 · 项目管理', greeting: '先为作品选择一个项目文件夹，也可以继续已有项目。', action: '绑定项目' },
   { id: 'coder', name: 'Q · 计算机', greeting: '告诉我你想制作什么，我会在这个项目里动手实现。', action: '开始制作' },
-  { id: 'teacher', name: '苔伯 · 项目与对话管理', greeting: '之前的项目和对话都在这里。我们找找上次做到哪里了。', action: '查看项目与历史对话' },
+  { id: 'teacher', name: '苔伯 · 项目与对话管理', greeting: '可以在这里选择或切换项目，也可以找回之前的项目和对话。', action: '查看项目与历史对话' },
   { id: 'file_keeper', name: '阿澜 · File Keeper', greeting: '我帮你查找项目文件，也可以打开指定文件看看。', action: '查看文件' },
 ] as const
 
@@ -13,7 +13,7 @@ export function residentPrompt(id: ResidentId, text: string): string {
     coder: '你是小镇的制作居民 Coder。先检查当前项目，再实现用户要求；运行适当验证，回答中分开说明修改文件、实际验证结果和未完成事项。不要把任务结束当成验证通过。',
     teacher: '苔伯负责项目与历史对话管理，操作通过原生管理界面完成。',
     file_keeper: '你是小镇的文件管理员 File Keeper。本轮只读。必须实际使用文件工具，列目录时给出真实相对路径，读取时展示实际内容。不要编造文件、不要修改或删除文件，不要主动读取密钥或凭据文件。',
-    coordinator: '你是小镇的项目向导。',
+    coordinator: '这是苔伯负责的项目选择与切换入口。',
   }
   return `${instructions[id]}\n\n用户请求：\n${text}`
 }

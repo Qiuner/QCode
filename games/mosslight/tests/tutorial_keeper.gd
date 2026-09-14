@@ -19,7 +19,7 @@ func run() -> void:
 	residents.guide_keeper("course", "arrive", Vector3.ZERO, true)
 	check(keeper.position != home and keeper.collision_layer == 0, "reduced motion arrives without blocking the player")
 	residents.guide_keeper("course", "arrive", Vector3(9, 0, 9), true)
-	check(is_equal_approx(keeper.position.x, 1.6) and residents.residents.size() == 4, "duplicate encounter does not move or duplicate the keeper")
+	check(is_equal_approx(keeper.position.x, 1.6) and residents.residents.size() == 3, "duplicate encounter does not move or duplicate the keeper")
 	residents.guide_keeper("course", "home", Vector3.ZERO, true)
 	check(keeper.position == home and is_instance_valid(residents.tutorial_marker), "home has a visible destination")
 	residents.guide_keeper("reset", "cancel", Vector3.ZERO, true)

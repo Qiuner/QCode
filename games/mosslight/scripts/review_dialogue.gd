@@ -17,6 +17,8 @@ var elapsed := 0.0
 var lines: Array[String] = []
 var line_index := 0
 var next_resident_id := ""
+var options: Array[Dictionary] = []
+var option_buttons: Array[Button] = []
 var portraits: Array[TextureRect] = []
 var portrait_shadows: Array[TextureRect] = []
 
@@ -41,6 +43,22 @@ func _ready() -> void:
 	continue_hint = _add_label("ContinueHint", "E / 点击  继续，查看结果", Color("a6b9b5"))
 	escape_hint = _add_label("EscapeHint", "Esc  返回探索", Color("a6b9b5"))
 	escape_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	for index in 4:
+		var option := Button.new()
+		option.name = "DialogueOption%d" % (index + 1)
+		option.add_theme_font_override("font", UI_FONT)
+		option.add_theme_font_size_override("font_size", 22)
+		option.add_theme_color_override("font_color", Color("f3e8c8"))
+		option.add_theme_color_override("font_hover_color", Color("fff7d8"))
+		option.add_theme_color_override("font_pressed_color", Color("fff7d8"))
+		option.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		option.flat = true
+		option.mouse_filter = Control.MOUSE_FILTER_STOP
+		option.focus_mode = Control.FOCUS_ALL
+		option.pressed.connect(_select_option.bind(index))
+		option.z_index = 4
+		overlay.add_child(option)
+		option_buttons.append(option)
 	overlay.resized.connect(_layout)
 	_layout()
 	overlay.hide()
@@ -113,7 +131,7 @@ func _layout() -> void:
 	_set_portrait_rect(1, Vector2(viewport_size.x - q_size.x - viewport_size.x * (.015 if narrow else .035), viewport_size.y * (.84 if narrow else .90)) - Vector2(0, q_size.y), q_size)
 	var content_width := minf(viewport_size.x - (44 if narrow else 96), 980)
 	var content_left := (viewport_size.x - content_width) * .5
-	var dialogue_top := viewport_size.y * (.69 if narrow else .66)
+	var dialogue_top := viewport_size.y * ((.56 if narrow else .59) if not options.is_empty() else (.69 if narrow else .66))
 	var meta_size := clampi(int(viewport_size.y * .021), 17, 23)
 	var words_size := clampi(int(viewport_size.y * .038), 28, 42)
 	var hint_size := clampi(int(viewport_size.y * .018), 15, 19)
@@ -126,6 +144,10 @@ func _layout() -> void:
 	var hint_left := maxf(content_left, 108 if narrow else content_left)
 	_set_label_rect(continue_hint, Vector2(hint_left, hints_y), Vector2(content_width * .58, 28), hint_size)
 	_set_label_rect(escape_hint, Vector2(content_left + content_width * .62, hints_y), Vector2(content_width * .38, 28), hint_size)
+	var option_top := viewport_size.y * (.81 if narrow else .84)
+	for index in option_buttons.size():
+		var option := option_buttons[index]
+		_set_label_rect(option, Vector2(content_left, option_top + index * maxf(30, viewport_size.y * .035)), Vector2(content_width * .82, maxf(28, viewport_size.y * .035)), hint_size)
 
 func _set_portrait_rect(index: int, position: Vector2, size: Vector2) -> void:
 	portraits[index].position = position
@@ -133,7 +155,7 @@ func _set_portrait_rect(index: int, position: Vector2, size: Vector2) -> void:
 	portrait_shadows[index].position = position + Vector2(10, 16)
 	portrait_shadows[index].size = size
 
-func _set_label_rect(label: Label, position: Vector2, size: Vector2, font_size: int) -> void:
+func _set_label_rect(label: Control, position: Vector2, size: Vector2, font_size: int) -> void:
 	label.position = position
 	label.size = size
 	label.add_theme_font_size_override("font_size", font_size)
@@ -142,18 +164,26 @@ func open() -> void:
 	open_dialogue("Q", "创作伙伴", [LINE], Q_PORTRAIT, "coder")
 
 
-func open_dialogue(resident_name: String, resident_role: String, dialogue_lines: Array[String], portrait: Texture2D, followup_resident_id := "") -> void:
+func open_dialogue(resident_name: String, resident_role: String, dialogue_lines: Array[String], portrait: Texture2D, followup_resident_id := "", dialogue_options: Array[Dictionary] = []) -> void:
 	if dialogue_lines.is_empty():
 		return
 	opened = true
 	lines = dialogue_lines
 	line_index = 0
 	next_resident_id = followup_resident_id
+	options = dialogue_options
 	speaker.text = resident_name
 	role.text = resident_role
 	portraits[1].texture = portrait
 	portrait_shadows[1].texture = portrait
-	continue_hint.text = "E / 点击  继续，打开面板" if not next_resident_id.is_empty() else "E / 点击  继续"
+	continue_hint.text = "选择回应" if not options.is_empty() else "E / 点击  继续，打开面板" if not next_resident_id.is_empty() else "E / 点击  继续"
+	continue_hint.visible = options.is_empty()
+	for index in option_buttons.size():
+		var option_button := option_buttons[index]
+		option_button.visible = index < options.size()
+		if index < options.size():
+			option_button.text = "[%d] %s" % [index + 1, str(options[index].get("label", "继续"))]
+	_layout()
 	_show_line()
 	overlay.show()
 	game.player.velocity = Vector3.ZERO
@@ -169,6 +199,9 @@ func close() -> void:
 	game.mouse_was_captured = false
 	lines.clear()
 	next_resident_id = ""
+	options.clear()
+	for option in option_buttons:
+		option.visible = false
 	if was_opened and not game.agent_isles_panel_open and game.toast != null:
 		game.toast.visible = true
 
@@ -186,11 +219,21 @@ func advance() -> void:
 	elif line_index + 1 < lines.size():
 		line_index += 1
 		_show_line()
+	elif not options.is_empty():
+		return
 	else:
 		var followup := next_resident_id
 		close()
 		if not followup.is_empty():
 			game._emit_agent_isles("resident:selected", {"residentId": followup})
+
+func _select_option(index: int) -> void:
+	if not opened or index < 0 or index >= options.size() or words.visible_characters < words.text.length():
+		return
+	var target := str(options[index].get("resident_id", ""))
+	close()
+	if not target.is_empty():
+		game._emit_agent_isles("resident:selected", {"residentId": target})
 
 func _process(delta: float) -> void:
 	if not opened:
@@ -210,4 +253,8 @@ func _input(event: InputEvent) -> void:
 		advance()
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		advance()
+	elif event is InputEventKey and event.pressed and not event.echo:
+		var number: int = event.keycode - KEY_1
+		if number >= 0 and number < options.size():
+			_select_option(number)
 	get_viewport().set_input_as_handled()

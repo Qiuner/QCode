@@ -9,4 +9,7 @@ const GENERATED_RESIDENT_PORTRAITS = {
 export const RESIDENT_PORTRAITS = {
   ...GENERATED_RESIDENT_PORTRAITS,
   coder: '/agent-isles/brand/q-portrait.png',
+  coordinator: '/agent-isles/brand/teacher-portrait.png',
+  teacher: '/agent-isles/brand/teacher-portrait.png',
+  file_keeper: '/agent-isles/brand/file-keeper-portrait.png',
 } as const

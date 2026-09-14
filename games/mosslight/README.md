@@ -156,7 +156,7 @@ I 打开六格背包，点击物品查看说明、选择拿出或收纳水壶；
 
 目前物品与种植状态仅保留在当前这一局，刷新网页或按 R 重开会重置。尚无存档、丢弃、交易、赠礼、制作或更多可收纳物品。
 
-岛上有三位居民：小屋菜畦旁的园丁「芽芽」、池塘南侧码头旁的钓鱼人「阿澜」、月井西侧的守井人「苔伯」。靠近显示名字和 E 交谈提示，再按 E 聊下一句；走远或等待十秒会收起对话。对白会随木箱学习、收集进度和月井复苏变化。居民会转向附近玩家并轻微呼吸，有实体碰撞，隔墙不能交谈；N 可停止动作，暂停时对话计时也停止。目前没有巡逻寻路、语音、交易或独立支线任务。
+岛上有三位居民：小屋菜畦旁的园丁「芽芽」、池塘南侧码头旁的钓鱼人「阿澜」、月井西侧的守井人「苔伯」。苔伯同时负责项目选择、切换与历史对话，不再另设外观重复的项目向导。靠近显示名字和 E 交谈提示，再按 E 聊下一句；走远或等待十秒会收起对话。对白会随木箱学习、收集进度和月井复苏变化。居民会转向附近玩家并轻微呼吸，有实体碰撞，隔墙不能交谈；N 可停止动作，暂停时对话计时也停止。目前没有巡逻寻路、语音、交易或独立支线任务。
 
 ## 美术与工程
 
@@ -199,15 +199,15 @@ PowerShell（将程序路径替换为本机安装路径）：
 # 类型 / 资源导入检查
 & 'D:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe' --headless --path . --editor --import
 
+# 从现有居民模型重新生成剧情对白透明立绘
+& 'D:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64.exe' --path . --script res://tools/render_resident_portraits.gd -- --dialogue-assets-only
+
 # 真实场景集成检查（无窗口、无音频）
 & 'D:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe' --headless --path . --fixed-fps 60 --script res://tests/playthrough.gd
 & 'D:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe' --headless --path . --fixed-fps 60 --script res://tests/camera_modes.gd
 
 # 游戏内实机截图，输出到 captures/，截图后退出
 & 'D:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe' --path . -- --capture
-# 从现有居民模型重新生成剧情对白透明立绘
-& 'D:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64.exe' --path . --script res://tools/render_resident_portraits.gd -- --dialogue-assets-only
-
 & 'D:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe' --path . -- --portrait
 ```
 

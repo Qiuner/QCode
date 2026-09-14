@@ -18,12 +18,12 @@ func run() -> void:
 	check(not game.game_hud.visible, "embedded world hides echo and keyboard HUD")
 	check(not game.garden.bag_hint.visible, "embedded world hides persistent inventory hint")
 	check(game.prompt.visible and game.toast.visible, "embedded world keeps contextual feedback")
-	var npc: StaticBody3D = game.residents.residents[3]
+	var npc: StaticBody3D = game.residents.residents[2]
 	game.player.position = npc.position + Vector3(0, 0, 1.15)
 	game.player.velocity = Vector3.ZERO
 	await physics_frame
 	game._interact()
-	check(game.resident_dialogue.opened and game.resident_dialogue.speaker.text == "向导", "embedded resident opens shared dialogue before Host handoff")
+	check(game.resident_dialogue.opened and game.resident_dialogue.speaker.text == "苔伯", "embedded resident opens shared dialogue before Host handoff")
 	var message := {"source": "agent-isles-host", "version": 1, "type": "world:init", "payload": {"panelOpen": true, "residents": [], "workspace": null}}
 	game.mouse_was_captured = true
 	Input.action_press("walk_up")
@@ -41,7 +41,7 @@ func run() -> void:
 	game._on_agent_isles_message([JSON.stringify(message)])
 	check(not game.agent_isles_panel_open and game.prompt.visible and not Input.is_action_pressed("walk_up"), "closing panel restores world controls without held keys")
 	game._interact()
-	check(game.resident_dialogue.opened and game.resident_dialogue.next_resident_id == "coordinator", "functional resident dialogue keeps its Host handoff")
+	check(game.resident_dialogue.opened and game.resident_dialogue.next_resident_id == "teacher", "functional resident dialogue keeps its Host handoff")
 	game.resident_dialogue.close()
 	game.player.position = game.residents.residents[0].position + Vector3(0, 0, 1.15)
 	await physics_frame

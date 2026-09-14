@@ -19,7 +19,7 @@ func run() -> void:
 	game = load("res://scenes/island.tscn").instantiate()
 	root.add_child(game)
 	await tick(12)
-	check(game.residents.residents.size() == 4, "four residents including project guide load")
+	check(game.residents.residents.size() == 3, "three distinct residents load without a duplicate project guide")
 	check(game.residents.nearest(game.player) == null, "distant residents cannot be targeted")
 	var onboarding: Dictionary = game.residents.agent_isles_talk(game.residents.residents[0], false)
 	check(onboarding.text.contains("项目文件夹") and onboarding.text.contains("工作区"), "agent-isles resident explains workspace binding")
