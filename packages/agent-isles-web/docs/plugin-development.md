@@ -1,6 +1,6 @@
 # 岛屿与插件开发指南
 
-这份文档是新增岛屿或扩展 agent-isles Host / Client 插件的入口。先阅读[岛屿接入契约](world-integration-contract.md)；跨领域生命周期和错误语义遵守[总体架构](architecture.md)。
+这份文档是新增岛屿或扩展 agent-isles Host / Client 插件的入口。先阅读[岛屿接入契约](../../../docs/world-integration-contract.md)；跨领域生命周期和错误语义遵守[总体架构](../../../docs/architecture.md)。
 
 ## 开发路径
 
