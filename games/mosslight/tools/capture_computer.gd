@@ -27,6 +27,11 @@ func run() -> void:
 	game.camera.position = Vector3(9, 11, 10)
 	game.camera.look_at(Vector3(1.2, 2.5, -5.5))
 	await capture("sanctuary-computer-close")
+	game.sanctuary_computer.set_status("completed")
+	for i in range(108):
+		game.sanctuary_computer.advance(1.0 / 60)
+	await capture("sanctuary-computer-magic")
+	game.sanctuary_computer.set_status("idle")
 	game.camera.size = 27
 	game.camera.position = game.default_camera_position
 	game.camera.look_at(game.camera_target)

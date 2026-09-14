@@ -1,7 +1,7 @@
 """Author the sanctuary computer and reusable mechanical arm parts in Blender.
 
 Run: blender --background --factory-startup --python art/generate_grabber.py
-Only writes grabber.blend and the four grabber_*.glb assets.
+Only writes grabber.blend and the seven grabber_*.glb assets.
 """
 import ast
 import bpy
@@ -26,15 +26,67 @@ M['screen'] = mat('Computer - dark green glass', (.012, .052, .048), .24)
 M['signal'] = mat('Computer - phosphor signal', (.12, .60, .02), .35, .0, .5)
 M['hose'] = mat('Computer - flexible graphite', (.105, .18, .17), .62)
 M['rib'] = mat('Computer - sage metal ribs', (.32, .48, .40), .45, .45)
+M['magic'] = mat('Computer - magician violet', (.34, .16, .48), .38, .18)
+M['magic_red'] = mat('Computer - magician vermilion', (.78, .18, .16), .4, .08)
 
 active = bpy.data.collections.new('COMPUTER - editable housing')
 bpy.context.scene.collection.children.link(active)
 body = active
-cylinder('Pedestal / foot', (0, .12, 0), .77, .24, 'teal', vertices=32)
-ring('Pedestal / brass edge', (0, .25, 0), .69, .045, 'gold')
-box('Pedestal / control deck', (0, .39, .08), (1.14, .30, .83), 'rim', .10)
+# A low moonwell dock replaces the former stacked circular display plinth. The
+# pale octagonal shell belongs to the ruin; the recessed teal core reads as the
+# machine fitted into it, with brass reserved for the three retaining clamps.
+cylinder('Pedestal / limestone dock', (0, .09, 0), .82, .18, 'lightstone', top=.75, vertices=8)
+cylinder('Pedestal / recessed machine core', (0, .19, 0), .61, .12, 'teal', vertices=16)
+ring('Pedestal / energy channel', (0, .262, 0), .51, .022, 'glow')
+for angle in [math.radians(90), math.radians(210), math.radians(330)]:
+    x, z = math.cos(angle) * .48, math.sin(angle) * .48
+    clamp = box('Pedestal / retaining clamp', (x, .31, z), (.31, .12, .16), 'gold', .035, -angle)
+    clamp.rotation_euler.z = -angle
+box('Pedestal / control deck', (0, .37, .09), (1.08, .20, .72), 'rim', .09)
 for side in [-1, 1]:
-    box('Pedestal / switch', (side * .22, .558, .29), (.24, .045, .19), 'roof' if side < 0 else 'signal', .025)
+    box('Pedestal / switch', (side * .22, .492, .28), (.24, .045, .16), 'roof' if side < 0 else 'signal', .025)
+cylinder('Pedestal / mast socket', (0, .47, -.08), .245, .20, 'teal', vertices=16)
+ring('Pedestal / socket light', (0, .575, -.08), .205, .021, 'glow')
+# Q keeps a compact magic desk around the machine. The props sit outside
+# the grabber shoulders and above the dock, so they read clearly without
+# becoming collision obstacles for the player's transport.
+active = bpy.data.collections.new('MAGIC PROPS - editable stage kit')
+bpy.context.scene.collection.children.link(active)
+magic = active
+cylinder('Magic / top hat brim', (1.25, .52, -.12), .34, .07, 'magic', vertices=32)
+cylinder('Magic / top hat crown', (1.25, .78, -.12), .22, .46, 'magic', top=.24, vertices=24)
+ring('Magic / top hat band', (1.25, .74, -.12), .225, .035, 'gold')
+box('Magic / card box', (-1.14, .52, .12), (.34, .16, .25), 'magic_red', .035, -.08)
+box('Magic / card box lid', (-1.14, .615, .12), (.30, .035, .21), 'cream', .018, -.08)
+for x in [-.48, 0, .48]:
+    cylinder('Magic / cup', (x, .57, .42), .13, .16, 'gold' if x != 0 else 'magic', top=.105, vertices=20)
+    ring('Magic / cup rim', (x, .66, .42), .11, .018, 'rim')
+ball('Magic / revealed ball', (0, .77, .42), (.075, .075, .075), 'signal')
+beam('Magic / wand', (.55, .53, .34), (1.00, .53, .34), .035, 'magic')
+ball('Magic / wand tip', (1.04, .53, .34), (.07, .07, .07), 'gold')
+ball('Magic / wand tip light', (1.04, .53, .34), (.035, .035, .035), 'signal')
+export(magic, 'grabber_magic.glb')
+active = bpy.data.collections.new('MAGIC CARD - reusable close-up prop')
+bpy.context.scene.collection.children.link(active)
+card = active
+box('Magic card / face', (0, 0, 0), (.15, .23, .016), 'cream', .012)
+export(card, 'grabber_card.glb')
+active = bpy.data.collections.new('MAGIC PIGEON - folded light bird')
+bpy.context.scene.collection.children.link(active)
+pigeon = active
+ball('Pigeon / folded body', (0, .12, 0), (.30, .18, .16), 'cream')
+ball('Pigeon / head', (0, .20, .22), (.15, .15, .15), 'lightstone')
+for side in [-1, 1]:
+    wing = ball('Pigeon / broad paper wing', (side * .30, .23, -.01), (.38, .075, .19), 'rim')
+    wing.rotation_euler.y = side * .22
+    ball('Pigeon / eye', (side * .055, .24, .355), (.021, .021, .016), 'screen')
+for x in [-.13, 0, .13]:
+    tail = ball('Pigeon / tail feather', (x, .09, -.24), (.12, .045, .22), 'lightstone')
+    tail.rotation_euler.y = -x * 1.8
+beam('Pigeon / beak', (0, .20, .34), (0, .18, .50), .050, 'magic_red')
+ball('Pigeon / signal core', (0, .17, .05), (.055, .055, .055), 'signal')
+export(pigeon, 'grabber_pigeon.glb')
+active = body
 cylinder('Spine / mast', (0, 1.10, -.08), .17, 1.22, 'rib')
 for y in [.65, .90, 1.15, 1.40]:
     ring('Spine / collar', (0, y, -.08), .18, .037, 'teal')
