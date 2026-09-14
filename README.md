@@ -27,9 +27,6 @@
   <a href="CONTRIBUTING.md">参与贡献</a> ·
   <a href="SUPPORT.md">获取帮助</a>
 </p>
-
-> 项目介绍站已放在 `docs/`，并配置了 GitHub Pages 工作流；首次推送到 GitHub 后，页面地址会由仓库的 Pages 设置提供。
-
 <img src="docs/images/agent-isles-world-current.png" alt="当前版本苔光之屿与中央 Q 计算机的世界实景" width="100%">
 
 > [!IMPORTANT]
@@ -47,11 +44,35 @@ agent-isles 是一个可探索的 AI Coding 学习与创作环境。它把原本
 
 Windows 预览版通过安装包安装后，点击 agent-isles 图标即可启动服务并进入小岛，运行时和资源已内置。源码开发仍可使用 `打开小岛.cmd` 打开正在运行的开发服务；该脚本不作为安装版入口。
 
+## 主要功能
+
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>工作台 <sup><code>当前可用</code></sup></h3>
+      <p>在本地工作台里连接真实项目，与 AI 对话，查看文件和工具调用，处理审批，并继续已有的 Workspace 与 Session。</p>
+    </td>
+    <td width="50%" valign="top">
+      <h3>教育与引导 <sup><code>规划中</code></sup></h3>
+      <p>把需求表达、项目选择、执行、审批和验收做成循序渐进的学习路径，让第一次接触 AI Coding 的人也能完成自己的作品。</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>更多的小岛 <sup><code>规划中</code></sup></h3>
+      <p>继续扩展群岛中的地点、居民和主题，把不同类型的项目能力放进各自有性格、有入口的空间。</p>
+    </td>
+    <td width="50%" valign="top">
+      <h3>更丰富有意思的玩法 <sup><code>规划中</code></sup></h3>
+      <p>让任务进展、居民关系、探索和作品成果产生更多互动，在不牺牲真实工作流的前提下，增加值得发现和反复体验的反馈。</p>
+    </td>
+  </tr>
+</table>
+
 | 居民 | 职责 | 当前能力 |
 | --- | --- | --- |
-| 向导 | 项目接待 | 选择本地文件夹、绑定和切换 Workspace |
 | Q · 计算机 | 制作伙伴 | 通过完整对话接收目标，使用附件、模型与权限设置读取、修改并验证项目 |
-| 苔伯 | 项目与历史管理员 | 管理项目、搜索历史，并查看或继续已有对话 |
+| 苔伯 | 项目与历史管理员 | 选择和切换项目、搜索历史，并查看或继续已有对话 |
 | 阿澜 · File Keeper | 文件管理员 | 浏览真实目录、预览文本，并查看 Git 暂存、未暂存与未跟踪修改 |
 
 - **跟着学，也能自由做**：教程帮助你完成第一个作品，普通项目支持直接进入创作。
@@ -64,8 +85,6 @@ Windows 预览版通过安装包安装后，点击 agent-isles 图标即可启�
 ## 产品画面
 
 ### 当前小岛与 Q
-
-以下为 2026-09-13 从当前源码重新渲染的 Godot 世界实景，隐藏 HUD 以展示模型；不是网页聊天面板截图。
 
 ![中央平台上的 Q 与双机械臂](docs/images/agent-isles-q-current.png)
 
@@ -163,8 +182,6 @@ Bug 报告、功能建议和 Pull Request 都欢迎。开始前请阅读[贡献�
 - [安全策略](SECURITY.md)
 - [社区行为准则](CODE_OF_CONDUCT.md)
 - [变更日志](CHANGELOG.md)
-
-agent-isles 自有代码以 [MIT License](LICENSE) 开源，版权所有者为 Qiuner。第三方依赖、字体、模型、音频和 vendored runtime 仍适用其各自的许可证与[第三方声明](THIRD_PARTY_NOTICES.md)。
 
 ## 路线图
 
