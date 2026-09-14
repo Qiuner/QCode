@@ -1,6 +1,6 @@
 extends CanvasLayer
 ## Shared in-world resident dialogue presentation and optional Host handoff.
-const LINE := "我输出完了，快点验收！"
+const LINE := "dialogue.review.line"
 const PLAYER_PORTRAIT := preload("res://assets/portraits/player.png")
 const Q_PORTRAIT := preload("res://assets/portraits/q.png")
 const UI_FONT := preload("res://assets/fonts/MosslightUI.ttf")
@@ -33,15 +33,15 @@ func _ready() -> void:
 	_add_portrait(PLAYER_PORTRAIT, "PlayerPortrait", false)
 	_add_portrait(Q_PORTRAIT, "ResidentPortrait", true)
 	speaker = _add_label("Speaker", "Q", Color("f4d37b"))
-	role = _add_label("Role", "创作伙伴", Color("89d9de"))
+	role = _add_label("Role", tr("role.creative_partner"), Color("89d9de"))
 	count = _add_label("Count", "1 / 1", Color("a6b9b5"))
 	count.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	words = _add_label("Words", LINE, Color("fff8df"))
 	words.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	words.add_theme_color_override("font_shadow_color", Color(0, 0, 0, .82))
 	words.add_theme_constant_override("shadow_offset_y", 3)
-	continue_hint = _add_label("ContinueHint", "E / 点击  继续，查看结果", Color("a6b9b5"))
-	escape_hint = _add_label("EscapeHint", "Esc  返回探索", Color("a6b9b5"))
+	continue_hint = _add_label("ContinueHint", tr("dialogue.continue_result"), Color("a6b9b5"))
+	escape_hint = _add_label("EscapeHint", tr("dialogue.escape"), Color("a6b9b5"))
 	escape_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	for index in 4:
 		var option := Button.new()
@@ -161,7 +161,7 @@ func _set_label_rect(label: Control, position: Vector2, size: Vector2, font_size
 	label.add_theme_font_size_override("font_size", font_size)
 
 func open() -> void:
-	open_dialogue("Q", "创作伙伴", [LINE], Q_PORTRAIT, "coder")
+	open_dialogue("Q", tr("role.creative_partner"), [tr(LINE)], Q_PORTRAIT, "coder")
 
 
 func open_dialogue(resident_name: String, resident_role: String, dialogue_lines: Array[String], portrait: Texture2D, followup_resident_id := "", dialogue_options: Array[Dictionary] = []) -> void:
@@ -176,13 +176,13 @@ func open_dialogue(resident_name: String, resident_role: String, dialogue_lines:
 	role.text = resident_role
 	portraits[1].texture = portrait
 	portrait_shadows[1].texture = portrait
-	continue_hint.text = "选择回应" if not options.is_empty() else "E / 点击  继续，打开面板" if not next_resident_id.is_empty() else "E / 点击  继续"
+	continue_hint.text = tr("dialogue.choose_reply") if not options.is_empty() else tr("dialogue.continue_panel") if not next_resident_id.is_empty() else tr("dialogue.continue")
 	continue_hint.visible = options.is_empty()
 	for index in option_buttons.size():
 		var option_button := option_buttons[index]
 		option_button.visible = index < options.size()
 		if index < options.size():
-			option_button.text = "[%d] %s" % [index + 1, str(options[index].get("label", "继续"))]
+			option_button.text = "[%d] %s" % [index + 1, str(options[index].get("label", tr("dialogue.continue_short")))]
 	_layout()
 	_show_line()
 	overlay.show()
@@ -204,6 +204,14 @@ func close() -> void:
 		option.visible = false
 	if was_opened and not game.agent_isles_panel_open and game.toast != null:
 		game.toast.visible = true
+
+
+func refresh_locale() -> void:
+	if opened:
+		close()
+	role.text = tr("role.creative_partner")
+	continue_hint.text = tr("dialogue.continue_result")
+	escape_hint.text = tr("dialogue.escape")
 
 
 func _show_line() -> void:

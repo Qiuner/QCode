@@ -98,3 +98,417 @@ msgstr "First visit the crate on the southern stone plinth and press E. Its echo
 
 msgid "dialogue.teacher.3"
 msgstr "Come to me whenever you need to choose a project or recover an earlier conversation."
+
+msgid "echo.crate"
+msgstr "Crate"
+
+msgid "echo.plank"
+msgstr "Plank"
+
+msgid "echo.mushroom"
+msgstr "Bounce mushroom"
+
+msgid "dialogue.review.line"
+msgstr "I’m done. Come review the result!"
+
+msgid "role.creative_partner"
+msgstr "Creative partner"
+
+msgid "dialogue.continue_result"
+msgstr "E / Click  Continue and review"
+
+msgid "dialogue.escape"
+msgstr "Esc  Return to exploration"
+
+msgid "dialogue.choose_reply"
+msgstr "Choose a reply"
+
+msgid "dialogue.continue_panel"
+msgstr "E / Click  Continue and open panel"
+
+msgid "dialogue.continue"
+msgstr "E / Click  Continue"
+
+msgid "dialogue.continue_short"
+msgstr "Continue"
+
+msgid "q.platform_blocked"
+msgstr "The central platform is occupied. Clear it first."
+
+msgid "q.status.working"
+msgstr "Working"
+
+msgid "q.status.thinking"
+msgstr "Thinking"
+
+msgid "q.status.approval"
+msgstr "Awaiting approval"
+
+msgid "q.status.completed"
+msgstr "Round finished"
+
+msgid "q.status.failed"
+msgstr "Needs attention"
+
+msgid "q.recalling"
+msgstr "Q is sending a recall signal…"
+
+msgid "q.front_blocked"
+msgstr "There is no room by the platform. Recall the crate first."
+
+msgid "q.path_blocked"
+msgstr "A structure blocked the path, so you were safely moved to the central platform."
+
+msgid "q.place_blocked"
+msgstr "Something blocks the way ahead. You will be set down here."
+
+msgid "place.wind_platform"
+msgstr "Windwatch"
+
+msgid "place.wind_platform.toast"
+msgstr "Windwatch · The treetops are close and the stream runs below. Rest a while before moving on."
+
+msgid "place.wind_platform.action"
+msgstr "[ E ]  Enjoy the view from Windwatch"
+
+msgid "resident.gardener.identity"
+msgstr "Sprout · Gardener"
+
+msgid "resident.gardener.handoff"
+msgstr "I care for the garden. Find Q on the platform when you want to make a project."
+
+msgid "resident.file_keeper.identity"
+msgstr "Alan · File keeper"
+
+msgid "resident.file_keeper.handoff"
+msgstr "I read projects, organize files, and maintain records."
+
+msgid "resident.teacher.identity"
+msgstr "Uncle Moss · Projects and history"
+
+msgid "resident.teacher.handoff"
+msgstr "I choose and switch projects and help recover earlier projects and conversations."
+
+msgid "resident.default.identity"
+msgstr "Resident"
+
+msgid "resident.default.handoff"
+msgstr "I can help with this project."
+
+msgid "resident.handoff.continue"
+msgstr " Continue in the resident panel."
+
+msgid "resident.handoff.choose_project"
+msgstr " Ask Uncle Moss to choose a project folder before you begin."
+
+msgid "region.mosslight"
+msgstr "Mosslight Isle"
+
+msgid "welcome.world"
+msgstr "Welcome to Mosslight Isle. Follow the path and press E near the crate to learn its echo."
+
+msgid "preview.finish_interaction"
+msgstr "Finish the current interaction before previewing dialogue."
+
+msgid "preview.finish_magic"
+msgstr "Finish the current interaction before previewing magic."
+
+msgid "region.not_loaded"
+msgstr "Nearby regions are not loaded. Approach the bridge to retry."
+
+msgid "workspace.connected"
+msgstr "Workspace connected: %s"
+
+msgid "region.desert.spaced"
+msgstr "S U N L I T   O A S I S"
+
+msgid "region.mosslight.spaced"
+msgstr "M O S S L I G H T   I S L E"
+
+msgid "region.desert.note"
+msgstr "Cross the stone bridge and follow the sandstone path to the oasis."
+
+msgid "region.mosslight.note"
+msgstr "Follow the stone path beneath the trees."
+
+msgid "region.streamside.spaced"
+msgstr "S T R E A M S I D E   G A R D E N"
+
+msgid "region.streamside.note"
+msgstr "Walk under old trees, cross the stream, and rest by the veranda."
+
+msgid "region.streamside.arrival"
+msgstr "You reached Streamside Garden. Cross the southern bridge and follow the slope to the teahouse."
+
+msgid "region.desert.arrival"
+msgstr "You reached Sunlit Oasis. Climb the dunes on foot; the stone bridge returns to Mosslight Isle."
+
+msgid "region.mosslight.return"
+msgstr "Back on Mosslight Isle."
+
+msgid "echo.no_space"
+msgstr "There is no room for an echo here. Step toward open ground and try again."
+
+msgid "q.open_web"
+msgstr "Q · Open the project conversation in the island web app."
+
+msgid "echo.mushroom.tip"
+msgstr "Step on it to bounce higher."
+
+msgid "echo.plank.tip"
+msgstr "Press T to rotate it into a bridge or place it over a crate."
+
+msgid "echo.learned"
+msgstr "Learned the %s echo! %s F place · C switch · right-click recall"
+
+msgid "view.top.tip"
+msgstr "Overview: use the mouse wheel to inspect the island."
+
+msgid "view.third.tip"
+msgstr "Third person: click to lock the pointer, or hold and drag the camera."
+
+msgid "view.first.tip"
+msgstr "First person: click to lock or drag to look, WASD to walk, Space to jump."
+
+msgid "view.top"
+msgstr "Overview"
+
+msgid "view.third"
+msgstr "Third person"
+
+msgid "view.first"
+msgstr "First person"
+
+msgid "view.mode"
+msgstr "View: %s  ·  V switch / 1, 2, 3 direct"
+
+msgid "view.mouse"
+msgstr "Mouse look · hold to drag / click to lock · Esc release and pause"
+
+msgid "view.camera_motion"
+msgstr "B camera motion: %s"
+
+msgid "common.on"
+msgstr "On"
+
+msgid "common.off"
+msgstr "Off"
+
+msgid "echo.controls"
+msgstr "%s echo · F place · C switch · right-click recall"
+
+msgid "motion.nature_on"
+msgstr "Environmental motion enabled."
+
+msgid "motion.nature_off"
+msgstr "Environmental motion disabled. Exploration remains available."
+
+msgid "motion.camera_on"
+msgstr "Camera motion enabled."
+
+msgid "motion.camera_off"
+msgstr "Camera motion disabled. Footsteps remain enabled."
+
+msgid "echo.unknown.numbered"
+msgstr "01   Unknown echo"
+
+msgid "controls.primary"
+msgstr "WASD Move    Space Jump    E Interact    F Hold / Place    C Echo    T Rotate    Right-click Recall    Q Undo"
+
+msgid "controls.secondary"
+msgstr "Shift Run    Wheel Zoom    V View    Tab Hide UI    N Motion    M Mute    R Restart    Esc Pause"
+
+msgid "echo.staff"
+msgstr "Echo staff  /  Keep up to %d creations"
+
+msgid "pause.rest"
+msgstr "Take a break"
+
+msgid "pause.paused"
+msgstr "Paused"
+
+msgid "pause.resume"
+msgstr "Continue exploring"
+
+msgid "echo.count"
+msgstr "%s echo    %d / %d"
+
+msgid "echo.unknown"
+msgstr "Unknown echo"
+
+msgid "echo.learn"
+msgstr "[ E ]  Learn the %s echo"
+
+msgid "echo.place_controls"
+msgstr "F place %s · C switch · Q undo · right-click recall"
+
+msgid "echo.rotate"
+msgstr " · T rotate"
+
+msgid "option.talk_q"
+msgstr "Talk to Q"
+
+msgid "option.explore"
+msgstr "Explore first"
+
+msgid "option.tour"
+msgstr "Show me around"
+
+msgid "option.history"
+msgstr "View projects and conversation history"
+
+msgid "option.project"
+msgstr "Choose or switch project"
+
+msgid "option.files"
+msgstr "Browse files"
+
+msgid "option.changes"
+msgstr "View changes"
+
+msgid "garden.pickup"
+msgstr "[ E ] Pick up watering can · store in bag"
+
+msgid "garden.harvest"
+msgstr "[ E ] Harvest daisy · store in bag"
+
+msgid "garden.growing"
+msgstr "The seedling is growing…"
+
+msgid "garden.empty"
+msgstr "The can is empty · press E at the pond to fill it"
+
+msgid "garden.water"
+msgstr "[ E ] Water flower · use one water"
+
+msgid "garden.full"
+msgstr "The can is full · water the garden by the cottage"
+
+msgid "garden.fill"
+msgstr "[ E ] Fill from the pond"
+
+msgid "inventory.full"
+msgstr "The bag is full."
+
+msgid "garden.can_found"
+msgstr "Watering can found! Press E at the pond to fill it. I opens the bag; G holds or stows the can."
+
+msgid "garden.can_full"
+msgstr "The watering can is full and can water three flowers."
+
+msgid "garden.filled"
+msgstr "Filled with water · 3 / 3. Try the three plots by the cottage."
+
+msgid "garden.already_watered"
+msgstr "The soil is already wet. Wait for the flower to grow."
+
+msgid "garden.need_water"
+msgstr "The can is empty. Fill it at the pond first."
+
+msgid "garden.watered"
+msgstr "The seedling is watered. Wait a moment, then harvest the flower."
+
+msgid "garden.flowers_full"
+msgstr "The flower stack is full. Leave this one in the garden for now."
+
+msgid "garden.harvested"
+msgstr "Harvested daisy × 1 and stored it in the bag. The roots can grow again."
+
+msgid "garden.can_location"
+msgstr "The watering can is right of the cottage. Approach and press E to pick it up."
+
+msgid "inventory.choose_item"
+msgstr "Choose an item, then choose its destination."
+
+msgid "inventory.stored"
+msgstr "Stored. Choose another item to keep organizing."
+
+msgid "inventory.no_space"
+msgstr "It does not fit here. Try another empty space."
+
+msgid "inventory.title"
+msgstr "Traveler’s Bag"
+
+msgid "inventory.equipment"
+msgstr "Equipment"
+
+msgid "inventory.undiscovered"
+msgstr "Undiscovered"
+
+msgid "inventory.unlock_later"
+msgstr "Unlock on the journey"
+
+msgid "inventory.space"
+msgstr "Bag space"
+
+msgid "inventory.arrange"
+msgstr "Choose an item, then click an empty space."
+
+msgid "inventory.details"
+msgstr "Item details"
+
+msgid "inventory.close"
+msgstr "Continue exploring    I / Esc"
+
+msgid "inventory.controls"
+msgstr "Click item to pick up · click space to place · G quick-equip can · game pauses while arranging"
+
+msgid "inventory.can_button"
+msgstr "Copper watering can\n2 × 2  ·  %d / 3"
+
+msgid "inventory.put_back"
+msgstr "Click to return to its original place"
+
+msgid "inventory.pick_up"
+msgstr "Click to pick up and arrange"
+
+msgid "inventory.used"
+msgstr "Used %d / %d spaces   ·   Large items occupy multiple spaces"
+
+msgid "inventory.quick"
+msgstr "I Bag · G Hold / Stow"
+
+msgid "inventory.can_status"
+msgstr "Can %d / 3  ·  %s"
+
+msgid "inventory.held"
+msgstr "Held"
+
+msgid "inventory.stowed"
+msgstr "Stowed"
+
+msgid "inventory.can_outside"
+msgstr "A watering can is by the cottage"
+
+msgid "inventory.equipped_can"
+msgstr "Held tool\nCopper watering can  %d / 3"
+
+msgid "inventory.equip_can"
+msgstr "Held tool\nClick to equip watering can"
+
+msgid "inventory.empty_hand"
+msgstr "Held tool\nEmpty"
+
+msgid "inventory.moving"
+msgstr "Holding: %s. Choose an empty space where it fits."
+
+msgid "item.watering_can"
+msgstr "Copper watering can"
+
+msgid "item.daisy"
+msgstr "Daisy"
+
+msgid "inventory.description"
+msgstr "Arrange your bag\n\nItems occupy different amounts of space. Click an item to pick it up, then click an empty space to place it.\n\nThe can uses 2 × 2 spaces; a daisy uses 1 × 1."
+
+msgid "inventory.can_description"
+msgstr "Copper watering can\nTool · 2 × 2 spaces\n\nWater  %d / 3\n\nWhile held, press E near the pond to fill it or near a seedling to water it. Each use consumes one water."
+
+msgid "inventory.stow"
+msgstr "Stow in bag"
+
+msgid "inventory.hold"
+msgstr "Hold in hand"
+
+msgid "inventory.daisy_description"
+msgstr "Daisy × %d\nGathered item · 1 × 1 space\n\nA flower you grew yourself. Identical flowers stack automatically, up to 99.\n\nIt is kept as a journey keepsake and cannot yet be sold or gifted."

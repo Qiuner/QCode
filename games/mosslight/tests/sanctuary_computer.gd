@@ -71,7 +71,7 @@ func run() -> void:
 	check(game.player.position.distance_to(landed) < .01, "review dialogue freezes player movement")
 	computer.review_dialogue.words.visible_characters = 0
 	computer.review_dialogue.advance()
-	check(computer.review_dialogue.opened and computer.review_dialogue.words.visible_characters == computer.review_dialogue.LINE.length(), "first advance reveals the whole line")
+	check(computer.review_dialogue.opened and computer.review_dialogue.words.visible_characters == computer.review_dialogue.words.text.length(), "first advance reveals the whole line")
 	var escape := InputEventAction.new()
 	escape.action = "close_game"
 	escape.pressed = true

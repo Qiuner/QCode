@@ -77,6 +77,12 @@ var camera_obstacle_shape := SphereShape3D.new()
 var view_hint: Label
 var crosshair: Label
 var overview_labels: Array[Label] = []
+var hud_primary: Label
+var hud_secondary: Label
+var hud_staff: Label
+var pause_title: Label
+var pause_status: Label
+var resume_button: Button
 var mouse_was_captured := false
 var first_person_feedback: Node3D
 var camera_motion := true
@@ -134,7 +140,7 @@ func _ready() -> void:
 	_setup_audio()
 	if web_lightweight:
 		WEB_RENDERING.apply(self)
-	_show_toast("苔光之屿", 3.0) if embedded_mode else _show_toast("欢迎来到苔光之屿。沿小径漫步，靠近木箱按 E 学习回响。", 9.0)
+	_show_toast(tr("region.mosslight"), 3.0) if embedded_mode else _show_toast(tr("welcome.world"), 9.0)
 	if "--capture" in OS.get_cmdline_user_args():
 		screenshot_frames = 12
 	if "--portrait" in OS.get_cmdline_user_args():
@@ -220,14 +226,14 @@ func _on_agent_isles_message(arguments: Array) -> void:
 		elif action == "preview-review":
 			set_game_paused(false)
 			if agent_isles_panel_open or sanctuary_computer.active or sanctuary_computer.remote_active or garden.opened:
-				_show_toast("请结束当前交互后再预览对白。", 3)
+				_show_toast(tr("preview.finish_interaction"), 3)
 			else:
 				sanctuary_computer.review_dialogue.open()
 		elif action == "preview-magic":
 			set_game_paused(false)
 			var trick := str(message.get("payload", {}).get("trick", "starlight"))
 			if not sanctuary_computer.preview_magic(trick):
-				_show_toast("请结束当前交互后再预览魔术。", 3)
+				_show_toast(tr("preview.finish_magic"), 3)
 		elif action == "resume":
 			set_game_paused(false)
 		elif action == "mute":
@@ -273,13 +279,13 @@ func _on_agent_isles_message(arguments: Array) -> void:
 			print("MOSSLIGHT_REGIONS_READY")
 			JavaScriptBridge.eval("performance.mark('godot-neighbors-ready')")
 		else:
-			_show_toast("邻近区域暂未加载，靠近桥头可重试。", 5)
+			_show_toast(tr("region.not_loaded"), 5)
 		return
 	if message.get("type") == "world:neighbors-failed":
 		regions_loading = false
 		regions_error = true
 		_update_region_signs()
-		_show_toast("邻近区域暂未加载，靠近桥头可重试。", 5)
+		_show_toast(tr("region.not_loaded"), 5)
 		return
 	if message.get("type") != "world:init":
 		return
@@ -319,7 +325,7 @@ func _on_agent_isles_message(arguments: Array) -> void:
 	agent_isles_workspace_id = str((workspace as Dictionary).get("workspaceId", ""))
 	var workspace_title := str((workspace as Dictionary).get("title", ""))
 	if not workspace_title.is_empty() and agent_isles_workspace_id != previous_workspace_id:
-		_show_toast("已连接工作区：%s" % workspace_title, 4.0)
+		_show_toast(tr("workspace.connected") % workspace_title, 4.0)
 
 
 func _set_world_locale(locale: String) -> void:
@@ -328,8 +334,16 @@ func _set_world_locale(locale: String) -> void:
 	TranslationServer.set_locale(locale)
 	if residents != null:
 		residents.refresh_locale()
+	if garden != null:
+		garden.refresh_locale()
+	if resident_dialogue != null:
+		resident_dialogue.refresh_locale()
+	if sanctuary_computer != null:
+		sanctuary_computer.refresh_locale()
 	_update_region_signs()
 	if garden != null and prompt != null:
+		_update_view_hint()
+		_refresh_static_locale()
 		_update_hud()
 
 
@@ -504,7 +518,7 @@ func _build_world() -> void:
 func _install_neighbor_regions(staged: bool = false) -> bool:
 	if desert == null:
 		if staged:
-			JavaScriptBridge.eval("window.prepareNeighborRegion('晴沙绿洲')")
+			JavaScriptBridge.eval("window.prepareNeighborRegion(%s)" % JSON.stringify(tr("region.desert")))
 			await get_tree().process_frame
 		var desert_scene := load(DESERT_PATH) as PackedScene
 		if desert_scene == null:
@@ -519,7 +533,7 @@ func _install_neighbor_regions(staged: bool = false) -> bool:
 			await get_tree().process_frame
 	if streamside == null:
 		if staged:
-			JavaScriptBridge.eval("window.prepareNeighborRegion('溪间庭院')")
+			JavaScriptBridge.eval("window.prepareNeighborRegion(%s)" % JSON.stringify(tr("region.streamside")))
 			await get_tree().process_frame
 		var streamside_scene := load(STREAMSIDE_PATH) as PackedScene
 		if streamside_scene == null:
@@ -706,18 +720,18 @@ func _physics_process(delta: float) -> void:
 		in_streamside = now_in_streamside
 		overview_labels[0].text = "FIELD NOTES     /     002" if in_desert else "FIELD NOTES     /     001"
 		overview_labels[1].text = "SUNWAKE" if in_desert else "MOSSLIGHT"
-		overview_labels[2].text = "晴 沙 绿 洲" if in_desert else "苔 光 之 屿"
-		overview_labels[3].text = "越过石桥，沿着砂岩小径寻找绿洲。" if in_desert else "沿着石径，穿过树影。"
+		overview_labels[2].text = tr("region.desert.spaced") if in_desert else tr("region.mosslight.spaced")
+		overview_labels[3].text = tr("region.desert.note") if in_desert else tr("region.mosslight.note")
 		if in_streamside:
 			overview_labels[0].text = "FIELD NOTES     /     003"
 			overview_labels[1].text = "STREAMSIDE"
-			overview_labels[2].text = "溪 间 庭 院"
-			overview_labels[3].text = "古树荫下，沿溪过桥，去廊下坐一会儿。"
-			_show_toast("溪间庭院" if embedded_mode else "抵达溪间庭院。沿溪向南过石桥，坡道通向茶屋。", 3 if embedded_mode else 5)
+			overview_labels[2].text = tr("region.streamside.spaced")
+			overview_labels[3].text = tr("region.streamside.note")
+			_show_toast(tr("region.streamside") if embedded_mode else tr("region.streamside.arrival"), 3 if embedded_mode else 5)
 		else:
-			var region_message := "晴沙绿洲" if in_desert else "苔光之屿"
+			var region_message := tr("region.desert") if in_desert else tr("region.mosslight")
 			if not embedded_mode:
-				region_message = "抵达晴沙绿洲。沙丘可步行攀登，石桥通往苔光之屿。" if in_desert else "回到苔光之屿。"
+				region_message = tr("region.desert.arrival") if in_desert else tr("region.mosslight.return")
 			_show_toast(region_message, 3 if embedded_mode else 5)
 	if not "--portrait" in OS.get_cmdline_user_args():
 		_update_camera(delta)
@@ -840,7 +854,7 @@ func _echo_surface_allowed(point: Vector3) -> bool:
 
 func place_echo() -> bool:
 	if not echo_active or not placement_valid:
-		_show_toast("这里放不下回响。朝空地走一步，再试试。", 2.5)
+		_show_toast(tr("echo.no_space"), 2.5)
 		return false
 	if echoes.size() == MAX_ECHOES:
 		var oldest: StaticBody3D = echoes.pop_front()
@@ -868,7 +882,7 @@ func _interact() -> void:
 			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 			_emit_agent_isles("resident:selected", {"residentId": "coder"})
 		else:
-			_show_toast("Q · 在小岛网页版中打开项目对话。", 4)
+			_show_toast(tr("q.open_web"), 4)
 		return
 	if sanctuary_computer.can_grab():
 		sanctuary_computer.grab()
@@ -887,10 +901,10 @@ func _interact() -> void:
 			learned_echoes.append(kind)
 		select_echo(kind)
 		_tone(880, .4, .20)
-		var tip := "踩上去可以弹得更高。" if kind == "mushroom" else "按 T 转向，可以架桥或搭在木箱上。" if kind == "plank" else ""
-		_show_toast("已学会「%s回响」！%s F 放置 · C 切换 · 右键收起" % [ECHO_OBJECTS.NAMES[kind], tip], 8)
+		var tip := tr("echo.mushroom.tip") if kind == "mushroom" else tr("echo.plank.tip") if kind == "plank" else ""
+		_show_toast(tr("echo.learned") % [ECHO_OBJECTS.display_name(kind), tip], 8)
 	elif streamside != null and streamside.at_lookout(player.global_position):
-		_show_toast("听风台 · 树梢就在身旁，溪水从脚下流过。歇一会儿，再去别处走走吧。", 7)
+		_show_toast(tr("place.wind_platform.toast"), 7)
 	else:
 		var npc: StaticBody3D = residents.nearest(player)
 		if npc != null:
@@ -905,21 +919,21 @@ func _interact() -> void:
 				lines = [str(handoff.text)]
 				if resident_id == "coordinator":
 					dialogue_options = [
-						{"label": "找 Q聊聊", "resident_id": "coder"},
-						{"label": "先逛逛", "resident_id": ""},
-						{"label": "带我认识这里", "resident_id": "coordinator"},
+						{"label": tr("option.talk_q"), "resident_id": "coder"},
+						{"label": tr("option.explore"), "resident_id": ""},
+						{"label": tr("option.tour"), "resident_id": "coordinator"},
 					]
 				elif resident_id == "teacher":
 					dialogue_options = [
-						{"label": "查看项目与历史对话", "resident_id": "teacher"},
-						{"label": "选择或切换项目", "resident_id": "coordinator"},
-						{"label": "先逛逛", "resident_id": ""},
+						{"label": tr("option.history"), "resident_id": "teacher"},
+						{"label": tr("option.project"), "resident_id": "coordinator"},
+						{"label": tr("option.explore"), "resident_id": ""},
 					]
 				elif resident_id == "file_keeper":
 					dialogue_options = [
-						{"label": "浏览文件", "resident_id": "file_keeper"},
-						{"label": "查看修改", "resident_id": "file_keeper"},
-						{"label": "先逛逛", "resident_id": ""},
+						{"label": tr("option.files"), "resident_id": "file_keeper"},
+						{"label": tr("option.changes"), "resident_id": "file_keeper"},
+						{"label": tr("option.explore"), "resident_id": ""},
 					]
 			resident_dialogue.open_dialogue(
 				residents.dialogue_name(npc), residents.dialogue_role(npc), lines,
@@ -955,7 +969,7 @@ func set_view_mode(mode: ViewMode) -> void:
 		hero.rotation.y = atan2(facing.x, facing.z)
 	_update_view_hint()
 	if not embedded_mode:
-		_show_toast(["俯视角：滚轮观察小岛。", "第三人称：点击锁定鼠标，或按住鼠标拖动镜头。", "第一人称：点击锁定或拖动观察，WASD 行走，空格跳跃。"][mode], 5)
+		_show_toast([tr("view.top.tip"), tr("view.third.tip"), tr("view.first.tip")][mode], 5)
 	_update_camera(1.0)
 
 
@@ -995,12 +1009,12 @@ func _update_camera(delta: float) -> void:
 
 
 func _update_view_hint() -> void:
-	var mode_name: String = ["俯视", "第三人称", "第一人称"][view_mode]
-	view_hint.text = "视角：" + mode_name + "  ·  V 切换 / 1、2、3 直达"
+	var mode_name: String = [tr("view.top"), tr("view.third"), tr("view.first")][view_mode]
+	view_hint.text = tr("view.mode") % mode_name
 	if view_mode != ViewMode.OVERVIEW:
-		view_hint.text += "\n鼠标观察 · 按住拖动 / 点击锁定 · Esc 释放并暂停"
+		view_hint.text += "\n" + tr("view.mouse")
 	if view_mode == ViewMode.FIRST_PERSON:
-		view_hint.text += "\nB 镜头动态：" + ("开启" if camera_motion else "关闭")
+		view_hint.text += "\n" + tr("view.camera_motion") % (tr("common.on") if camera_motion else tr("common.off"))
 
 
 func _process(delta: float) -> void:
@@ -1074,7 +1088,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		var unlocked: Array = ECHO_OBJECTS.ORDER.filter(func(kind: String): return knows_echo(kind))
 		if not unlocked.is_empty():
 			select_echo(unlocked[(unlocked.find(selected_echo) + 1) % unlocked.size()])
-			_show_toast("%s回响 · F 放置 · C 切换 · 右键收起" % ECHO_OBJECTS.NAMES[selected_echo], 3)
+			_show_toast(tr("echo.controls") % ECHO_OBJECTS.display_name(selected_echo), 3)
 	elif event.is_action_pressed("rotate_echo") and echo_active and selected_echo == "plank":
 		echo_rotation = fposmod(echo_rotation + PI / 2, PI)
 		_update_preview()
@@ -1101,12 +1115,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		AudioServer.set_bus_mute(0, not AudioServer.is_bus_mute(0))
 	elif event.is_action_pressed("nature_motion"):
 		nature_motion = not nature_motion
-		_show_toast("环境动态已开启。" if nature_motion else "环境动态已关闭，仍可正常探索。", 3)
+		_show_toast(tr("motion.nature_on") if nature_motion else tr("motion.nature_off"), 3)
 	elif event.is_action_pressed("camera_motion"):
 		camera_motion = not camera_motion
 		first_person_feedback.reset()
 		_update_view_hint()
-		_show_toast("镜头动态已开启。" if camera_motion else "镜头动态已关闭，脚步声仍保留。", 3)
+		_show_toast(tr("motion.camera_on") if camera_motion else tr("motion.camera_off"), 3)
 	elif event is InputEventMouseButton and event.pressed:
 		if event.button_index == MOUSE_BUTTON_LEFT and view_mode != ViewMode.OVERVIEW:
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -1181,8 +1195,8 @@ func _build_ui() -> void:
 	ui.theme = theme
 	overview_labels.append(_label("FIELD NOTES     /     001", Vector2(48, 34), 15, Color("f0d79d")))
 	overview_labels.append(_label("MOSSLIGHT", Vector2(44, 57), 48, Color("fff2d6")))
-	overview_labels.append(_label("苔 光 之 屿", Vector2(48, 121), 19, Color("f6e4bf")))
-	overview_labels.append(_label("沿着石径，穿过树影。", Vector2(48, 160), 16, Color("deede0")))
+	overview_labels.append(_label(tr("region.mosslight.spaced"), Vector2(48, 121), 19, Color("f6e4bf")))
+	overview_labels.append(_label(tr("region.mosslight.note"), Vector2(48, 160), 16, Color("deede0")))
 	view_hint = _label("", Vector2(48, 192), 15, Color("eef2df"))
 	for label: Label in overview_labels:
 		label.visible = not embedded_mode
@@ -1201,10 +1215,10 @@ func _build_ui() -> void:
 	game_hud.offset_right = -40
 	game_hud.offset_top = -112
 	game_hud.offset_bottom = -34
-	echo_label = _label("01   未知回响", Vector2(22, 12), 21, Color("fae6b7"), game_hud)
-	_label("WASD 移动    空格 跳跃    E 互动    F 拿出 / 放置    C 回响    T 转向    右键 收起    Q 撤回", Vector2(400, 15), 16, Color("eef2df"), game_hud)
-	_label("Shift 奔跑    滚轮 缩放    V 视角    Tab 隐藏界面    N 动态    M 静音    R 重开    Esc 暂停", Vector2(400, 45), 14, Color("a5c4b9"), game_hud)
-	_label("回响之杖  /  最多保留 %d 个造物" % MAX_ECHOES, Vector2(22, 45), 13, Color("a5c4b9"), game_hud)
+	echo_label = _label(tr("echo.unknown.numbered"), Vector2(22, 12), 21, Color("fae6b7"), game_hud)
+	hud_primary = _label(tr("controls.primary"), Vector2(400, 15), 16, Color("eef2df"), game_hud)
+	hud_secondary = _label(tr("controls.secondary"), Vector2(400, 45), 14, Color("a5c4b9"), game_hud)
+	hud_staff = _label(tr("echo.staff") % MAX_ECHOES, Vector2(22, 45), 13, Color("a5c4b9"), game_hud)
 	game_hud.visible = not embedded_mode
 	prompt = _label("", Vector2(0, -185), 22, Color("fff5d6"))
 	prompt.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
@@ -1231,15 +1245,24 @@ func _build_ui() -> void:
 	pause_panel.offset_right = 180
 	pause_panel.offset_top = -105
 	pause_panel.offset_bottom = 105
-	_label("休息一下", Vector2(28, 24), 26, Color("172d29"), pause_panel)
-	_label("已暂停", Vector2(28, 70), 16, Color("63736e"), pause_panel)
-	var resume_button := Button.new()
-	resume_button.text = "继续探索"
+	pause_title = _label(tr("pause.rest"), Vector2(28, 24), 26, Color("172d29"), pause_panel)
+	pause_status = _label(tr("pause.paused"), Vector2(28, 70), 16, Color("63736e"), pause_panel)
+	resume_button = Button.new()
+	resume_button.text = tr("pause.resume")
 	resume_button.position = Vector2(28, 124)
 	resume_button.size = Vector2(304, 48)
 	resume_button.pressed.connect(func(): set_game_paused(false))
 	pause_panel.add_child(resume_button)
 	pause_panel.visible = false
+
+
+func _refresh_static_locale() -> void:
+	hud_primary.text = tr("controls.primary")
+	hud_secondary.text = tr("controls.secondary")
+	hud_staff.text = tr("echo.staff") % MAX_ECHOES
+	pause_title.text = tr("pause.rest")
+	pause_status.text = tr("pause.paused")
+	resume_button.text = tr("pause.resume")
 
 
 func _panel(at: Vector2, dimensions: Vector2, color: Color) -> Panel:
@@ -1274,7 +1297,7 @@ func _label(text: String, at: Vector2, font_size: int, color: Color, parent: Con
 
 
 func _update_hud() -> void:
-	echo_label.text = "%s回响    %d / %d" % [ECHO_OBJECTS.NAMES[selected_echo], echoes.size(), MAX_ECHOES] if knows_echo(selected_echo) else "未知回响"
+	echo_label.text = tr("echo.count") % [ECHO_OBJECTS.display_name(selected_echo), echoes.size(), MAX_ECHOES] if knows_echo(selected_echo) else tr("echo.unknown")
 	if sanctuary_computer != null and sanctuary_computer.active:
 		prompt.text = tr("action.q_lifting")
 		return
@@ -1289,9 +1312,9 @@ func _update_hud() -> void:
 		return
 	var source := _nearby_echo_source()
 	if source != null:
-		prompt.text = "[ E ]  学习%s回响" % ECHO_OBJECTS.NAMES[source.get_meta("echo_kind")]
+		prompt.text = tr("echo.learn") % ECHO_OBJECTS.display_name(source.get_meta("echo_kind"))
 	elif streamside != null and streamside.at_lookout(player.global_position):
-		prompt.text = "[ E ]  在听风台看看风景"
+		prompt.text = tr("place.wind_platform.action")
 	else:
 		var npc: StaticBody3D = residents.nearest(player)
 		prompt.text = tr("action.talk") % npc.get_meta("display_name") if npc != null else ""
@@ -1301,9 +1324,9 @@ func _update_hud() -> void:
 	if not region_barriers.is_empty() and absf(player.position.x) > 9.5 and absf(player.position.z - 3) < 2:
 		prompt.text = tr("region.reload") if regions_error else tr("region.loading")
 	if echo_active:
-		prompt.text += ("\n" if not prompt.text.is_empty() else "") + "F 放置%s · C 切换 · Q 撤回 · 右键收起" % ECHO_OBJECTS.NAMES[selected_echo]
+		prompt.text += ("\n" if not prompt.text.is_empty() else "") + tr("echo.place_controls") % ECHO_OBJECTS.display_name(selected_echo)
 		if selected_echo == "plank":
-			prompt.text += " · T 转向"
+			prompt.text += tr("echo.rotate")
 
 
 func _show_toast(text: String, seconds: float) -> void:

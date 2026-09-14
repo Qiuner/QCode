@@ -2,7 +2,10 @@ extends RefCounted
 ## Small procedural echo props share dimensions with their placement previews.
 
 const ORDER := ["crate", "plank", "mushroom"]
-const NAMES := {"crate": "木箱", "plank": "木板", "mushroom": "弹跳蘑菇"}
+const NAME_KEYS := {"crate": "echo.crate", "plank": "echo.plank", "mushroom": "echo.mushroom"}
+
+static func display_name(kind: String) -> String:
+	return TranslationServer.translate(NAME_KEYS.get(kind, kind))
 const SIZES := {"crate": Vector3(.96, .9, .96), "plank": Vector3(3.6, .18, 1.1), "mushroom": Vector3(1.3, .65, 1.3)}
 const BOUNCE_SPEED := 10.8
 

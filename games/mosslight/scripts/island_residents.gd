@@ -177,14 +177,14 @@ func nearest(traveler: CharacterBody3D) -> StaticBody3D:
 
 func agent_isles_talk(npc: StaticBody3D, has_workspace: bool) -> Dictionary:
 	var identities := {
-		"gardener": ["芽芽 · 园丁", "我在这里照顾花草。想制作项目，可以去高台找 Q。"],
-		"file_keeper": ["File Keeper · 整理", "我负责阅读项目、整理文件和维护资料。"],
-		"teacher": ["苔伯 · 项目与对话管理", "我负责选择和切换项目，也帮你找回已有项目和历史对话。"],
+		"gardener": ["resident.gardener.identity", "resident.gardener.handoff"],
+		"file_keeper": ["resident.file_keeper.identity", "resident.file_keeper.handoff"],
+		"teacher": ["resident.teacher.identity", "resident.teacher.handoff"],
 	}
-	var identity: Array = identities.get(str(npc.get_meta("agent_isles_id")), ["Resident · 居民", "我会协助处理这个项目。"])
+	var identity: Array = identities.get(str(npc.get_meta("agent_isles_id")), ["resident.default.identity", "resident.default.handoff"])
 	return {
 		"name": identity[0],
-		"text": identity[1] + (" 请在居民面板里继续。" if has_workspace else " 请找苔伯选择项目文件夹，绑定工作区后就能开始。"),
+		"text": tr(identity[1]) + (tr("resident.handoff.continue") if has_workspace else tr("resident.handoff.choose_project")),
 	}
 
 

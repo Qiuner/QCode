@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs'
 import { runInNewContext } from 'node:vm'
 
 const shell = readFileSync(new URL('../../../games/mosslight/web/shell.html', import.meta.url), 'utf8')
-const source = shell.slice(shell.indexOf('let loadingNeighbors'), shell.indexOf("const canvas = document.getElementById('canvas')"))
+const source = shell.slice(shell.indexOf('let loadingNeighbors'), shell.lastIndexOf("const canvas = document.getElementById('canvas')"))
 
 test('neighbor download copies the pack before notifying Godot and allows retry', async () => {
   const actions = []
@@ -15,7 +15,10 @@ test('neighbor download copies the pack before notifying Godot and allows retry'
   runInNewContext(source, {
     window, AbortController, setTimeout, clearTimeout, Uint8Array,
     AGENT_ISLES_BRIDGE_VERSION: 1,
+    Engine: function () {},
     console: { error() {} },
+    shell: key => ({ waiting: 'waiting', regionsReady: 'ready', regionsFailed: 'failed', downloading: 'downloading', corrupt: 'corrupt', installing: 'installing', timeout: 'timeout', disconnected: 'disconnected',
+      server: status => `HTTP ${status}`, received: mb => `received ${mb}`, retrying: reason => `${reason}, retrying`, unavailable: reason => `${reason}, unavailable`, preparing: name => `preparing ${name}` })[key],
     fetch: async () => {
       requests++
       const data = new Uint8Array(128)

@@ -200,8 +200,12 @@ func set_status(status: String) -> void:
 		if not game.nature_motion:
 			sleep_amount = 0
 			_update_signal()
-	var labels := {"working": "执行中", "thinking": "思考中", "approval": "等待确认", "completed": "本轮结束", "failed": "遇到问题"}
-	status_label.text = "Q" + (" · " + str(labels[status]) if labels.has(status) else "")
+	var labels := {"working": "q.status.working", "thinking": "q.status.thinking", "approval": "q.status.approval", "completed": "q.status.completed", "failed": "q.status.failed"}
+	status_label.text = "Q" + (" · " + tr(str(labels[status])) if labels.has(status) else "")
+
+
+func refresh_locale() -> void:
+	set_status(task_status)
 
 
 func can_grab() -> bool:
@@ -223,7 +227,7 @@ func remote_grab(for_review: bool = false) -> bool:
 	query.collision_mask = 1
 	query.exclude = [game.player.get_rid()]
 	if not get_world_3d().direct_space_state.intersect_shape(query).is_empty():
-		game._show_toast("中央平台被占用了，请先清出位置。", 3)
+		game._show_toast(tr("q.platform_blocked"), 3)
 		return false
 	remote_active = true
 	_reset_magic()
@@ -233,7 +237,7 @@ func remote_grab(for_review: bool = false) -> bool:
 	remote_time = 0.0
 	game.player.velocity = Vector3.ZERO
 	game.set_echo_active(false)
-	game._show_toast("Q 正在发出召回信号…", 2)
+	game._show_toast(tr("q.recalling"), 2)
 	return true
 
 
@@ -246,7 +250,7 @@ func grab() -> bool:
 	query.collision_mask = 1
 	query.exclude = [game.player.get_rid()]
 	if not get_world_3d().direct_space_state.intersect_shape(query).is_empty():
-		game._show_toast("台前放不下，请先收起木箱。", 3)
+		game._show_toast(tr("q.front_blocked"), 3)
 		return false
 	start = game.player.global_position
 	time = 0
@@ -363,12 +367,12 @@ func advance(delta: float) -> void:
 				remote_transport = false
 				game.first_person_feedback.reset()
 				_pose(0)
-				game._show_toast("路径被建筑挡住，已安全传送回中央平台。", 3)
+				game._show_toast(tr("q.path_blocked"), 3)
 				_finish_review_recall()
 				return
 			released = true
 			time = TRANSPORT_END
-			game._show_toast("前面有东西挡住了，先在这里放下。", 3)
+			game._show_toast(tr("q.place_blocked"), 3)
 		game.player.velocity = Vector3.ZERO
 	var reach := smoothstep(0, 1, time / REACH_TIME)
 	if time >= TRANSPORT_END:

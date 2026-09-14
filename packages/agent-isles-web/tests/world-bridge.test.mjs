@@ -54,6 +54,7 @@ test('world announces playable only after startup resolves and the loading cover
       started: false, failed: false, start: {}, progress: {}, status: {}, gate,
       canvas: { focus() {} }, performance: { mark() {}, measure() {} },
       document: { getElementById: () => ({ textContent: '' }) },
+      shell: key => key,
       Engine: { getMissingFeatures: () => [] }, engine: { startGame: () => startup },
       window: { agentIslesWorldBridge: { emit: type => sent.push({ type, covered: !gate.hidden }) } },
       reportFailure() {},
@@ -76,7 +77,8 @@ test('world accepts only the paired parent and preserves both bridge directions'
   let helpOpened = 0
   const parent = { postMessage: (...args) => sent.push(args) }
   const window = { parent, addEventListener: (_name, handler) => { listener = handler } }
-  const document = { body: { dataset: {} }, getElementById: () => ({ showModal: () => { helpOpened++ } }) }
+  const element = { firstChild: {}, parentElement: { firstChild: {} }, showModal: () => { helpOpened++ }, set textContent(_value) {}, set ariaLabel(_value) {} }
+  const document = { body: { dataset: {} }, getElementById: () => element, querySelector: () => element, querySelectorAll: () => [] }
   runInNewContext(source, { URL, URLSearchParams, window, document, location: { origin: 'http://localhost:3081', search: '?embed=1' } })
   window.agentIslesWorldBridge.attachGodot(message => received.push(JSON.parse(message)))
   const data = { source: 'agent-isles-host', version: 1, type: 'world:init', payload: { locale: 'en', workspace: { title: 'Test' }, panelOpen: true } }

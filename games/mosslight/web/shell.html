@@ -89,6 +89,46 @@
     // for standalone previews.
     const parentOrigin = embedded && document.referrer ? new URL(document.referrer).origin : location.origin;
     if (embedded) document.body.dataset.embedded = '';
+    let shellLocale = 'zh';
+    const shellCopy = {
+      zh: {
+        worldOptions: '世界选项', guide: '操作指南', fullscreen: '切换全屏', canvas: '苔光之屿游戏画面，使用 WASD 移动、空格跳跃', unsupported: '当前浏览器不支持画布，请使用新版 Chrome、Edge 或 Firefox。', enterAria: '进入游戏', cover: '溪间庭院、苔光之屿和晴沙绿洲，由石桥相连的三个世界地块', enter: '进入世界', progress: '游戏加载进度', close: '关闭',
+        guideTerms: ['移动 / 奔跑', '跳跃 / 互动', '切换视角', '观察 / 缩放', '拿出 / 放置回响', '切换回响 / 木板转向', '收起 / 撤回造物', '背包 / 水壶', '隐藏界面 / 静音', '环境 / 镜头动态', '暂停 / 重新开始'],
+        guideValues: ['WASD / Shift', '空格 / E', '1 · 2 · 3 / V', '鼠标拖动 / 滚轮', 'F（学会后可直接放置）', 'C / T', '鼠标右键 / Q', 'I / G', 'Tab / M', 'N / B', 'Esc / R'],
+        waiting: '等待主岛就绪', regionsReady: '邻近区域已开放', regionsFailed: '区域资源无法展开，请重新加载', preparing: name => `正在准备${name}的场景与画面…`, downloading: '正在下载区域…', server: status => `服务器返回 HTTP ${status}`, received: (mb, retry) => `已接收 ${mb} MB${retry ? ' · 重试中' : ''}`, corrupt: '区域文件不完整或格式错误', installing: '下载完成，正在展开区域…', timeout: '连接超时', disconnected: '网络连接中断', retrying: reason => `${reason}，正在重试…`, unavailable: reason => `${reason}，区域尚未开放`, pointer: '当前浏览器未允许锁定鼠标 · 按住左键或右键拖动观察',
+        rest: '休息一下', paused: '已暂停', resume: '继续探索', options: '声音与画面', sound: '声音', nature: '环境动态', camera: '镜头动态', back: '返回', task: 'Q 仍在处理任务', developer: '开发者面板', developerHint: '直接预览角色演出，无需等待 AI 完成或自动召回。不会修改任务状态。', talk: '触发 Q 剧情对话', starlight: '掌中星光', cards: '飞牌归一', cups: '杯中奇遇', developerBack: '返回暂停菜单', reload: '重新加载', loadFailed: '加载失败，请检查网络与浏览器硬件加速后重试。', loading: '正在加载', loadingWorld: '正在加载世界', loadingPercent: value => `加载中 ${value}%`, entering: '正在进入世界', fullscreenFailed: '当前浏览器未允许全屏，可继续窗口游玩。'
+      },
+      en: {
+        worldOptions: 'World options', guide: 'Controls', fullscreen: 'Toggle fullscreen', canvas: 'Mosslight Isle game. Move with WASD and jump with Space.', unsupported: 'Canvas is not supported. Use a recent version of Chrome, Edge, or Firefox.', enterAria: 'Enter game', cover: 'Streamside Garden, Mosslight Isle, and Sunlit Oasis connected by stone bridges', enter: 'Enter world', progress: 'Game loading progress', close: 'Close',
+        guideTerms: ['Move / Run', 'Jump / Interact', 'Change view', 'Look / Zoom', 'Hold / Place echo', 'Switch echo / Rotate plank', 'Recall / Undo creation', 'Bag / Watering can', 'Hide UI / Mute', 'Environment / Camera motion', 'Pause / Restart'],
+        guideValues: ['WASD / Shift', 'Space / E', '1 · 2 · 3 / V', 'Mouse drag / Wheel', 'F (place directly after learning)', 'C / T', 'Right-click / Q', 'I / G', 'Tab / M', 'N / B', 'Esc / R'],
+        waiting: 'Waiting for the main island', regionsReady: 'Nearby regions are open', regionsFailed: 'Region assets could not be unpacked. Reload them.', preparing: name => `Preparing the scene and visuals for ${name}…`, downloading: 'Downloading regions…', server: status => `Server returned HTTP ${status}`, received: (mb, retry) => `Received ${mb} MB${retry ? ' · retrying' : ''}`, corrupt: 'The region file is incomplete or invalid', installing: 'Download complete. Unpacking regions…', timeout: 'Connection timed out', disconnected: 'Network connection interrupted', retrying: reason => `${reason}. Retrying…`, unavailable: reason => `${reason}. Region remains unavailable.`, pointer: 'Pointer lock was blocked · hold the left or right mouse button to drag the view',
+        rest: 'Take a break', paused: 'Paused', resume: 'Continue exploring', options: 'Sound and visuals', sound: 'Sound', nature: 'Environmental motion', camera: 'Camera motion', back: 'Back', task: 'Q is still working', developer: 'Developer panel', developerHint: 'Preview character scenes directly without waiting for AI completion or automatic recall. Task state is unchanged.', talk: 'Trigger Q story dialogue', starlight: 'Starlight in Hand', cards: 'Cards Return as One', cups: 'Wonder in a Cup', developerBack: 'Back to pause menu', reload: 'Reload', loadFailed: 'Loading failed. Check the network and browser hardware acceleration, then retry.', loading: 'Loading', loadingWorld: 'Loading world', loadingPercent: value => `Loading ${value}%`, entering: 'Entering world', fullscreenFailed: 'Fullscreen was blocked. You can continue in the window.'
+      }
+    };
+    const shell = key => shellCopy[shellLocale][key];
+    function applyShellLocale(locale) {
+      shellLocale = String(locale).startsWith('zh') ? 'zh' : 'en';
+      document.querySelector('#stage > nav').ariaLabel = shell('worldOptions');
+      document.getElementById('help').ariaLabel = shell('guide');
+      document.getElementById('fullscreen').ariaLabel = shell('fullscreen');
+      const canvas = document.getElementById('canvas'); canvas.ariaLabel = shell('canvas'); canvas.textContent = shell('unsupported');
+      document.getElementById('gate').ariaLabel = shell('enterAria');
+      document.querySelector('#gate .art').alt = shell('cover');
+      document.getElementById('start').textContent = shell('enter');
+      document.getElementById('progress').ariaLabel = shell('progress');
+      document.getElementById('guide-title').textContent = shell('guide');
+      document.querySelectorAll('#guide dt').forEach((node, index) => { node.textContent = shell('guideTerms')[index]; });
+      document.querySelectorAll('#guide dd').forEach((node, index) => { node.textContent = shell('guideValues')[index]; });
+      document.getElementById('close-guide').textContent = shell('close');
+      if (document.getElementById('pause-menu')) {
+        document.getElementById('pause-title').textContent = shell('rest');
+        document.querySelector('#pause-menu > p').textContent = shell('paused');
+        document.getElementById('pause-resume').textContent = shell('resume'); document.getElementById('pause-options').textContent = shell('options'); document.getElementById('pause-help').textContent = shell('guide');
+        document.querySelector('#pause-sound').parentElement.firstChild.textContent = shell('sound'); document.querySelector('#pause-nature').parentElement.firstChild.textContent = shell('nature'); document.querySelector('#pause-camera').parentElement.firstChild.textContent = shell('camera'); document.getElementById('pause-back').textContent = shell('back'); document.getElementById('pause-task').textContent = shell('task');
+        document.getElementById('developer-title').textContent = shell('developer'); document.querySelector('#developer-menu > p').textContent = shell('developerHint'); document.getElementById('developer-talk').textContent = shell('talk'); document.getElementById('developer-magic').textContent = shell('starlight'); document.getElementById('developer-cards').textContent = shell('cards'); document.getElementById('developer-cups').textContent = shell('cups'); document.getElementById('developer-close').textContent = shell('developerBack');
+      }
+    }
     const pendingHostMessages = [];
     let godotMessageHandler = null;
     window.agentIslesWorldBridge = {
@@ -115,6 +155,7 @@
         document.getElementById('guide').showModal();
         return;
       }
+      if (message.type === 'world:init' || message.type === 'world:locale') applyShellLocale(message.payload?.locale);
       if (message.type === 'tutorial:keeper') {
         const payload = message.payload;
         if (!payload || typeof payload.encounterId !== 'string' || !/^[\w-]{1,160}$/.test(payload.encounterId)
@@ -139,7 +180,7 @@
     const engine = new Engine(config);
     let loadingNeighbors = false;
     let neighborInstallTimeout;
-    window.neighborState = { stage: 'waiting', detail: '等待主岛就绪' };
+    window.neighborState = { stage: 'waiting', detail: shell('waiting') };
     function reportNeighbors(stage, detail) {
       window.neighborState = { stage, detail };
       window.agentIslesWorldBridge.emit('world:regions', window.neighborState);
@@ -147,18 +188,18 @@
     window.finishNeighborRegions = (ok) => {
       clearTimeout(neighborInstallTimeout);
       loadingNeighbors = false;
-      reportNeighbors(ok ? 'ready' : 'failed', ok ? '邻近区域已开放' : '区域资源无法展开，请重新加载');
+      reportNeighbors(ok ? 'ready' : 'failed', ok ? shell('regionsReady') : shell('regionsFailed'));
     };
     window.prepareNeighborRegion = (name) => {
       clearTimeout(neighborInstallTimeout);
       neighborInstallTimeout = setTimeout(() => window.finishNeighborRegions(false), 45000);
-      reportNeighbors('installing', `正在准备${name}的场景与画面…`);
+      reportNeighbors('installing', shell('preparing')(name));
     };
     window.loadNeighborRegions = async () => {
       if (loadingNeighbors || window.neighborState.stage === 'ready') return;
       const retry = window.neighborState.stage === 'failed';
       loadingNeighbors = true;
-      reportNeighbors('downloading', '正在下载区域…');
+      reportNeighbors('downloading', shell('downloading'));
       setTimeout(() => godotMessageHandler?.(JSON.stringify({
         source: 'agent-isles-host', version: AGENT_ISLES_BRIDGE_VERSION, type: 'world:neighbors-started'
       })), 0);
@@ -169,7 +210,7 @@
         const timeout = setTimeout(() => controller.abort(), 45000);
         try {
           const response = await fetch('neighbors.pck', { signal: controller.signal, cache: retry || attempt ? 'reload' : 'default' });
-          if (!response.ok) throw new Error(`服务器返回 HTTP ${response.status}`);
+          if (!response.ok) throw new Error(shell('server')(response.status));
           const reader = response.body.getReader();
           const chunks = [];
           let received = 0;
@@ -180,7 +221,7 @@
             chunks.push(value);
             received += value.length;
             if (received - lastReported >= 524288) {
-              reportNeighbors('downloading', `已接收 ${(received / 1048576).toFixed(1)} MB${attempt ? ' · 重试中' : ''}`);
+              reportNeighbors('downloading', shell('received')((received / 1048576).toFixed(1), attempt));
               lastReported = received;
             }
           }
@@ -188,24 +229,24 @@
           let offset = 0;
           for (const chunk of chunks) { data.set(chunk, offset); offset += chunk.length; }
           if (data.length < 100 || data[0] !== 71 || data[1] !== 68 || data[2] !== 80 || data[3] !== 67) {
-            throw new Error('区域文件不完整或格式错误');
+            throw new Error(shell('corrupt'));
           }
           engine.copyToFS('/neighbors.pck', data);
           type = 'world:neighbors-downloaded';
-          reportNeighbors('installing', '下载完成，正在展开区域…');
+          reportNeighbors('installing', shell('installing'));
           break;
         } catch (error) {
-          failure = error.name === 'AbortError' ? '连接超时' : (error instanceof TypeError ? '网络连接中断' : error.message);
+          failure = error.name === 'AbortError' ? shell('timeout') : (error instanceof TypeError ? shell('disconnected') : error.message);
           console.error('agent-isles region download failed:', error);
           if (attempt === 0) {
-            reportNeighbors('downloading', `${failure}，正在重试…`);
+            reportNeighbors('downloading', shell('retrying')(failure));
             await new Promise(resolve => setTimeout(resolve, 1000));
           }
         } finally { clearTimeout(timeout); }
       }
       if (type === 'world:neighbors-failed') {
         loadingNeighbors = false;
-        reportNeighbors('failed', `${failure}，区域尚未开放`);
+        reportNeighbors('failed', shell('unavailable')(failure));
       } else {
         neighborInstallTimeout = setTimeout(() => window.finishNeighborRegions(false), 45000);
       }
@@ -218,7 +259,7 @@
     // Some embedded browsers reject pointer lock; dragging remains available.
     const requestPointerLock = canvas.requestPointerLock?.bind(canvas);
     const showMouseFallback = () => {
-      document.getElementById('connection').textContent = '当前浏览器未允许锁定鼠标 · 按住左键或右键拖动观察';
+      document.getElementById('connection').textContent = shell('pointer');
     };
     if (requestPointerLock) {
       canvas.requestPointerLock = (...args) => {
@@ -241,7 +282,7 @@
     const pauseHome = document.getElementById('pause-home');
     const pauseSettings = document.getElementById('pause-settings');
     const pauseAction = (action, extra = {}) => godotMessageHandler?.(JSON.stringify({ source: 'agent-isles-host', version: 1, type: 'world:pause-action', payload: { action, ...extra } }));
-    const backToPause = () => { pauseSettings.hidden = true; pauseHome.hidden = false; document.getElementById('pause-title').textContent = '休息一下'; document.getElementById('pause-resume').focus(); };
+    const backToPause = () => { pauseSettings.hidden = true; pauseHome.hidden = false; document.getElementById('pause-title').textContent = shell('rest'); document.getElementById('pause-resume').focus(); };
     window.showIslandPause = state => {
       if (!state.open) { pause.close(); canvas.focus(); return; }
       document.getElementById('pause-sound').checked = !state.muted;
@@ -303,12 +344,13 @@
       pauseAction('preview-magic', { trick: 'cups' });
       canvas.focus();
     };
-    document.getElementById('pause-options').onclick = () => { pauseHome.hidden = true; pauseSettings.hidden = false; document.getElementById('pause-title').textContent = '声音与画面'; document.getElementById('pause-sound').focus(); };
+    document.getElementById('pause-options').onclick = () => { pauseHome.hidden = true; pauseSettings.hidden = false; document.getElementById('pause-title').textContent = shell('options'); document.getElementById('pause-sound').focus(); };
     document.getElementById('pause-back').onclick = backToPause;
     for (const [id, action] of [['sound', 'mute'], ['nature', 'nature'], ['camera', 'camera']]) document.getElementById(`pause-${id}`).onchange = () => pauseAction(action);
     document.getElementById('pause-help').onclick = () => { guideFromPause = true; pause.close(); guide.showModal(); };
     pause.addEventListener('cancel', event => { event.preventDefault(); if (!pauseSettings.hidden) backToPause(); else pauseAction('resume'); });
     guide.addEventListener('close', () => { if (guideFromPause) { guideFromPause = false; pause.showModal(); backToPause(); } else if (started) canvas.focus(); });
+    applyShellLocale(shellLocale);
     window.addEventListener('message', event => {
       if (event.origin !== parentOrigin || event.source !== window.parent || event.data?.source !== 'agent-isles-host' || event.data.version !== 1 || event.data.type !== 'world:init') return;
       document.getElementById('pause-task').hidden = !event.data.payload?.residents?.some(item => item.id === 'coder' && ['working', 'thinking'].includes(item.status));
@@ -321,17 +363,17 @@
       gate.hidden = false;
       progress.hidden = true;
       start.disabled = false;
-      start.textContent = '重新加载';
-      status.textContent = '加载失败，请检查网络与浏览器硬件加速后重试。';
+      start.textContent = shell('reload');
+      status.textContent = shell('loadFailed');
       console.error('agent-isles failed to start:', error);
     }
     async function startGame() {
       if (started) return;
       if (failed) { location.reload(); return; }
       start.disabled = true;
-      start.textContent = '正在加载';
+      start.textContent = shell('loading');
       progress.hidden = false;
-      status.textContent = '正在加载世界';
+      status.textContent = shell('loadingWorld');
       performance.mark('world-start');
       try {
         const missing = Engine.getMissingFeatures({ threads: false });
@@ -341,7 +383,7 @@
           onProgress(current, total) {
             if (total > 0) {
               progress.value = current / total;
-              status.textContent = current < total ? `加载中 ${Math.floor(current / total * 100)}%` : '正在进入世界';
+              status.textContent = current < total ? shell('loadingPercent')(Math.floor(current / total * 100)) : shell('entering');
             } else progress.removeAttribute('value');
           },
           onExit(code) { reportFailure(new Error(`Game stopped with code ${code}`)); }
@@ -370,7 +412,7 @@
         if (document.fullscreenElement) await document.exitFullscreen();
         else await document.getElementById('stage').requestFullscreen();
         if (started) canvas.focus();
-      } catch (_) { document.getElementById('connection').textContent = '当前浏览器未允许全屏，可继续窗口游玩。'; }
+      } catch (_) { document.getElementById('connection').textContent = shell('fullscreenFailed'); }
     });
   </script>
 </body>

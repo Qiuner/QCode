@@ -189,7 +189,7 @@ func _reachable(at: Vector3, radius: float) -> bool:
 
 func target() -> Dictionary:
 	if world_can.visible and _reachable(CAN_HOME, 1.35):
-		return {"kind": "pickup", "hint": "[ E ] 拾起水壶 · 收入背包"}
+		return {"kind": "pickup", "hint": tr("garden.pickup")}
 	var nearest := -1
 	var distance := 1.45
 	for i in range(plots.size()):
@@ -200,13 +200,13 @@ func target() -> Dictionary:
 	if nearest >= 0:
 		var plot: Dictionary = plots[nearest]
 		if plot.growth >= GROW_SECONDS:
-			return {"kind": "harvest", "plot": nearest, "hint": "[ E ] 收获小雏菊 · 放进背包"}
+			return {"kind": "harvest", "plot": nearest, "hint": tr("garden.harvest")}
 		if equipped:
-			return {"kind": "water", "plot": nearest, "hint": "花苗正在生长…" if plot.watered else ("水壶空了 · 去池塘按 E 接水" if water == 0 else "[ E ] 浇花 · 消耗一格水")}
+			return {"kind": "water", "plot": nearest, "hint": tr("garden.growing") if plot.watered else (tr("garden.empty") if water == 0 else tr("garden.water"))}
 	if equipped:
 		for at: Vector3 in [Vector3(7.0, .1, 2.1), Vector3(4.0, .1, 0), Vector3(9.7, .1, 0), Vector3(6.9, .1, -2.3)]:
 			if _reachable(at, 1.55):
-				return {"kind": "fill", "position": at, "hint": "水壶已满 · 去小屋旁的花圃浇水" if water == WATER_CAPACITY else "[ E ] 从池塘接水"}
+				return {"kind": "fill", "position": at, "hint": tr("garden.full") if water == WATER_CAPACITY else tr("garden.fill")}
 	return {}
 
 
@@ -219,28 +219,28 @@ func interact() -> bool:
 	match action.kind:
 		"pickup":
 			if not add_item("watering_can"):
-				game._show_toast("背包装不下了。", 3)
+				game._show_toast(tr("inventory.full"), 3)
 				return true
 			world_can.visible = false
 			equipped = true
 			game.set_echo_active(false)
-			game._show_toast("拾得水壶！去池塘边按 E 接水。I 打开背包，G 收起或拿出水壶。", 6)
+			game._show_toast(tr("garden.can_found"), 6)
 		"fill":
 			if water == WATER_CAPACITY:
-				game._show_toast("水壶已经满了，能浇三次花。", 3)
+				game._show_toast(tr("garden.can_full"), 3)
 				return true
 			water = WATER_CAPACITY
 			use_left = .65
 			splash_origin = action.position
 			splash_left = .65
-			game._show_toast("接满清水 · 3 / 3。回小屋旁的三格花圃试试。", 4)
+			game._show_toast(tr("garden.filled"), 4)
 		"water":
 			var plot: Dictionary = plots[action.plot]
 			if plot.watered:
-				game._show_toast("泥土已经湿润，等花朵长大吧。", 3)
+				game._show_toast(tr("garden.already_watered"), 3)
 				return true
 			if water == 0:
-				game._show_toast("水壶空了，先到池塘边接水。", 3)
+				game._show_toast(tr("garden.need_water"), 3)
 				return true
 			water -= 1
 			plot.watered = true
@@ -248,10 +248,10 @@ func interact() -> bool:
 			use_left = .65
 			splash_origin = plot.position
 			splash_left = .65
-			game._show_toast("花苗喝到水了。稍等片刻，就可以收花。", 3)
+			game._show_toast(tr("garden.watered"), 3)
 		"harvest":
 			if not add_item("flower"):
-				game._show_toast("背包中的花已满，先保留在花圃里。", 3)
+				game._show_toast(tr("garden.flowers_full"), 3)
 				return true
 			var plot: Dictionary = plots[action.plot]
 			plot.watered = false
@@ -259,7 +259,7 @@ func interact() -> bool:
 			plot.bloom.visible = false
 			plot.plant.scale = Vector3.ONE
 			(plot.soil.material_override as StandardMaterial3D).albedo_color = Color("705039")
-			game._show_toast("收获小雏菊 × 1，已放入背包。留下的花根还能继续浇水。", 4)
+			game._show_toast(tr("garden.harvested"), 4)
 	game._tone(560 if action.kind == "harvest" else 340, .12, .10)
 	refresh()
 	return true
@@ -299,7 +299,7 @@ func toggle_equipped() -> void:
 				game.set_echo_active(false)
 			refresh()
 			return
-	game._show_toast("水壶在小屋右边，靠近按 E 拾起。", 4)
+	game._show_toast(tr("garden.can_location"), 4)
 
 
 func set_open(value: bool) -> void:
@@ -340,14 +340,14 @@ func _section(parent: Control, at: Vector2, dimensions: Vector2) -> Panel:
 func _cell_pressed(index: int) -> void:
 	selected = -1
 	if moving_index < 0:
-		arrange_hint.text = "先选择一件物品，再选择目标格。"
+		arrange_hint.text = tr("inventory.choose_item")
 		refresh()
 		return
 	var origin := Vector2i(index % GRID_COLUMNS, index / GRID_COLUMNS)
 	if move_item(moving_index, origin):
-		arrange_hint.text = "已经收好。继续选择物品可以再次整理。"
+		arrange_hint.text = tr("inventory.stored")
 	else:
-		arrange_hint.text = "这里放不下，换一个空位试试。"
+		arrange_hint.text = tr("inventory.no_space")
 
 
 func _item_pressed(index: int) -> void:
@@ -381,11 +381,11 @@ func _build_inventory() -> void:
 	panel.offset_right = 620
 	panel.offset_top = -340
 	panel.offset_bottom = 340
-	game._label("旅人行囊", Vector2(32, 24), 34, Color("fff0cb"), panel)
+	game._label(tr("inventory.title"), Vector2(32, 24), 34, Color("fff0cb"), panel)
 	heading = game._label("", Vector2(34, 72), 17, Color("b9d2c3"), panel)
 
 	var equipment := _section(panel, Vector2(32, 118), Vector2(220, 474))
-	game._label("随身装备", Vector2(20, 18), 18, Color("e8c67a"), equipment)
+	game._label(tr("inventory.equipment"), Vector2(20, 18), 18, Color("e8c67a"), equipment)
 	equipped_slot = Button.new()
 	equipped_slot.position = Vector2(20, 58)
 	equipped_slot.size = Vector2(180, 174)
@@ -402,11 +402,11 @@ func _build_inventory() -> void:
 		locked.size = Vector2(180, 70)
 		locked.add_theme_stylebox_override("panel", _style(Color("143731"), Color("35574f"), 1, 7))
 		equipment.add_child(locked)
-		game._label("尚未发现" if i == 0 else "旅途中解锁", Vector2(18, 20), 14, Color("719489"), locked)
+		game._label(tr("inventory.undiscovered") if i == 0 else tr("inventory.unlock_later"), Vector2(18, 20), 14, Color("719489"), locked)
 
 	var grid_panel := _section(panel, Vector2(272, 118), Vector2(494, 474))
-	game._label("行囊空间", Vector2(20, 18), 18, Color("e8c67a"), grid_panel)
-	arrange_hint = game._label("选择物品，再点击空格放下。", Vector2(20, 49), 14, Color("91b8aa"), grid_panel)
+	game._label(tr("inventory.space"), Vector2(20, 18), 18, Color("e8c67a"), grid_panel)
+	arrange_hint = game._label(tr("inventory.arrange"), Vector2(20, 49), 14, Color("91b8aa"), grid_panel)
 	var grid_origin := Vector2(18, 82)
 	for i in range(CAPACITY):
 		var button := Button.new()
@@ -427,7 +427,7 @@ func _build_inventory() -> void:
 	grid_panel.add_child(item_layer)
 
 	var detail_panel := _section(panel, Vector2(786, 118), Vector2(422, 474))
-	game._label("物品详情", Vector2(24, 18), 18, Color("e8c67a"), detail_panel)
+	game._label(tr("inventory.details"), Vector2(24, 18), 18, Color("e8c67a"), detail_panel)
 	description = game._label("", Vector2(24, 68), 21, Color("fff0cb"), detail_panel)
 	description.size = Vector2(374, 270)
 	description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -441,7 +441,7 @@ func _build_inventory() -> void:
 	equip_button.pressed.connect(toggle_equipped)
 	detail_panel.add_child(equip_button)
 	var close := Button.new()
-	close.text = "继续探索    I / Esc"
+	close.text = tr("inventory.close")
 	close.position = Vector2(976, 28)
 	close.size = Vector2(232, 48)
 	close.add_theme_font_size_override("font_size", 16)
@@ -449,7 +449,7 @@ func _build_inventory() -> void:
 	close.add_theme_stylebox_override("hover", _style(Color("22483f"), Color("8eae9c"), 1, 7))
 	close.pressed.connect(func(): set_open(false))
 	panel.add_child(close)
-	game._label("点击物品拿起 · 点击空格放下 · G 快速装备水壶 · 整理时游戏暂停", Vector2(34, 626), 16, Color("91b8aa"), panel)
+	game._label(tr("inventory.controls"), Vector2(34, 626), 16, Color("91b8aa"), panel)
 	overlay.visible = false
 
 
@@ -471,8 +471,8 @@ func _rebuild_item_buttons() -> void:
 		button.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
 		button.add_theme_constant_override("icon_max_width", 64 if size.x > 1 else 36)
 		button.add_theme_font_size_override("font_size", 14 if size.x > 1 else 12)
-		button.text = "铜嘴水壶\n2 × 2  ·  %d / 3" % water if item.id == "watering_can" else "× %d" % item.count
-		button.tooltip_text = "点击放回原位" if moving_index == i else "点击拿起整理"
+		button.text = tr("inventory.can_button") % water if item.id == "watering_can" else "× %d" % item.count
+		button.tooltip_text = tr("inventory.put_back") if moving_index == i else tr("inventory.pick_up")
 		var active := moving_index == i
 		var selected_item := selected == i
 		var fill := Color("305e54") if item.id == "watering_can" else Color("486451")
@@ -487,8 +487,8 @@ func _rebuild_item_buttons() -> void:
 
 
 func refresh() -> void:
-	heading.text = "已使用 %d / %d 格   ·   大件物品会占用多个格子" % [occupied_cells(), CAPACITY]
-	bag_hint.text = "I 背包 · G 拿出 / 收起\n" + ("水壶 %d / 3  ·  %s" % [water, "手持" if equipped else "已收纳"] if not world_can.visible else "小屋旁有一只水壶")
+	heading.text = tr("inventory.used") % [occupied_cells(), CAPACITY]
+	bag_hint.text = tr("inventory.quick") + "\n" + (tr("inventory.can_status") % [water, tr("inventory.held") if equipped else tr("inventory.stowed")] if not world_can.visible else tr("inventory.can_outside"))
 	if item_layer != null:
 		_rebuild_item_buttons()
 	var has_can := false
@@ -496,17 +496,32 @@ func refresh() -> void:
 		if item.id == "watering_can":
 			has_can = true
 	equipped_slot.icon = CAN_ICON if equipped else null
-	equipped_slot.text = "手持工具\n铜嘴水壶  %d / 3" % water if equipped else ("手持工具\n点击装备水壶" if has_can else "手持工具\n空")
+	equipped_slot.text = tr("inventory.equipped_can") % water if equipped else (tr("inventory.equip_can") if has_can else tr("inventory.empty_hand"))
 	equipped_slot.disabled = not has_can
 	equipped_slot.add_theme_stylebox_override("normal", _style(Color("284f47") if equipped else Color("143731"), Color("e4c374") if equipped else Color("35574f"), 2 if equipped else 1, 8))
 	equip_button.visible = false
 	if moving_index >= 0:
-		arrange_hint.text = "已拿起：%s。选择一个能容纳它的空位。" % ("铜嘴水壶" if items[moving_index].id == "watering_can" else "小雏菊")
+		arrange_hint.text = tr("inventory.moving") % (tr("item.watering_can") if items[moving_index].id == "watering_can" else tr("item.daisy"))
 	if selected < 0 or selected >= items.size():
-		description.text = "整理你的行囊\n\n不同物品会占用不同大小的空间。先点击一件物品拿起，再点击空格重新放置。\n\n水壶占 2 × 2 格，小雏菊占 1 × 1 格。"
+		description.text = tr("inventory.description")
 	elif items[selected].id == "watering_can":
-		description.text = "铜嘴水壶\n工具 · 2 × 2 格\n\n清水  %d / 3\n\n拿在手上时，靠近池塘按 E 接满水；靠近花苗按 E 浇水，每次消耗一格。" % water
+		description.text = tr("inventory.can_description") % water
 		equip_button.visible = true
-		equip_button.text = "收回背包" if equipped else "拿在手上"
+		equip_button.text = tr("inventory.stow") if equipped else tr("inventory.hold")
 	else:
-		description.text = "小雏菊 × %d\n采集物 · 1 × 1 格\n\n亲手浇灌的小花。相同花朵会自动叠放，最多可收纳 99 朵。\n\n目前作为旅途成果保存，尚不能出售或赠送。" % items[selected].count
+		description.text = tr("inventory.daisy_description") % items[selected].count
+
+
+func refresh_locale() -> void:
+	var was_open := opened
+	if overlay != null:
+		overlay.get_parent().remove_child(overlay)
+		overlay.free()
+	if bag_hint != null:
+		bag_hint.get_parent().remove_child(bag_hint)
+		bag_hint.free()
+	slots.clear()
+	item_buttons.clear()
+	_build_inventory()
+	overlay.visible = was_open
+	refresh()

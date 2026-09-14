@@ -98,3 +98,417 @@ msgstr "先去南边石座上的木箱旁按 E。学会回响，就能搭出上�
 
 msgid "dialogue.teacher.3"
 msgstr "要选择项目或找回以前的对话，都可以来找我。"
+
+msgid "echo.crate"
+msgstr "木箱"
+
+msgid "echo.plank"
+msgstr "木板"
+
+msgid "echo.mushroom"
+msgstr "弹跳蘑菇"
+
+msgid "dialogue.review.line"
+msgstr "我输出完了，快点验收！"
+
+msgid "role.creative_partner"
+msgstr "创作伙伴"
+
+msgid "dialogue.continue_result"
+msgstr "E / 点击  继续，查看结果"
+
+msgid "dialogue.escape"
+msgstr "Esc  返回探索"
+
+msgid "dialogue.choose_reply"
+msgstr "选择回应"
+
+msgid "dialogue.continue_panel"
+msgstr "E / 点击  继续，打开面板"
+
+msgid "dialogue.continue"
+msgstr "E / 点击  继续"
+
+msgid "dialogue.continue_short"
+msgstr "继续"
+
+msgid "q.platform_blocked"
+msgstr "中央平台被占用了，请先清出位置。"
+
+msgid "q.status.working"
+msgstr "执行中"
+
+msgid "q.status.thinking"
+msgstr "思考中"
+
+msgid "q.status.approval"
+msgstr "等待确认"
+
+msgid "q.status.completed"
+msgstr "本轮结束"
+
+msgid "q.status.failed"
+msgstr "遇到问题"
+
+msgid "q.recalling"
+msgstr "Q 正在发出召回信号…"
+
+msgid "q.front_blocked"
+msgstr "台前放不下，请先收起木箱。"
+
+msgid "q.path_blocked"
+msgstr "路径被建筑挡住，已安全传送回中央平台。"
+
+msgid "q.place_blocked"
+msgstr "前面有东西挡住了，先在这里放下。"
+
+msgid "place.wind_platform"
+msgstr "听风台"
+
+msgid "place.wind_platform.toast"
+msgstr "听风台 · 树梢就在身旁，溪水从脚下流过。歇一会儿，再去别处走走吧。"
+
+msgid "place.wind_platform.action"
+msgstr "[ E ]  在听风台看看风景"
+
+msgid "resident.gardener.identity"
+msgstr "芽芽 · 园丁"
+
+msgid "resident.gardener.handoff"
+msgstr "我在这里照顾花草。想制作项目，可以去高台找 Q。"
+
+msgid "resident.file_keeper.identity"
+msgstr "阿澜 · 整理"
+
+msgid "resident.file_keeper.handoff"
+msgstr "我负责阅读项目、整理文件和维护资料。"
+
+msgid "resident.teacher.identity"
+msgstr "苔伯 · 项目与对话管理"
+
+msgid "resident.teacher.handoff"
+msgstr "我负责选择和切换项目，也帮你找回已有项目和历史对话。"
+
+msgid "resident.default.identity"
+msgstr "居民"
+
+msgid "resident.default.handoff"
+msgstr "我会协助处理这个项目。"
+
+msgid "resident.handoff.continue"
+msgstr " 请在居民面板里继续。"
+
+msgid "resident.handoff.choose_project"
+msgstr " 请找苔伯选择项目文件夹，绑定工作区后就能开始。"
+
+msgid "region.mosslight"
+msgstr "苔光之屿"
+
+msgid "welcome.world"
+msgstr "欢迎来到苔光之屿。沿小径漫步，靠近木箱按 E 学习回响。"
+
+msgid "preview.finish_interaction"
+msgstr "请结束当前交互后再预览对白。"
+
+msgid "preview.finish_magic"
+msgstr "请结束当前交互后再预览魔术。"
+
+msgid "region.not_loaded"
+msgstr "邻近区域暂未加载，靠近桥头可重试。"
+
+msgid "workspace.connected"
+msgstr "已连接工作区：%s"
+
+msgid "region.desert.spaced"
+msgstr "晴 沙 绿 洲"
+
+msgid "region.mosslight.spaced"
+msgstr "苔 光 之 屿"
+
+msgid "region.desert.note"
+msgstr "越过石桥，沿着砂岩小径寻找绿洲。"
+
+msgid "region.mosslight.note"
+msgstr "沿着石径，穿过树影。"
+
+msgid "region.streamside.spaced"
+msgstr "溪 间 庭 院"
+
+msgid "region.streamside.note"
+msgstr "古树荫下，沿溪过桥，去廊下坐一会儿。"
+
+msgid "region.streamside.arrival"
+msgstr "抵达溪间庭院。沿溪向南过石桥，坡道通向茶屋。"
+
+msgid "region.desert.arrival"
+msgstr "抵达晴沙绿洲。沙丘可步行攀登，石桥通往苔光之屿。"
+
+msgid "region.mosslight.return"
+msgstr "回到苔光之屿。"
+
+msgid "echo.no_space"
+msgstr "这里放不下回响。朝空地走一步，再试试。"
+
+msgid "q.open_web"
+msgstr "Q · 在小岛网页版中打开项目对话。"
+
+msgid "echo.mushroom.tip"
+msgstr "踩上去可以弹得更高。"
+
+msgid "echo.plank.tip"
+msgstr "按 T 转向，可以架桥或搭在木箱上。"
+
+msgid "echo.learned"
+msgstr "已学会「%s回响」！%s F 放置 · C 切换 · 右键收起"
+
+msgid "view.top.tip"
+msgstr "俯视角：滚轮观察小岛。"
+
+msgid "view.third.tip"
+msgstr "第三人称：点击锁定鼠标，或按住鼠标拖动镜头。"
+
+msgid "view.first.tip"
+msgstr "第一人称：点击锁定或拖动观察，WASD 行走，空格跳跃。"
+
+msgid "view.top"
+msgstr "俯视"
+
+msgid "view.third"
+msgstr "第三人称"
+
+msgid "view.first"
+msgstr "第一人称"
+
+msgid "view.mode"
+msgstr "视角：%s  ·  V 切换 / 1、2、3 直达"
+
+msgid "view.mouse"
+msgstr "鼠标观察 · 按住拖动 / 点击锁定 · Esc 释放并暂停"
+
+msgid "view.camera_motion"
+msgstr "B 镜头动态：%s"
+
+msgid "common.on"
+msgstr "开启"
+
+msgid "common.off"
+msgstr "关闭"
+
+msgid "echo.controls"
+msgstr "%s回响 · F 放置 · C 切换 · 右键收起"
+
+msgid "motion.nature_on"
+msgstr "环境动态已开启。"
+
+msgid "motion.nature_off"
+msgstr "环境动态已关闭，仍可正常探索。"
+
+msgid "motion.camera_on"
+msgstr "镜头动态已开启。"
+
+msgid "motion.camera_off"
+msgstr "镜头动态已关闭，脚步声仍保留。"
+
+msgid "echo.unknown.numbered"
+msgstr "01   未知回响"
+
+msgid "controls.primary"
+msgstr "WASD 移动    空格 跳跃    E 互动    F 拿出 / 放置    C 回响    T 转向    右键 收起    Q 撤回"
+
+msgid "controls.secondary"
+msgstr "Shift 奔跑    滚轮 缩放    V 视角    Tab 隐藏界面    N 动态    M 静音    R 重开    Esc 暂停"
+
+msgid "echo.staff"
+msgstr "回响之杖  /  最多保留 %d 个造物"
+
+msgid "pause.rest"
+msgstr "休息一下"
+
+msgid "pause.paused"
+msgstr "已暂停"
+
+msgid "pause.resume"
+msgstr "继续探索"
+
+msgid "echo.count"
+msgstr "%s回响    %d / %d"
+
+msgid "echo.unknown"
+msgstr "未知回响"
+
+msgid "echo.learn"
+msgstr "[ E ]  学习%s回响"
+
+msgid "echo.place_controls"
+msgstr "F 放置%s · C 切换 · Q 撤回 · 右键收起"
+
+msgid "echo.rotate"
+msgstr " · T 转向"
+
+msgid "option.talk_q"
+msgstr "找 Q 聊聊"
+
+msgid "option.explore"
+msgstr "先逛逛"
+
+msgid "option.tour"
+msgstr "带我认识这里"
+
+msgid "option.history"
+msgstr "查看项目与历史对话"
+
+msgid "option.project"
+msgstr "选择或切换项目"
+
+msgid "option.files"
+msgstr "浏览文件"
+
+msgid "option.changes"
+msgstr "查看修改"
+
+msgid "garden.pickup"
+msgstr "[ E ] 拾起水壶 · 收入背包"
+
+msgid "garden.harvest"
+msgstr "[ E ] 收获小雏菊 · 放进背包"
+
+msgid "garden.growing"
+msgstr "花苗正在生长…"
+
+msgid "garden.empty"
+msgstr "水壶空了 · 去池塘按 E 接水"
+
+msgid "garden.water"
+msgstr "[ E ] 浇花 · 消耗一格水"
+
+msgid "garden.full"
+msgstr "水壶已满 · 去小屋旁的花圃浇水"
+
+msgid "garden.fill"
+msgstr "[ E ] 从池塘接水"
+
+msgid "inventory.full"
+msgstr "背包装不下了。"
+
+msgid "garden.can_found"
+msgstr "拾得水壶！去池塘边按 E 接水。I 打开背包，G 收起或拿出水壶。"
+
+msgid "garden.can_full"
+msgstr "水壶已经满了，能浇三次花。"
+
+msgid "garden.filled"
+msgstr "接满清水 · 3 / 3。回小屋旁的三格花圃试试。"
+
+msgid "garden.already_watered"
+msgstr "泥土已经湿润，等花朵长大吧。"
+
+msgid "garden.need_water"
+msgstr "水壶空了，先到池塘边接水。"
+
+msgid "garden.watered"
+msgstr "花苗喝到水了。稍等片刻，就可以收花。"
+
+msgid "garden.flowers_full"
+msgstr "背包中的花已满，先保留在花圃里。"
+
+msgid "garden.harvested"
+msgstr "收获小雏菊 × 1，已放入背包。留下的花根还能继续浇水。"
+
+msgid "garden.can_location"
+msgstr "水壶在小屋右边，靠近按 E 拾起。"
+
+msgid "inventory.choose_item"
+msgstr "先选择一件物品，再选择目标格。"
+
+msgid "inventory.stored"
+msgstr "已经收好。继续选择物品可以再次整理。"
+
+msgid "inventory.no_space"
+msgstr "这里放不下，换一个空位试试。"
+
+msgid "inventory.title"
+msgstr "旅人行囊"
+
+msgid "inventory.equipment"
+msgstr "随身装备"
+
+msgid "inventory.undiscovered"
+msgstr "尚未发现"
+
+msgid "inventory.unlock_later"
+msgstr "旅途中解锁"
+
+msgid "inventory.space"
+msgstr "行囊空间"
+
+msgid "inventory.arrange"
+msgstr "选择物品，再点击空格放下。"
+
+msgid "inventory.details"
+msgstr "物品详情"
+
+msgid "inventory.close"
+msgstr "继续探索    I / Esc"
+
+msgid "inventory.controls"
+msgstr "点击物品拿起 · 点击空格放下 · G 快速装备水壶 · 整理时游戏暂停"
+
+msgid "inventory.can_button"
+msgstr "铜嘴水壶\n2 × 2  ·  %d / 3"
+
+msgid "inventory.put_back"
+msgstr "点击放回原位"
+
+msgid "inventory.pick_up"
+msgstr "点击拿起整理"
+
+msgid "inventory.used"
+msgstr "已使用 %d / %d 格   ·   大件物品会占用多个格子"
+
+msgid "inventory.quick"
+msgstr "I 背包 · G 拿出 / 收起"
+
+msgid "inventory.can_status"
+msgstr "水壶 %d / 3  ·  %s"
+
+msgid "inventory.held"
+msgstr "手持"
+
+msgid "inventory.stowed"
+msgstr "已收纳"
+
+msgid "inventory.can_outside"
+msgstr "小屋旁有一只水壶"
+
+msgid "inventory.equipped_can"
+msgstr "手持工具\n铜嘴水壶  %d / 3"
+
+msgid "inventory.equip_can"
+msgstr "手持工具\n点击装备水壶"
+
+msgid "inventory.empty_hand"
+msgstr "手持工具\n空"
+
+msgid "inventory.moving"
+msgstr "已拿起：%s。选择一个能容纳它的空位。"
+
+msgid "item.watering_can"
+msgstr "铜嘴水壶"
+
+msgid "item.daisy"
+msgstr "小雏菊"
+
+msgid "inventory.description"
+msgstr "整理你的行囊\n\n不同物品会占用不同大小的空间。先点击一件物品拿起，再点击空格重新放置。\n\n水壶占 2 × 2 格，小雏菊占 1 × 1 格。"
+
+msgid "inventory.can_description"
+msgstr "铜嘴水壶\n工具 · 2 × 2 格\n\n清水  %d / 3\n\n拿在手上时，靠近池塘按 E 接满水；靠近花苗按 E 浇水，每次消耗一格。"
+
+msgid "inventory.stow"
+msgstr "收回背包"
+
+msgid "inventory.hold"
+msgstr "拿在手上"
+
+msgid "inventory.daisy_description"
+msgstr "小雏菊 × %d\n采集物 · 1 × 1 格\n\n亲手浇灌的小花。相同花朵会自动叠放，最多可收纳 99 朵。\n\n目前作为旅途成果保存，尚不能出售或赠送。"

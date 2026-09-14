@@ -149,7 +149,7 @@ func _build_echo_walk() -> void:
 		var depth := 3.4 / 12
 		ECHO_OBJECTS.part(self, BoxMesh.new(), Vector3(-9.5, (i + .5) * 1.8 / 12, 1.6 - (i + .5) * depth), Vector3(1.6, .12, depth), Color("b99465") if i % 2 else Color("c7a578"))
 	var sign := Label3D.new()
-	sign.text = "听风台"
+	sign.text = tr("place.wind_platform")
 	sign.font = preload("res://assets/fonts/MosslightUI.ttf")
 	sign.font_size = 44
 	sign.pixel_size = .009
