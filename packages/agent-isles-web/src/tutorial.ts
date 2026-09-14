@@ -25,7 +25,7 @@ export const tutorialSchema = z.object({
 export const tutorialDomain = defineDomain({ name: 'agent_isles_tutorials', version: 1, tables: { runs: domainTable<string, TutorialRun>(tutorialSchema) } })
 const commandSchema = z.object({ action: z.enum(['start', 'draft', 'idea', 'bind', 'pause', 'resume', 'seen', 'submit', 'followup', 'retry', 'revise', 'check', 'confirm', 'assist', 'leave', 'returned', 'complete']), requestId: id, runId: id.optional(), revision: z.number().int().nonnegative().optional(),
   draft: z.string().max(12000).optional(), projectName: z.string().trim().min(1).max(80).optional(), workspaceId: id.optional(),
-  folder: z.string().max(2048).optional(), create: z.boolean().optional(), sessionId: id.optional(), submissionId: id.optional(), text: z.string().max(16000).optional(), assistance: z.enum(['提示方向', '共同完成', '代做并讲解']).optional(),
+  folder: z.string().max(2048).optional(), create: z.boolean().optional(), sessionId: id.optional(), submissionId: id.optional(), text: z.string().max(16000).optional(), assistance: z.enum(['direction', 'together', 'guided', '提示方向', '共同完成', '代做并讲解']).optional(),
 }).strict()
 
 export class TutorialError extends Error { constructor(message: string, readonly status = 409) { super(message) } }

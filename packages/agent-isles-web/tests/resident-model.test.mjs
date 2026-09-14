@@ -81,6 +81,15 @@ test('each resident receives its role and the complete user request', () => {
   assert.match(residentPrompt('teacher', ''), /项目与历史对话管理/)
   assert.doesNotMatch(residentPrompt('teacher', ''), /教学|练习|讲解/)
   assert.match(residentPrompt('file_keeper', ''), /本轮只读/)
+  assert.match(residentPrompt('coder', 'Build it', 'en'), /User request:\nBuild it$/)
+  assert.match(residentPrompt('file_keeper', '', 'en'), /read-only/)
+})
+
+test('stored English resident prompts are stripped from visible user messages', () => {
+  const result = projectResidentEvents(events(
+    ['user/message', { source: { kind: 'user' }, content: [{ type: 'text', text: residentPrompt('coder', 'Build a timer', 'en') }] }],
+  ))
+  assert.equal(result.messages[0].text, 'Build a timer')
 })
 
 test('roster status matches the last turn without replaying old messages', () => {

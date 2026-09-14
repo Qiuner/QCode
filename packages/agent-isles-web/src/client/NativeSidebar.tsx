@@ -1,9 +1,10 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import { ArrowLeft, MessageSquare, X } from 'lucide-react'
 import { NativeChat } from './NativeChat.js'
+import type { AgentIslesTranslate } from './locales.js'
 
 /** Position the mounted native sidebar without replacing its scoped React tree. */
-export function NativeSidebar({ sessionId, toggleSidebar, close }: { sessionId?: string; toggleSidebar(): void; close(): void }) {
+export function NativeSidebar({ sessionId, toggleSidebar, close, t }: { sessionId?: string; toggleSidebar(): void; close(): void; t: AgentIslesTranslate }) {
   const seat = useRef<HTMLDivElement>(null)
   const onClose = useRef(close)
   onClose.current = close
@@ -29,7 +30,7 @@ export function NativeSidebar({ sessionId, toggleSidebar, close }: { sessionId?:
     const place = () => {
       const box = element.getBoundingClientRect()
       style.textContent = `
-        [data-agent-isles-town] [data-slot="sidebar"] button[aria-label="收起侧边栏"] { display: none; }
+        [data-agent-isles-town] [data-slot="sidebar"] button:is([aria-label="收起侧边栏"], [aria-label="Collapse sidebar"]) { display: none; }
         [data-agent-isles-town] [data-slot="sidebar"] > * {
           position: fixed !important; z-index: 23; left: ${box.left}px; top: ${box.top}px;
           width: ${box.width}px !important; height: ${box.height}px !important;
@@ -51,10 +52,10 @@ export function NativeSidebar({ sessionId, toggleSidebar, close }: { sessionId?:
       if (root && root.hasAttribute('data-sidebar-collapsed') !== collapsed) toggleSidebar()
     }
   }, [toggleSidebar])
-  return <aside className="town-history" data-chat={chat && sessionId ? '' : undefined} aria-label="项目与历史对话">
-    <header><strong>项目与历史对话</strong><button aria-label="关闭项目与历史对话" title="回到小岛" onClick={close}><X size={18} /></button></header>
+  return <aside className="town-history" data-chat={chat && sessionId ? '' : undefined} aria-label={t('resident.history')}>
+    <header><strong>{t('resident.history')}</strong><button aria-label={t('history.close')} title={t('history.backIsland')} onClick={close}><X size={18} /></button></header>
     <div className="town-history-sidebar" ref={seat} />
-    <footer><button disabled={!sessionId} onClick={() => setChat(value => !value)}><MessageSquare size={16} />{chat ? '收起对话' : '查看当前对话'}</button></footer>
-    {chat && sessionId && <section className="town-history-chat" aria-label="历史对话内容"><header><button aria-label="返回项目与历史对话" onClick={() => setChat(false)}><ArrowLeft size={18} /></button><strong>当前对话</strong></header><NativeChat sessionId={sessionId} /></section>}
+    <footer><button disabled={!sessionId} onClick={() => setChat(value => !value)}><MessageSquare size={16} />{chat ? t('history.hideChat') : t('history.currentChat')}</button></footer>
+    {chat && sessionId && <section className="town-history-chat" aria-label={t('history.content')}><header><button aria-label={t('history.back')} onClick={() => setChat(false)}><ArrowLeft size={18} /></button><strong>{t('history.current')}</strong></header><NativeChat sessionId={sessionId} t={t} /></section>}
   </aside>
 }

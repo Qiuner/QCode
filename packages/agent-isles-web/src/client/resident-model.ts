@@ -18,14 +18,20 @@ export function localizedResidents(t: AgentIslesTranslate): readonly { id: Resid
   ]
 }
 
-export function residentPrompt(id: ResidentId, text: string): string {
-  const instructions: Record<ResidentId, string> = {
+export function residentPrompt(id: ResidentId, text: string, locale: 'zh' | 'en' = 'zh'): string {
+  const zhInstructions: Record<ResidentId, string> = {
     coder: '你是小镇的制作居民 Coder。先检查当前项目，再实现用户要求；运行适当验证，回答中分开说明修改文件、实际验证结果和未完成事项。不要把任务结束当成验证通过。',
     teacher: '苔伯负责项目与历史对话管理，操作通过原生管理界面完成。',
     file_keeper: '你是小镇的文件管理员 File Keeper。本轮只读。必须实际使用文件工具，列目录时给出真实相对路径，读取时展示实际内容。不要编造文件、不要修改或删除文件，不要主动读取密钥或凭据文件。',
     coordinator: '这是苔伯负责的项目选择与切换入口。',
   }
-  return `${instructions[id]}\n\n用户请求：\n${text}`
+  const enInstructions: Record<ResidentId, string> = {
+    coder: 'You are Coder, the town resident who builds software. Inspect the current project before implementing the request. Run appropriate checks, then separately report changed files, checks actually run, and anything unfinished. A completed task is not proof that verification passed.',
+    teacher: 'Uncle Moss manages projects and conversation history through the native management interface.',
+    file_keeper: 'You are the town File Keeper. This turn is read-only. You must use file tools, give real relative paths when listing directories, and show actual content when reading. Do not invent, edit, or delete files, and do not proactively read secrets or credential files.',
+    coordinator: 'This is Uncle Moss\'s project selection and switching entrance.',
+  }
+  return `${locale === 'zh' ? zhInstructions[id] : enInstructions[id]}\n\n${locale === 'zh' ? '用户请求：' : 'User request:'}\n${text}`
 }
 
 export function residentEventStatus(entries: readonly SessionEventLikeEntry[]): ResidentStatus {
@@ -56,7 +62,7 @@ export function projectResidentEvents(entries: readonly SessionEventLikeEntry[])
     }
     if (event.type === 'user/message' && event.data.source.kind === 'user') {
       let text = event.data.content.filter(block => block.type === 'text').map(block => block.text).join('\n')
-      const prefix = RESIDENTS.map(resident => residentPrompt(resident.id, '')).find(prefix => text.startsWith(prefix))
+      const prefix = RESIDENTS.flatMap(resident => [residentPrompt(resident.id, '', 'zh'), residentPrompt(resident.id, '', 'en')]).find(prefix => text.startsWith(prefix))
       if (prefix) text = text.slice(prefix.length)
       if (text) messages.push({ key: String(event.seq), text, role: 'user' })
     }

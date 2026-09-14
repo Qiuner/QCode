@@ -3,11 +3,14 @@ import assert from 'node:assert/strict'
 import React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { TutorialPanel } from '../lib/types/client/Tutorial.js'
+import { zh } from '../lib/types/client/locales.js'
+
+const t = (key, params = {}) => Object.entries(params).reduce((text, [name, value]) => text.replaceAll(`{${name}}`, String(value)), zh[key])
 
 function render(state) {
   return renderToStaticMarkup(React.createElement(TutorialPanel, {
     tutorial: { run: { id: 'one', step: 'build', projectName: '待办清单', draft: '', assistance: [], submission: { requestId: 'request', sessionId: 'session' } }, busy: false },
-    actions: {}, ...state,
+    actions: {}, t, ...state,
   }))
 }
 test('running work cannot open an unverified preview', () => {
@@ -19,13 +22,13 @@ test('running work cannot open an unverified preview', () => {
 test('pending request takes precedence over preview and generic answer prompts', () => {
   const html = render({ waiting: true })
   assert.match(html, /disabled="">请先处理上面的请求/)
-  assert.match(html, /处理请求后，告诉 Q你的决定/)
+  assert.match(html, /处理请求后，告诉 Q 你的决定/)
 })
 test('idle submitted work offers verification rather than claiming success', () => {
   const html = render({})
   assert.match(html, /检查成果，打开作品/)
   assert.match(html, /核对通过后会打开预览/)
-  assert.match(html, /告诉 Q想改哪里，或补充说明/)
+  assert.match(html, /告诉 Q 想改哪里，或补充说明/)
 })
 
 test('native session keeps tutorial checks without rendering a second composer', () => {

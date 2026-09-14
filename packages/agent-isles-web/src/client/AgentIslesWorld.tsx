@@ -9,7 +9,7 @@ import type {} from '@deepseek-ai/dsh-client-ui-workspace/client'
 import { WORLD_BRIDGE_VERSION, isWorldToHostMessage, worldFrameUrl, type ResidentId, type RegionLoadState, type WorldLocale } from './world-bridge.js'
 import { localizedResidents, projectResidentEvents, readResidentDrafts, residentEventStatus } from './resident-model.js'
 import { ModelSettings } from './ModelSettings.js'
-import { ModelConfigurationRequired, type ModelSettingsActions } from './model-settings.js'
+import { localizedModelError, ModelConfigurationRequired, type ModelSettingsActions } from './model-settings.js'
 import { RESIDENT_PORTRAITS } from './resident-portraits.js'
 import { TutorialPanel, useTutorial } from './Tutorial.js'
 import { NativeChat } from './NativeChat.js'
@@ -65,7 +65,7 @@ function SessionResult({ binding, name, project, run, waiting, t }: { binding: S
       setCompletedNotice(true)
     }
   }, [state.running, state.awaitingFirstTurn, result.status])
-  const narrative = workNarrative({ run, loading: state.openState === 'loading', running: state.running || state.awaitingFirstTurn, pending: waiting, failed: !!(state.openError || state.promptError || state.lastAgentError) || result.status === 'failed', finished: result.status === 'completed' })
+  const narrative = workNarrative({ run, loading: state.openState === 'loading', running: state.running || state.awaitingFirstTurn, pending: waiting, failed: !!(state.openError || state.promptError || state.lastAgentError) || result.status === 'failed', finished: result.status === 'completed' }, t)
   return <div className="town-results">
     <span className="town-session-status" role="status" title={narrative.text}>{state.awaitingFirstTurn ? t('task.accepted') : narrative.title}</span>
     {completedNotice && <div className="town-completion-notice" role="status"><strong>{t('task.completed', { name })}</strong><span>{t('task.completedHint')}</span><button type="button" onClick={() => setCompletedNotice(false)}>{t('task.acknowledge')}</button></div>}
@@ -81,6 +81,15 @@ export function AgentIslesWorld(props: Props) {
   const locale: WorldLocale = localeSnapshot.active.startsWith('zh') ? 'zh' : 'en'
   const t = props.t
   const residentCatalog = localizedResidents(t)
+  useEffect(() => {
+    const root = document.documentElement
+    root.style.setProperty('--agent-isles-hero-title', JSON.stringify(t('brand.hero')))
+    root.style.setProperty('--agent-isles-hero-subtitle', JSON.stringify(t('brand.subtitle')))
+    return () => {
+      root.style.removeProperty('--agent-isles-hero-title')
+      root.style.removeProperty('--agent-isles-hero-subtitle')
+    }
+  }, [locale, t])
   const [workbench, setWorkbench] = useState(() => location.pathname === '/workbench' || new URLSearchParams(location.search).get('agent-isles') === 'workbench')
   const islandUrl = useRef(workbench ? '/' : location.pathname + location.search + location.hash)
   function switchSurface(next: boolean) {
@@ -160,7 +169,7 @@ export function AgentIslesWorld(props: Props) {
   const sessionState = props.useSessions(state => state)
   const pending = props.useSessionPendingInteraction(state => state)
   const workspace = workspaces.find(item => item.workspaceId === projectId)
-  const tutorial = useTutorial(props.tutorials, workspace?.workspaceId)
+  const tutorial = useTutorial(props.tutorials, workspace?.workspaceId, t)
   const [followingKeeper, setFollowingKeeper] = useState(false)
   const skipAutoProject = useRef(false)
   useEffect(() => {
@@ -182,12 +191,12 @@ export function AgentIslesWorld(props: Props) {
   const recoveryFailed = restoreError || (workspaceState.state === 'error' ? t('project.recoveryRequired') : '')
   useEffect(() => {
     if (!loadingProjects) return
-    const timer = setTimeout(() => setRestoreError('恢复超时，服务可能已断开。请重试或重新连接。'), 15_000)
+    const timer = setTimeout(() => setRestoreError(t('error.restoreTimeout')), 15_000)
     return () => clearTimeout(timer)
   }, [loadingProjects, restoreAttempt])
   useEffect(() => {
     if (loadingProjects || recoveryFailed || !workspace) return
-    void props.saveProject(workspace.workspaceId).catch(() => setRestoreError('当前项目可使用，但恢复记录保存失败，请重试。'))
+    void props.saveProject(workspace.workspaceId).catch(() => setRestoreError(t('error.saveRecovery')))
   }, [loadingProjects, workspace?.workspaceId])
   useEffect(() => {
     if (loadingProjects || recoveryFailed || projectId || skipAutoProject.current || workspaces.length !== 1) return
@@ -371,7 +380,7 @@ export function AgentIslesWorld(props: Props) {
     } catch (reason) {
       if (ticket === operation.current) {
         if (reason instanceof ModelConfigurationRequired) setShowModels(true)
-        setError(reason instanceof Error ? reason.message : String(reason))
+        setError(reason instanceof Error ? localizedModelError(reason, t) : String(reason))
       }
     }
     finally { if (ticket === operation.current) setBusy(false) }
@@ -402,7 +411,7 @@ export function AgentIslesWorld(props: Props) {
   const tutorialRunning = !!(tutorialSession && sessionState.byId[tutorialSession]?.running)
   const tutorialWaiting = !!(tutorialSession && pending.has(tutorialSession))
   const tutorialEntries = tutorialSession ? props.getBinding(tutorialSession)?.eventSource.getSnapshot().entries : undefined
-  const tutorialStory = workNarrative({ run: activeTutorial, running: tutorialRunning, pending: tutorialWaiting, failed: tutorialEntries ? residentEventStatus(tutorialEntries) === 'failed' : false, finished: tutorialEntries ? residentEventStatus(tutorialEntries) === 'completed' : false })
+  const tutorialStory = workNarrative({ run: activeTutorial, running: tutorialRunning, pending: tutorialWaiting, failed: tutorialEntries ? residentEventStatus(tutorialEntries) === 'failed' : false, finished: tutorialEntries ? residentEventStatus(tutorialEntries) === 'completed' : false }, t)
   const tutorialPanel = null
 
   return <>{workbench && <button className="town-return-island" onClick={() => switchSurface(false)}>← {t('world.return')}</button>}<div className="town-shell" style={workbench ? { display: 'none' } : undefined} onClickCapture={event => {
@@ -413,7 +422,7 @@ export function AgentIslesWorld(props: Props) {
   }} data-workspace={workOpen ? expandedWork ? 'expanded' : 'open' : undefined} data-conversation={playable && resident && !showModels ? '' : undefined} data-regions-pending={regions.stage !== 'ready' ? '' : undefined}>
     {props.connectionState && <ConnectionNotice source={props.connectionState} t={t} />}
     <iframe ref={iframe} src={worldUrl.href} title={t('world.title')} onLoad={() => setReady(true)} />
-    {!loadingProjects && !recoveryFailed && <ResidentNotifications hidden={workbench} onCount={setNotificationCount} sessions={workspaces.flatMap(project => project.sessionIds.flatMap(id => {
+    {!loadingProjects && !recoveryFailed && <ResidentNotifications t={t} hidden={workbench} onCount={setNotificationCount} sessions={workspaces.flatMap(project => project.sessionIds.flatMap(id => {
       const resident = props.residentForSession(project.workspaceId, id)
       const summary = sessionState.byId[id]
       const request = pending.get(id)
@@ -466,7 +475,7 @@ export function AgentIslesWorld(props: Props) {
         : <progress aria-label={t('regions.loading')} />}
     </section>}
 
-    {showModels ? <ModelSettings actions={props.models} close={() => setShowModels(false)} /> : selected === 'teacher' && historyOpen && !workbench ? <NativeSidebar sessionId={sessionState.current} toggleSidebar={props.toggleSidebar} close={closeConversation} /> : selected === 'file_keeper' && fileView && workspace ? <ProjectFiles key={workspace.workspaceId} projectId={workspace.workspaceId} title={workspace.title} initialView={fileView} close={() => setFileView(null)} /> : resident && <aside ref={conversation} tabIndex={-1} className={`town-panel town-conversation${selected === 'file_keeper' ? ' town-keeper-dialogue' : ''}${workOpen ? ' town-studio' : ''}${selected === 'coordinator' && guideView === 'records' ? ' town-work-panel' : ''}`} aria-label={guideView === 'records' ? t('journal.title') : resident.name} onKeyDown={event => {
+    {showModels ? <ModelSettings actions={props.models} close={() => setShowModels(false)} t={t} /> : selected === 'teacher' && historyOpen && !workbench ? <NativeSidebar sessionId={sessionState.current} toggleSidebar={props.toggleSidebar} close={closeConversation} t={t} /> : selected === 'file_keeper' && fileView && workspace ? <ProjectFiles key={workspace.workspaceId} projectId={workspace.workspaceId} title={workspace.title} initialView={fileView} close={() => setFileView(null)} t={t} /> : resident && <aside ref={conversation} tabIndex={-1} className={`town-panel town-conversation${selected === 'file_keeper' ? ' town-keeper-dialogue' : ''}${workOpen ? ' town-studio' : ''}${selected === 'coordinator' && guideView === 'records' ? ' town-work-panel' : ''}`} aria-label={guideView === 'records' ? t('journal.title') : resident.name} onKeyDown={event => {
       if (event.key === 'Escape') {
         const menu = conversation.current?.querySelector<HTMLElement>('.town-chat-menu:popover-open')
         if (menu) { event.preventDefault(); event.stopPropagation(); menu.hidePopover(); return }
@@ -564,7 +573,7 @@ export function AgentIslesWorld(props: Props) {
       {picking ? <div><p role="status">{t('dialogue.waitingPicker')}</p><button onClick={() => pickerAbort.current?.abort()}>{t('common.cancel')}</button></div> : busy && <p role="status">{t('common.loading')}</p>}
       {error && <p role="alert">{error}</p>}
       </div>
-      {workOpen && bindingId && !workbench && <NativeChat key={bindingId} sessionId={bindingId} />}
+      {workOpen && bindingId && !workbench && <NativeChat key={bindingId} sessionId={bindingId} t={t} />}
       <div className="town-composer" ref={setComposerTarget} />
       <div className="town-preview-pane" ref={setPreviewTarget} />
     </aside>}

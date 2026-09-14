@@ -22,7 +22,7 @@ import { TownModelOnboarding } from './ModelSettings.js'
 import { applyDocumentBranding } from './document-branding.js'
 import type { ResidentState } from '../resident-state.js'
 import { tutorialActions } from './tutorial-api.js'
-import { FIRST_TUTORIAL } from '../tutorial-types.js'
+import { tutorialInstruction } from '../tutorial-types.js'
 import type { ISessions } from '@deepseek-ai/dsh-api-session-controller/client'
 import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
 import { en, NS, zh } from './locales.js'
@@ -59,6 +59,8 @@ function writeResidentSession(workspaceId: string, residentId: ResidentId, sessi
 /** Replace the generic Web profile branding while retaining its layout and conversation UI. */
 export function apply(ctx: Omit<ClientContext, 'sessions' | 'connection'> & { sessions: ISessions; connection: ConnectionHandle }): void {
   ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'agent-isles-web: dictionaries')
+  const t = ctx.locale.bind(NS)
+  const activeLocale = () => ctx.locale.getSnapshot().active.startsWith('zh') ? 'zh' as const : 'en' as const
   const selecting = new Map<string, Promise<string>>()
   let saved: ResidentState = { sessions: {} }
   const stateRequest = async (update?: { projectId: string; residentId?: ResidentId; sessionId?: string }): Promise<ResidentState> => {
@@ -66,7 +68,7 @@ export function apply(ctx: Omit<ClientContext, 'sessions' | 'connection'> & { se
       method: update ? 'POST' : 'GET', headers: { 'x-agent-isles-state': '1', 'content-type': 'application/json' },
       ...(update ? { body: JSON.stringify(update) } : {}), signal: AbortSignal.timeout(10_000),
     })
-    if (!response.ok) throw new Error('工作记录暂时无法恢复或保存，请重试')
+    if (!response.ok) throw new Error(t('error.state'))
     return await response.json() as ResidentState
   }
   const sessionForResident = (workspaceId: string, residentId: ResidentId): string | undefined => {
@@ -82,7 +84,7 @@ export function apply(ctx: Omit<ClientContext, 'sessions' | 'connection'> & { se
     return (Object.keys(RESIDENT_NAMES) as ResidentId[]).find(id => sessionForResident(workspaceId, id) === sessionId)
   }
   const selectResident = (residentId: ResidentId, workspaceId: string): Promise<string> => {
-    if (residentId === 'teacher') return Promise.reject(new Error('苔伯通过项目与历史对话管理界面操作，不创建模型会话。'))
+    if (residentId === 'teacher') return Promise.reject(new Error(t('error.teacherSession')))
     const key = `${workspaceId}:${residentId}`
     const active = selecting.get(key)
     if (active !== undefined) return active
@@ -90,16 +92,16 @@ export function apply(ctx: Omit<ClientContext, 'sessions' | 'connection'> & { se
       // A restored workspace can arrive before the session catalog. Do not
       // replace its saved resident mapping while that catalog is still loading.
       await ctx.sessions.refresh()
-      if (ctx.sessions.list.getSnapshot().phase !== 'ready') throw new Error('会话记录尚未加载，请稍后重试')
+      if (ctx.sessions.list.getSnapshot().phase !== 'ready') throw new Error(t('error.sessionsLoading'))
       const workspace = ctx.workspaces.list.getSnapshot().items
         .find(candidate => candidate.workspaceId === workspaceId)
-      if (workspace === undefined) throw new Error('工作区已不可用，请重新选择')
+      if (workspace === undefined) throw new Error(t('error.workspaceGone'))
       const mapped = sessionForResident(workspaceId, residentId)
       if (!mapped && (saved.sessions[workspaceId]?.[residentId] || readResidentSessions()[workspaceId]?.[residentId])) {
-        throw new Error('原居民会话已不在当前项目中，请到高级工作台检查历史记录；未创建替代会话。')
+        throw new Error(t('error.residentGone'))
       }
       if (!mapped && workspace.sessionIds.filter(id => ctx.sessions.list.getSnapshot().byId[id]?.title?.startsWith(`${RESIDENT_NAMES[residentId]} · `)).length > 1) {
-        throw new Error('找到多个旧居民会话，请在高级工作台确认要继续哪一个；未创建替代会话。')
+        throw new Error(t('error.legacyResidents'))
       }
       const mappedSessionId = mapped as SessionId | undefined
       if (mappedSessionId !== undefined
@@ -125,9 +127,9 @@ export function apply(ctx: Omit<ClientContext, 'sessions' | 'connection'> & { se
   const sendResidentPrompt = async (residentId: ResidentId, workspaceId: string, prompt: string): Promise<void> => {
     const sessionId = await selectResident(residentId, workspaceId)
     const binding = ctx.sessions.binding(sessionId as SessionId)
-    if (binding === undefined) throw new Error('居民会话已断开，请重新打开')
+    if (binding === undefined) throw new Error(t('error.residentDisconnected'))
     await prepareResidentModel(ctx.remote, sessionId as SessionId)
-    const text = residentPrompt(residentId, prompt)
+    const text = residentPrompt(residentId, prompt, activeLocale())
     const submission = binding.session.beginSubmission({ mode: 'queue', text, attachments: [] })
     const result = await binding.session.prompt([{ type: 'text', text }], 'queue', undefined, submission.requestId)
     if (!result.ok) throw new Error(result.error.message)
@@ -168,16 +170,16 @@ export function apply(ctx: Omit<ClientContext, 'sessions' | 'connection'> & { se
         tutorials: tutorialActions,
         refreshProjects: id => new Promise<void>((resolve, reject) => {
           if (ctx.workspaces.list.getSnapshot().items.some(item => item.workspaceId === id)) { resolve(); return }
-          const timer = setTimeout(() => { unsubscribe(); reject(new Error('项目已保存，列表同步尚未完成。请重新读取项目。')) }, 10000)
+          const timer = setTimeout(() => { unsubscribe(); reject(new Error(t('error.projectSync'))) }, 10000)
           const unsubscribe = ctx.workspaces.list.subscribe(() => {
             if (ctx.workspaces.list.getSnapshot().items.some(item => item.workspaceId === id)) { clearTimeout(timer); unsubscribe(); resolve() }
           })
         }),
         submitTutorial: async (run, draft, followup = false) => {
-          if (!run.workspaceId) throw new Error('请先为作品选择项目。')
+          if (!run.workspaceId) throw new Error(t('error.chooseProject'))
           if (run.submission && !followup) {
             const binding = ctx.sessions.binding(run.submission.sessionId as SessionId)
-            if (!binding) throw new Error('请先打开原居民会话，再重试这条提交。')
+            if (!binding) throw new Error(t('error.openOriginal'))
             // DSH deduplicates this identity against both its inbox and durable user messages.
             const result = await binding.session.prompt([{ type: 'text', text: run.submission.text }], 'queue', undefined, run.submission.requestId as Parameters<typeof binding.session.prompt>[3])
             if (!result.ok) throw new Error(result.error.message)
@@ -185,10 +187,11 @@ export function apply(ctx: Omit<ClientContext, 'sessions' | 'connection'> & { se
           }
           const sessionId = followup && run.submission ? run.submission.sessionId : await selectResident('coder', run.workspaceId)
           const binding = ctx.sessions.binding(sessionId as SessionId)
-          if (!binding) throw new Error('居民会话暂不可用。')
-          if (binding.session.getSnapshot().running || binding.session.getSnapshot().queue.length) throw new Error('请等待当前任务结束，再开始教程这一轮。')
+          if (!binding) throw new Error(t('error.residentUnavailable'))
+          if (binding.session.getSnapshot().running || binding.session.getSnapshot().queue.length) throw new Error(t('error.waitTask'))
           await prepareResidentModel(ctx.remote, sessionId as SessionId)
-          const text = residentPrompt('coder', `${draft}\n\n${FIRST_TUTORIAL.instruction}`)
+          const locale = activeLocale()
+          const text = residentPrompt('coder', `${draft}\n\n${tutorialInstruction(locale)}`, locale)
           const submission = binding.session.beginSubmission({ mode: 'queue', text, attachments: [] })
           let prepared
           try { prepared = await tutorialActions.command(followup ? 'followup' : 'submit', run, { sessionId, submissionId: submission.requestId, text }) }
@@ -202,21 +205,21 @@ export function apply(ctx: Omit<ClientContext, 'sessions' | 'connection'> & { se
           save: (...args) => saveModelSettings(ctx.remote, ...args),
           remove: async ref => {
             const result = await ctx.remote.credentials.unset(ref)
-            if (!result.ok) throw new Error('密钥删除失败，可能由启动环境或只读配置管理')
+            if (!result.ok) throw new Error(t('error.removeKey'))
           },
           test: async () => {
             const response = await fetch('/agent-isles/model-test', {
               method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}', signal: AbortSignal.timeout(35_000),
             })
             const result = await response.json() as { ok: boolean; message?: string }
-            if (!response.ok || !result.ok) throw new Error(result.message ?? '连接测试失败')
+            if (!response.ok || !result.ok) throw new Error(result.message ?? t('error.connectionTest'))
           },
         },
         residentForSession, selectResident, sendResidentPrompt,
         restoreProject: async () => {
           saved = await stateRequest()
           await ctx.sessions.refresh()
-          if (ctx.sessions.list.getSnapshot().phase !== 'ready') throw new Error('会话记录尚未加载，请重试')
+          if (ctx.sessions.list.getSnapshot().phase !== 'ready') throw new Error(t('error.sessionsRetry'))
           return saved.projectId
         },
         saveProject: async projectId => { saved = await stateRequest({ projectId }) },
@@ -224,7 +227,7 @@ export function apply(ctx: Omit<ClientContext, 'sessions' | 'connection'> & { se
           for await (const frame of ctx.remote.session.follow({ address: { kind: 'session', sessionId: id as SessionId }, maxMessages: 8 }, signal)) {
             if (frame.type === 'snapshot') return projectResidentEvents(frame.records as readonly SessionEventLikeEntry[])
           }
-          throw new Error('工作记录暂时无法读取')
+          throw new Error(t('error.readWork'))
         },
         getBinding: id => ctx.sessions.binding(id as SessionId),
         focusSession: id => ctx.sessions.open(id as SessionId),

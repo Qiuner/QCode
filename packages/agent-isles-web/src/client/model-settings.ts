@@ -1,5 +1,30 @@
 import type { ClientRemote, CredentialInfo } from '@deepseek-ai/dsh-api-remotes/client'
 import type { ModelCatalog, ModelSelection } from '@deepseek-ai/dsh-api-session-controller/types'
+import type { AgentIslesLocaleKey, AgentIslesTranslate } from './locales.js'
+
+const MODEL_ERROR_KEYS: Record<string, AgentIslesLocaleKey> = {
+  'API Key 格式不正确，请只填写密钥本身': 'model.error.keyFormat',
+  'API 地址无效': 'model.error.urlInvalid',
+  'API 地址须使用 HTTPS；本机服务可使用 HTTP，且不能包含凭据、查询参数或片段': 'model.error.urlSecurity',
+  '无法读取模型配置，请检查本机服务连接': 'model.error.load',
+  '无法读取凭据状态': 'model.error.credentials',
+  '当前模型配置不可保存': 'model.error.readonly',
+  '请填写 API Key': 'model.error.keyRequired',
+  '凭据由启动环境或只读配置管理，无法覆盖': 'model.error.keyReadonly',
+  '配置保存失败或已被其他窗口修改，请刷新后重试': 'model.error.conflict',
+  '服务地址已保存，但密钥保存失败；请刷新并重新填写密钥': 'model.error.keySave',
+  '凭据和服务地址已保存，但默认模型未更新；请刷新后重试': 'model.error.defaultSave',
+  '当前模型服务不可用，请重新配置': 'model.error.unroutable',
+  '请先配置模型的 API Key': 'model.error.configureKey',
+  '请先选择模型': 'model.error.choose',
+  '无法应用居民模型配置，请稍后重试': 'model.error.apply',
+}
+
+export function localizedModelError(reason: unknown, t: AgentIslesTranslate): string {
+  const message = reason instanceof Error ? reason.message : String(reason)
+  const key = MODEL_ERROR_KEYS[message]
+  return key ? t(key) : message
+}
 
 export interface ModelProvider {
   id: string

@@ -36,9 +36,9 @@ export const WORLD_STYLES = `
 .town-project-list button small { flex: none; }
 .town-shell .town-project-list button[aria-current] { background: #e1eee5; font-weight: 600; }
 .town-work-entry button { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; box-shadow: 0 4px 16px #183a3922; }
-[aria-label='居民创作记录'] .town-dialogue-choices { display: grid; grid-template-columns: 1fr; }
-[aria-label='居民创作记录'] button { text-align: left; white-space: normal; overflow-wrap: anywhere; }
-[aria-label='居民创作记录'] small { display: block; }
+.town-handbook .town-dialogue-choices { display: grid; grid-template-columns: 1fr; }
+.town-handbook button { text-align: left; white-space: normal; overflow-wrap: anywhere; }
+.town-handbook small { display: block; }
 .town-guide-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 .town-shell a { color: #235950; }
 .town-shell button { font: inherit; cursor: pointer; min-height: 36px; border: 1px solid #a8c0b7; border-radius: 6px; padding: 7px 12px; color: #203c37; background: #f4f8f3; }
@@ -313,9 +313,9 @@ export const WORLD_STYLES = `
 .agent-isles-resident-copy small { color: #b9d0c2; font-size: 11px; }
 .agent-isles-hero-mark { border-radius: 5px; }
 span:has(.agent-isles-hero-mark) + span { font-size: 0; }
-span:has(.agent-isles-hero-mark) + span::after { content: '和 Q 一起创作'; font-size: 26px; }
+span:has(.agent-isles-hero-mark) + span::after { content: var(--agent-isles-hero-title, 'Create with Q'); font-size: 26px; }
 span:has(.agent-isles-hero-mark) + span + span { font-size: 0; }
-span:has(.agent-isles-hero-mark) + span + span::after { content: '自由创作'; font-size: 12px; }
+span:has(.agent-isles-hero-mark) + span + span::after { content: var(--agent-isles-hero-subtitle, 'Free creation'); font-size: 12px; }
 .agent-isles-prompt { display: grid; gap: 7px; margin: 10px 4px 2px; padding-top: 10px; border-top: 1px solid #42665a; }
 .agent-isles-prompt label { color: #c8dacd; font-size: 11px; }
 .agent-isles-prompt textarea { resize: vertical; min-height: 58px; padding: 8px; border: 1px solid #58796d; border-radius: 5px; color: #f7f0dc; background: #102a25cc; font: inherit; font-size: 12px; line-height: 17px; }
