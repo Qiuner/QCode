@@ -6,6 +6,7 @@ import { join } from 'node:path'
 import { createServer } from 'node:http'
 import { createResidentStateHandler } from '../lib/types/resident-state.js'
 import { apply } from '../lib/types/client/index.js'
+import { zh } from '../lib/types/client/locales.js'
 
 test('recovery survives a new handler and concurrent resident updates without losing associations', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'agent-isles-recovery-'))
@@ -60,6 +61,7 @@ function clientFixture(t, { state = { sessions: {} }, rows = [], members = rows.
   let created = 0
   const ctx = {
     effect() {}, remote: {},
+    locale: { bind: () => key => zh[key], getSnapshot: () => ({ active: 'zh' }) },
     slots: { inject: (_name, callback) => callback(), register: options => { if (options.inject) injected = options.inject() } },
     workspaces: { list: { getSnapshot: () => ({ items: [{ workspaceId: 'project', title: 'Project', sessionIds: members }] }) } },
     sessions: {
