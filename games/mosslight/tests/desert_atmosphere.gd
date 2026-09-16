@@ -51,7 +51,8 @@ func run() -> void:
 	desert.advance(1.0 / 60, true, listener + Vector3.RIGHT * 12)
 	check(not atmosphere.chime_player.playing, "leaving the camp stops the chime")
 	print("MOSSLIGHT_DESERT_ATMOSPHERE_TESTS_COMPLETE failures=", failures)
+	atmosphere.chime_player.stream = null
 	desert.queue_free()
-	# Audio playback releases its mixer references asynchronously after stop/free.
+	# Audio playback releases its mixer references asynchronously after detaching the stream.
 	await create_timer(.15).timeout
 	quit(1 if failures else 0)

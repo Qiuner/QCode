@@ -28,12 +28,12 @@ corepack yarn check:vendored-runtime
 corepack yarn typecheck
 corepack yarn build:web
 node --test (Get-ChildItem packages/agent-isles-web/tests/*.test.mjs | ForEach-Object FullName)
-node --test apps/web/tests/supervise.test.mjs
+node --test apps/web/tests/supervise.test.mjs games/mosslight/tests/developer_panel.test.mjs
 git diff --check
 ```
 
 - [ ] 上述命令全部通过，失败项已有明确阻断结论，不能以旧结果替代。
-- [ ] PR 的 Godot 无头场景检查（`playthrough`、`residents`、`embedded_hud`）通过；受改动影响的其他 Godot 测试、真实浏览器交互和窄屏布局已额外验证。
+- [ ] PR 的 Godot 无头核心检查及带 `--stream-neighbors` 的 `region_loading` 检查通过；受改动影响的其他 Godot 测试、真实浏览器交互和窄屏布局已额外验证。
 
 ## 第三方内容
 
