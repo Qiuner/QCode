@@ -1,5 +1,7 @@
 # 变更日志
 
+**简体中文** · [English](CHANGELOG.en.md)
+
 本文件记录 agent-isles 面向使用者的重要变化。项目正式确定版本策略前，所有尚未发布的变化记录在 `Unreleased`。
 
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。

@@ -1,0 +1,55 @@
+name: Feature request (English)
+description: Propose a new capability or experience improvement
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing Issues and found no equivalent proposal.
+          required: true
+        - label: This proposal supports learning and creating with AI in real projects.
+          required: true
+
+  - type: dropdown
+    id: audience
+    attributes:
+      label: Primary audience
+      options:
+        - People new to AI coding
+        - Experienced developers
+        - Teachers or content creators
+        - Project maintainers
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: Describe the current situation and difficulty, not only the button or screen you want added.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the expected user flow and completion criteria.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Add sketches, examples, or related project links. Do not include sensitive information.

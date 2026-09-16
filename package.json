@@ -515,6 +515,7 @@
     }
   },
   "scripts": {
+    "check:doc-i18n": "node scripts/check-doc-i18n-sync.mjs --working-tree",
     "check:upstream": "node scripts/check-upstream.mjs",
     "check:vendored-runtime": "node scripts/sync-vendored-runtime.mjs --check",
     "sync:vendored-runtime": "node scripts/sync-vendored-runtime.mjs --write",

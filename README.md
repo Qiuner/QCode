@@ -1,12 +1,14 @@
 <p align="center">
-  <img src="assets/brand/android-chrome-512x512.png" alt="agent-isles Logo" width="128" height="128">
+  <img src="assets/brand/android-chrome-512x512.png" alt="agent-isles logo" width="128" height="128">
 </p>
 
 <h1 align="center">agent-isles</h1>
 
-<p align="center"><strong>把 AI 编程从严肃的聊天框，带进一片可以探索的群岛。</strong></p>
+<p align="center"><a href="README.zh-CN.md">简体中文</a> · <strong>English</strong></p>
 
-<p align="center">和住在项目里的 AI 伙伴一起做出真实作品，也在创作过程中学会 Coding。</p>
+<p align="center"><strong>Take AI coding out of the serious chat box and into an archipelago you can explore.</strong></p>
+
+<p align="center">Build real projects with AI companions who live alongside your work, and learn coding as you create.</p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/status-early_development-E9A23B?style=flat-square" alt="Status: early development">
@@ -19,92 +21,93 @@
 </p>
 
 <p align="center">
-  <a href="#agent-isles-是什么">产品介绍</a> ·
-  <a href="#产品画面">产品画面</a> ·
-  <a href="#快速开始">快速开始</a> ·
-  <a href="#工作原理">工作原理</a> ·
-  <a href="#文档">项目文档</a> ·
-  <a href="CONTRIBUTING.md">参与贡献</a> ·
-  <a href="SUPPORT.md">获取帮助</a>
+  <a href="#what-is-agent-isles">Introduction</a> ·
+  <a href="#screenshots">Screenshots</a> ·
+  <a href="#quick-start">Quick start</a> ·
+  <a href="#how-it-works">How it works</a> ·
+  <a href="#documentation">Documentation</a> ·
+  <a href="CONTRIBUTING.en.md">Contributing</a> ·
+  <a href="SUPPORT.en.md">Support</a>
 </p>
-<img src="docs/images/agent-isles-world-current.png" alt="当前版本苔光之屿与中央 Q 计算机的世界实景" width="100%">
+
+<img src="docs/images/agent-isles-world-current.png" alt="The current Mosslight Isle world and its central Q computer" width="100%">
 
 > [!IMPORTANT]
-> agent-isles 仍处于早期开发阶段。目前提供本地 Web MVP、Windows x64 启动器/安装包预览，以及 macOS Intel 便携预览。安装与构建说明见 [桌面启动器](apps/desktop/README.md)。
+> agent-isles is in early development. It currently provides a local Web MVP, a Windows x64 launcher/package preview, and a portable macOS Intel preview. See the [desktop launcher guide](apps/desktop/README.en.md) for installation and build details.
 
-**Windows 便携预览版**：[下载 v0.1.0-preview.1](https://github.com/Qiuner/agent-isles/releases/tag/v0.1.0-preview.1)。下载 ZIP，完整解压到较短路径后运行 `agent-isles.exe`；首次使用需配置模型。用户数据保存在 `%LOCALAPPDATA%\agent-isles\data`，退出服务使用系统托盘菜单。版本未签名、无自动更新，更新时退出旧版后将新版解压到新目录，不覆盖运行中的文件。
+**Windows portable preview:** [Download v0.1.0-preview.1](https://github.com/Qiuner/agent-isles/releases/tag/v0.1.0-preview.1). Extract the entire ZIP to a short path and run `agent-isles.exe`. You will need to configure a model the first time you use it. User data is stored in `%LOCALAPPDATA%\agent-isles\data`; stop the service from the system tray menu. The preview is unsigned and has no automatic updates. Exit the old version and extract an update to a new directory instead of overwriting files in use.
 
-## agent-isles 是什么
+## What is agent-isles?
 
-agent-isles 是一个可探索的 AI Coding 学习与创作环境。它把原本藏在聊天框、终端和工具列表里的 Agent 能力，变成群岛世界中的伙伴、地点和行动。你不需要先弄懂模型、会话、工具调用和项目结构，就可以从一句自己的想法出发，和 AI 一起把它做成真正能运行的作品。
+agent-isles is an explorable environment for learning and creating with AI coding. It turns Agent capabilities that normally sit behind chat boxes, terminals, and tool lists into companions, places, and actions in an island world. You can begin with an idea and work with AI to turn it into a real, runnable project without first mastering models, sessions, tool calls, or repository structure.
 
-你可以选择“跟着学”，在完成第一个作品的过程中认识需求、项目、执行、审批和验收；也可以选择“自由创作”，直接绑定已有项目，按自己的节奏探索和修改。教学不是脱离实践的课程，而是附着在真实创作上的引导：AI 可以动手，但作品仍由你提出、体验、判断并继续完善。
+Choose **guided learning** to discover requirements, projects, execution, approvals, and verification while completing your first project. Or choose **free creation** to connect an existing project and explore at your own pace. Learning is attached to real work rather than separated into a course: AI can act, but you still propose, experience, judge, and refine the result.
 
-可探索的群岛降低了第一次接触 AI 编程时的陌生感，但没有隐藏真实能力和责任边界。任务状态会反映在世界和角色上，文件、历史对话与项目各有明确入口；需要深入时，你仍然可以进入高级工作台查看完整对话、工具调用和人工审批。
+The explorable world makes a first encounter with AI coding less intimidating without hiding its real capabilities or responsibilities. Task state is reflected in the world and its residents, while files, conversation history, and projects have clear entry points. When you need more detail, the advanced workbench exposes full conversations, tool calls, and human approvals.
 
-## 当前体验
+## Current experience
 
-Windows 预览版通过安装包安装后，点击 agent-isles 图标即可启动服务并进入小岛，运行时和资源已内置。源码开发仍可使用 `打开小岛.cmd` 打开正在运行的开发服务；该脚本不作为安装版入口。
+On Windows, the installed preview starts the service and opens the island from the agent-isles shortcut, with its runtime and assets included. Source builds can still use `打开小岛.cmd` to open an already-running development service; this script is not the installed application entry point.
 
-## 主要功能
+## Main features
 
 <table>
   <tr>
     <td width="50%" valign="top">
-      <h3>工作台 <sup><code>当前可用</code></sup></h3>
-      <p>在本地工作台里连接真实项目，与 AI 对话，查看文件和工具调用，处理审批，并继续已有的 Workspace 与 Session。</p>
+      <h3>Workbench <sup><code>Available now</code></sup></h3>
+      <p>Connect real local projects, talk with AI, inspect files and tool calls, handle approvals, and continue existing workspaces and sessions.</p>
     </td>
     <td width="50%" valign="top">
-      <h3>教育与引导 <sup><code>规划中</code></sup></h3>
-      <p>把需求表达、项目选择、执行、审批和验收做成循序渐进的学习路径，让第一次接触 AI Coding 的人也能完成自己的作品。</p>
+      <h3>Education and guidance <sup><code>Planned</code></sup></h3>
+      <p>Turn requirements, project selection, execution, approvals, and verification into a progressive learning path for people new to AI coding.</p>
     </td>
   </tr>
   <tr>
     <td width="50%" valign="top">
-      <h3>更多的小岛 <sup><code>规划中</code></sup></h3>
-      <p>继续扩展群岛中的地点、居民和主题，把不同类型的项目能力放进各自有性格、有入口的空间。</p>
+      <h3>More islands <sup><code>Planned</code></sup></h3>
+      <p>Expand the archipelago with distinct places, residents, and themes that give different project capabilities their own character and home.</p>
     </td>
     <td width="50%" valign="top">
-      <h3>更丰富有意思的玩法 <sup><code>规划中</code></sup></h3>
-      <p>让任务进展、居民关系、探索和作品成果产生更多互动，在不牺牲真实工作流的前提下，增加值得发现和反复体验的反馈。</p>
+      <h3>Richer ways to play <sup><code>Planned</code></sup></h3>
+      <p>Connect task progress, resident relationships, exploration, and finished work through more interactions and discoveries without compromising the real workflow.</p>
     </td>
   </tr>
 </table>
 
-| 居民 | 职责 | 当前能力 |
+| Resident | Role | Current capability |
 | --- | --- | --- |
-| Q · 计算机 | 制作伙伴 | 通过完整对话接收目标，使用附件、模型与权限设置读取、修改并验证项目 |
-| 苔伯 | 项目与历史管理员 | 选择和切换项目、搜索历史，并查看或继续已有对话 |
-| 阿澜 · File Keeper | 文件管理员 | 浏览真实目录、预览文本，并查看 Git 暂存、未暂存与未跟踪修改 |
+| Q · Computer | Maker companion | Receives goals through full conversations and uses attachments, model settings, and permissions to read, modify, and verify projects |
+| Uncle Moss | Project and history keeper | Selects and switches projects, searches history, and opens or resumes existing conversations |
+| Alan · File Keeper | File keeper | Browses real directories, previews text, and shows staged, unstaged, and untracked Git changes |
 
-- **跟着学，也能自由做**：教程帮助你完成第一个作品，普通项目支持直接进入创作。
-- **在项目中学习**：讲解、实践和验收共享同一个真实 Workspace。
-- **角色即能力入口**：不同居民拥有清晰的职责、会话和状态。
-- **过程可观察**：群岛中的角色、气泡和动画反映 AI 的工作状态。
-- **保留专业界面**：高级工作台承载完整对话、工具结果和人工审批。
-- **不复制执行引擎**：底层复用固定版本的 DeepSeek Harness runtime。
+- **Learn with guidance or create freely:** the tutorial helps you finish a first project, while ordinary projects open directly into creation.
+- **Learn inside the project:** explanation, practice, and verification share the same real workspace.
+- **Residents are capability entry points:** each resident has a clear responsibility, conversation, and state.
+- **The process is visible:** characters, speech bubbles, and animation reflect the AI's working state.
+- **The professional interface remains available:** the advanced workbench shows complete conversations, tool results, and human approvals.
+- **No duplicate execution engine:** agent-isles uses a pinned DeepSeek Harness runtime underneath.
 
-## 产品画面
+## Screenshots
 
-### 当前小岛与 Q
+### The current island and Q
 
-![中央平台上的 Q 与双机械臂](docs/images/agent-isles-q-current.png)
+![Q and its two robotic arms on the central platform](docs/images/agent-isles-q-current.png)
 
-Q 连接真实项目的原生对话与执行过程；项目和历史由苔伯管理，文件由阿澜查阅。网页面板和窄屏截图待重新采集，已移除旧版画面，避免与当前界面混淆。
+Q connects to native conversations and execution for real projects. Uncle Moss manages projects and conversation history, while Alan inspects files. Web panel and narrow-screen screenshots will be recaptured; obsolete images were removed to avoid misrepresenting the current interface.
 
-## 快速开始
+## Quick start
 
-### 环境要求
+### Requirements
 
-- Windows 或 macOS Intel（源码开发；便携预览见 [桌面启动器](apps/desktop/README.md)）
-- Node.js `^22.19.0` 或 `>=24.0.0`
+- Windows or macOS Intel for source development; see the [desktop launcher guide](apps/desktop/README.en.md) for portable previews
+- Node.js `^22.19.0` or `>=24.0.0`
 - Corepack
-- Git（包含 submodule 支持）
-- 导出世界时需要 Godot `4.7.2` 与 Web 导出模板（或设置 `GODOT_BIN`）
+- Git with submodule support
+- Godot `4.7.2` and its Web export templates when exporting the world, or a configured `GODOT_BIN`
 
-### 启动本地 Web
+### Start the local Web app
 
-在仓库根目录运行：
+Run these commands from the repository root:
 
 ```powershell
 corepack enable
@@ -112,99 +115,83 @@ corepack yarn install --immutable
 corepack yarn dev:web --no-open
 ```
 
-打开终端输出的本地地址。首次使用时，按页面提示完成模型配置并选择一个本地项目文件夹，然后即可与居民交谈。
+Open the local URL printed in the terminal. On first use, follow the interface to configure a model and select a local project directory, then talk to a resident.
 
-开发数据默认保存在仓库内的 `.agent-isles-home/`。如需更换位置，可在启动前设置 `DSH_HOME`。
+Development data is stored in `.agent-isles-home/` inside the repository by default. Set `DSH_HOME` before startup to use another location.
 
-## 工作原理
+## How it works
 
 ```text
-创作者 / 学习者
-  -> agent-isles Web：群岛世界、角色、对话与状态
-    -> agent-isles Host/Client 插件：Workspace 与 Resident/Session 映射
-      -> DeepSeek Harness：模型、工具、审批、文件与终端
-        -> 本地项目
+Creator / learner
+  -> agent-isles Web: island world, residents, conversations, and state
+    -> agent-isles Host/Client plugins: Workspace and Resident/Session mapping
+      -> DeepSeek Harness: models, tools, approvals, files, and terminals
+        -> Local project
 ```
 
-Godot 负责呈现世界和居民状态，React 负责 Workspace、居民选择和交互面板，DeepSeek Harness 是会话与执行状态的唯一事实来源。agent-isles 通过公开的 DSH/Cordis 插件接口接入，不修改上游源码，也不再包装一套重复的 Session API。
+Godot renders the world and resident state. React provides workspace selection and resident interaction panels. DeepSeek Harness remains the single source of truth for conversations and execution state. agent-isles integrates through the public DSH/Cordis plugin interfaces; it does not modify upstream source or wrap a second Session API around it.
 
-## 仓库结构
+## Repository layout
 
-| 目录 | 用途 |
+| Directory | Purpose |
 | --- | --- |
-| `apps/web/` | 启动 agent-isles 的 DSH Web profile |
-| `apps/desktop/` | Windows / macOS Intel 启动器、打包与验证脚本 |
-| `packages/agent-isles-web/` | agent-isles Host/Client Web 插件 |
-| `games/mosslight/` | 使用 Blender 与 Godot 构建的世界 |
-| `deepseek-harness/` | 固定版本的上游 Git submodule |
-| `vendor/dsh-runtime/` | 固定并校验过的 DSH runtime 包 |
-| `docs/` | 产品、架构与实施文档 |
+| `apps/web/` | Starts the agent-isles DSH Web profile |
+| `apps/desktop/` | Windows and macOS Intel launchers, packaging, and verification scripts |
+| `packages/agent-isles-web/` | agent-isles Host/Client Web plugins |
+| `games/mosslight/` | The world built with Blender and Godot |
+| `deepseek-harness/` | Pinned upstream Git submodule |
+| `vendor/dsh-runtime/` | Pinned and verified DSH runtime packages |
+| `docs/` | Product, architecture, and implementation documentation |
 
-## 开发命令
+## Development commands
 
-| 命令 | 用途 |
+| Command | Purpose |
 | --- | --- |
-| `corepack yarn dev:web --no-open` | 构建插件并启动本地 Web |
-| `corepack yarn typecheck` | 检查 Web 插件类型 |
-| `corepack yarn build:web` | 构建 Web 插件 |
-| `corepack yarn build:world` | 导出 Godot Web 世界 |
-| `corepack yarn check:upstream` | 校验上游 submodule 版本 |
-| `corepack yarn check:vendored-runtime` | 校验 vendored runtime |
+| `corepack yarn dev:web --no-open` | Build the plugins and start the local Web app |
+| `corepack yarn typecheck` | Type-check the Web plugins |
+| `corepack yarn build:web` | Build the Web plugins |
+| `corepack yarn build:world` | Export the Godot Web world |
+| `corepack yarn check:upstream` | Verify the pinned upstream submodule |
+| `corepack yarn check:vendored-runtime` | Verify the vendored runtime |
 
-## 上游与版本
+## Upstream and versioning
 
-当前稳定通道固定在 DeepSeek Harness `0.1.3-alpha.1`，对应 commit `d347e703908d0406b7a7ef80e3a0e594d86b2215`。版本与 runtime 产物记录在 [`upstream.json`](upstream.json) 中。
+The current stable channel pins DeepSeek Harness `0.1.3-alpha.1` at commit `d347e703908d0406b7a7ef80e3a0e594d86b2215`. Versions and runtime artifacts are recorded in [`upstream.json`](upstream.json).
 
-- 不直接修改 `deepseek-harness/`。
-- runtime 升级先更新固定版本，再执行兼容性验证。
-- agent-isles 的产品逻辑保留在自身插件和世界代码中。
+- Do not modify `deepseek-harness/` directly.
+- Update the pinned version before running compatibility verification for a runtime upgrade.
+- Keep agent-isles product logic in its own plugins and world code.
 
-## 当前限制
+## Current limitations
 
-- File Keeper 的只读行为目前由应用边界和提示词共同约束，尚未形成完整的强权限隔离。
-- File Keeper 暂不支持编辑文件、预览图片、访问远程文件系统或展示父级仓库的修改。
-- 完整首课尚未通过真实模型的端到端验收，真实任务、异常恢复和教学节奏仍需继续验证。
-- 移动端已支持面板布局，世界操作仍以键鼠为主。
-- 通知保存在当前浏览器中，暂不跨浏览器同步，也不提供操作系统通知。
-- 最新 Windows 安装包尚未重新构建并完成安装、卸载与真实任务验收；预览版未签名，自动更新和发布渠道尚未实现。
+- File Keeper read-only behavior is currently enforced by application boundaries and prompting, not a complete hard permission boundary.
+- File Keeper cannot yet edit files, preview images, access remote filesystems, or show changes from a parent repository.
+- The complete first lesson has not passed end-to-end verification with a real model; real tasks, recovery paths, and teaching pace still need validation.
+- Panels support mobile layouts, but world controls are still designed primarily for keyboard and mouse.
+- Notifications are stored in the current browser and do not sync across browsers or use operating-system notifications.
+- The latest Windows installer has not yet been rebuilt and verified for installation, uninstallation, and real tasks. Preview builds are unsigned; automatic updates and a release channel are not implemented.
 
-## 文档
+## Documentation
 
-- [系统架构](docs/architecture.md)
-- [网页优先 MVP](docs/agent-isles-mvp-plan.md)
-- [Web 定制边界](docs/web-customization.md)
-- [世界与 Web 的职责](docs/world-web-plan.md)
-- [居民角色设计](docs/roles.md)
-- [发布检查清单](docs/release-checklist.md)
+- [Desktop launcher and preview builds](apps/desktop/README.en.md)
+- [Contributing guide](CONTRIBUTING.en.md)
+- [Support](SUPPORT.en.md)
+- [Security policy](SECURITY.en.md)
+- [Code of Conduct](CODE_OF_CONDUCT.en.md)
+- [Third-party notices](THIRD_PARTY_NOTICES.en.md)
+- [Changelog](CHANGELOG.en.md)
 
-## 参与贡献
+Detailed architecture and implementation documents are currently maintained in Chinese under [`docs/`](docs/README.md).
 
-Bug 报告、功能建议和 Pull Request 都欢迎。较大的功能或交互调整建议先通过 Issue 对齐范围。
+## Contributing
 
-贡献前先阅读：
+Bug reports, feature proposals, and pull requests are welcome. Please open an Issue to align on scope before starting a large feature or interaction redesign.
 
-1. [贡献指南](CONTRIBUTING.md)：开发工具版本、环境准备、首次启动、测试与 PR 要求。
-2. [仓库约束](AGENTS.md)：代码边界、提交规则和施工文档维护；修改某个目录前，再阅读该目录的 `AGENTS.md`。
-3. [文档门户](docs/README.md)：按贡献方向找到相关规范，无需通读全部文档。
+Read the [contributing guide](CONTRIBUTING.en.md) for development requirements, initial setup, testing, and pull request expectations. The guide also points to the relevant technical documents for Web plugins, islands and residents, tutorials, desktop distribution, and documentation changes.
 
-再按本次改动选择专项文档：
+## Roadmap
 
-| 贡献方向 | 开始前阅读 |
-| --- | --- |
-| Web / Host 插件 | [插件开发指南](packages/agent-isles-web/docs/plugin-development.md)、[总体架构](docs/architecture.md) |
-| 新岛屿、居民与世界交互 | [岛屿接入契约](docs/world-integration-contract.md)、[世界开发说明](games/mosslight/README.md) |
-| 教程流程 | [教程架构](docs/tutorial-architecture.md)、[首课施工记录](docs/first-vibe-coding-tutorial-plan.md) |
-| Windows 启动器与发行 | [桌面说明](apps/desktop/README.md)、[发布检查清单](docs/release-checklist.md) |
-| 文档 | [文档维护指南](docs/documentation-guide.md) |
-
-- [获取帮助](SUPPORT.md)
-- [安全策略](SECURITY.md)
-- [社区行为准则](CODE_OF_CONDUCT.md)
-- [变更日志](CHANGELOG.md)
-
-## 路线图
-
-- 完成真实模型、完整首课和主要异常路径的端到端验收。
-- 为不同居民建立可执行的强权限边界。
-- 完善 Windows 安装包的签名、自动更新和发布渠道。
-- 扩展课程、作品模板，以及与任务进展联动的世界反馈。
+- Complete end-to-end verification of a real model, the full first lesson, and major failure paths.
+- Establish enforceable permission boundaries for different residents.
+- Improve signing, automatic updates, and distribution for Windows builds.
+- Expand lessons, project templates, and world feedback connected to task progress.

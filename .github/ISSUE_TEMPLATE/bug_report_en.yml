@@ -1,0 +1,91 @@
+name: Bug report (English)
+description: Report a reproducible defect or unexpected behavior
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting a problem. Search existing Issues first and provide the smallest useful reproduction.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing Issues and found no duplicate report.
+          required: true
+        - label: I am using supported versions of Node.js, Yarn, and Godot.
+          required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      options:
+        - Web island and resident panels
+        - Tutorial flow
+        - Godot world
+        - Windows launcher or package
+        - DeepSeek Harness integration
+        - Build or development tooling
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Problem
+      description: Explain what happened and how it affected your use of agent-isles.
+      placeholder: What happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+      placeholder: |
+        1. Start...
+        2. Open...
+        3. Select...
+        4. Observe...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include the installation method, version or commit, Windows version, Node.js version, and browser.
+      placeholder: |
+        Installation: source / Windows package
+        agent-isles version or commit:
+        Windows:
+        Node.js:
+        Browser:
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs and screenshots
+      description: Remove API keys, access tokens, local paths, and other sensitive information before posting.
+      render: shell
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Add a minimal reproduction repository, recording, or any other useful context.

@@ -1,5 +1,7 @@
 # 安全策略
 
+**简体中文** · [English](SECURITY.en.md)
+
 agent-isles 会访问本地项目文件，并可通过 AI 工具执行操作。请不要在公开 Issue、Discussion、PR 或日志中披露漏洞细节、API Key、访问令牌、本地路径和其他敏感信息。
 
 ## 支持范围

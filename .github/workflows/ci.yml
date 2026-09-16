@@ -14,6 +14,30 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  documentation:
+    name: Documentation checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Test documentation sync checker
+        run: node --test scripts/check-doc-i18n-sync.test.mjs
+
+      - name: Verify Chinese and English documentation changed together
+        env:
+          DOC_SYNC_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          DOC_SYNC_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node scripts/check-doc-i18n-sync.mjs "$DOC_SYNC_BASE" "$DOC_SYNC_HEAD"
+
   web:
     name: Web checks
     runs-on: windows-latest

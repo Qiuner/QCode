@@ -1,12 +1,12 @@
 # agent-isles 文档
 
-根目录的 [`README.md`](../README.md) 用于快速了解产品。本目录记录当前有效的架构、实现方案和路线；日期化的维护决策放在 [`.agents/notes/implemented/`](../.agents/notes/implemented/) 中，用于解释为什么这样设计，不替代当前文档。
+根目录的 [`README.zh-CN.md`](../README.zh-CN.md) 用于快速了解产品。本目录记录当前有效的架构、实现方案和路线；日期化的维护决策放在 [`.agents/notes/implemented/`](../.agents/notes/implemented/) 中，用于解释为什么这样设计，不替代当前文档。
 
 ## 从这里开始
 
 - **参与贡献**：看[贡献指南](../CONTRIBUTING.md)，包含开发工具版本、首次启动和 PR 验证要求。
 
-- **使用产品**：先看根目录 [README](../README.md)，再看教程或自由创作相关说明。
+- **使用产品**：先看根目录 [README](../README.zh-CN.md)，再看教程或自由创作相关说明。
 - **开发新岛屿**：先看[岛屿与插件开发指南](../packages/agent-isles-web/docs/plugin-development.md)，再看[岛屿接入契约](world-integration-contract.md)。
 - **理解系统**：先看[总体架构](architecture.md)，再按领域阅读专项契约。
 - **维护与发布**：看运行恢复、启动性能、发布检查和施工记录。

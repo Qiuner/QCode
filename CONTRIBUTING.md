@@ -1,5 +1,7 @@
 # 为 agent-isles 做贡献
 
+**简体中文** · [English](CONTRIBUTING.en.md)
+
 感谢你愿意参与 agent-isles。项目仍处于早期开发阶段，提交前请先搜索已有 Issue；较大的功能、交互改版或架构调整建议先开 Issue 对齐范围。
 
 参与社区即表示同意遵守[社区行为准则](CODE_OF_CONDUCT.md)。一般使用问题请查看[支持说明](SUPPORT.md)，安全漏洞请遵循[安全策略](SECURITY.md)私密报告。
@@ -108,6 +110,8 @@ node --test (Get-ChildItem packages/agent-isles-web/tests/*.test.mjs | ForEach-O
 ```
 
 Godot 改动按世界说明运行对应 `tests/*.gd`，单纯导出成功不等于交互验收通过。仅文档改动检查链接、内容与 `git diff --check` 即可。功能、验收结果或限制变化时同步 `docs/construction-plan.md` 及相关专项文档，区分“已实现待验收”和“已验收”。
+
+根目录和桌面说明中的公开中英文文档按对维护。修改其中任一语言时，必须在同一变更中同步另一语言；`corepack yarn check:doc-i18n` 会检查当前工作区，GitHub CI 会检查 PR 或推送的提交范围。该检查只确认配对文件同时变更，内容是否准确对应仍需人工审阅。
 
 ## 提交与 PR
 

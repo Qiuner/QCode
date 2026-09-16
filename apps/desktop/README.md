@@ -1,5 +1,7 @@
 # agent-isles 桌面启动器（本地预览版）
 
+**简体中文** · [English](README.en.md)
+
 发行包内置 Node、固定 DSH 依赖、Web 插件和 Godot 导出资源，不需要源码、Yarn 或预先安装 Node。当前支持：
 
 | 平台 | 产物 | 状态 |

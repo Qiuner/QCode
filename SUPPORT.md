@@ -1,8 +1,10 @@
 # 获取帮助
 
+**简体中文** · [English](SUPPORT.en.md)
+
 ## 使用和安装问题
 
-先检查 [README](README.md) 的环境要求、快速开始和当前限制，以及 [Windows 启动器说明](apps/desktop/README.md)。源码运行需要受支持的 Node.js、Corepack、Yarn 和完整的 Git submodule。
+先检查 [README](README.zh-CN.md) 的环境要求、快速开始和当前限制，以及 [Windows 启动器说明](apps/desktop/README.md)。源码运行需要受支持的 Node.js、Corepack、Yarn 和完整的 Git submodule。
 
 仍无法解决时，请使用 Bug 报告模板，并附上：
 

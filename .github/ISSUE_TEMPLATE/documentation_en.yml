@@ -1,0 +1,36 @@
+name: Documentation issue (English)
+description: Report missing, incorrect, or unclear documentation
+title: "[Docs]: "
+labels:
+  - documentation
+body:
+  - type: input
+    id: location
+    attributes:
+      label: Documentation location
+      description: Provide the file path, section, or page URL.
+      placeholder: The Quick start section in README.md
+    validations:
+      required: true
+
+  - type: textarea
+    id: issue
+    attributes:
+      label: Problem
+      description: Explain what is incorrect, missing, outdated, or difficult to understand.
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested change
+      description: If possible, describe the content or structure you expected.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I confirmed that the problem still exists on the current default branch.
+          required: true
