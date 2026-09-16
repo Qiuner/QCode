@@ -11,7 +11,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/status-early_development-E9A23B?style=flat-square" alt="Status: early development">
   <img src="https://img.shields.io/badge/interface-Web-5D9C87?style=flat-square&logo=googlechrome&logoColor=white" alt="Interface: Web">
-  <img src="https://img.shields.io/badge/platform-Windows-0078D4?style=flat-square&logo=windows11&logoColor=white" alt="Platform: Windows">
+  <img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20Intel-0078D4?style=flat-square" alt="Platform: Windows and macOS Intel">
   <img src="https://img.shields.io/badge/Godot-4.7-478CBF?style=flat-square&logo=godotengine&logoColor=white" alt="Godot 4.7">
   <img src="https://img.shields.io/badge/Node.js-22.19%2B-339933?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js 22.19 or newer">
   <img src="https://img.shields.io/badge/DSH-0.1.3--alpha.1-5D9C87?style=flat-square" alt="DeepSeek Harness 0.1.3-alpha.1">
@@ -30,7 +30,7 @@
 <img src="docs/images/agent-isles-world-current.png" alt="当前版本苔光之屿与中央 Q 计算机的世界实景" width="100%">
 
 > [!IMPORTANT]
-> agent-isles 仍处于早期开发阶段。目前提供本地 Web MVP 和 Windows x64 启动器、安装包预览版。安装与构建说明见 [Windows 启动器](apps/desktop/README.md)。
+> agent-isles 仍处于早期开发阶段。目前提供本地 Web MVP、Windows x64 启动器/安装包预览，以及 macOS Intel 便携预览。安装与构建说明见 [桌面启动器](apps/desktop/README.md)。
 
 **Windows 便携预览版**：[下载 v0.1.0-preview.1](https://github.com/Qiuner/agent-isles/releases/tag/v0.1.0-preview.1)。下载 ZIP，完整解压到较短路径后运行 `agent-isles.exe`；首次使用需配置模型。用户数据保存在 `%LOCALAPPDATA%\agent-isles\data`，退出服务使用系统托盘菜单。版本未签名、无自动更新，更新时退出旧版后将新版解压到新目录，不覆盖运行中的文件。
 
@@ -96,10 +96,11 @@ Q 连接真实项目的原生对话与执行过程；项目和历史由苔伯管
 
 ### 环境要求
 
-- Windows
+- Windows 或 macOS Intel（源码开发；便携预览见 [桌面启动器](apps/desktop/README.md)）
 - Node.js `^22.19.0` 或 `>=24.0.0`
 - Corepack
 - Git（包含 submodule 支持）
+- 导出世界时需要 Godot `4.7.2` 与 Web 导出模板（或设置 `GODOT_BIN`）
 
 ### 启动本地 Web
 
@@ -132,7 +133,7 @@ Godot 负责呈现世界和居民状态，React 负责 Workspace、居民选择�
 | 目录 | 用途 |
 | --- | --- |
 | `apps/web/` | 启动 agent-isles 的 DSH Web profile |
-| `apps/desktop/` | Windows 启动器、安装器及发行验证脚本 |
+| `apps/desktop/` | Windows / macOS Intel 启动器、打包与验证脚本 |
 | `packages/agent-isles-web/` | agent-isles Host/Client Web 插件 |
 | `games/mosslight/` | 使用 Blender 与 Godot 构建的世界 |
 | `deepseek-harness/` | 固定版本的上游 Git submodule |

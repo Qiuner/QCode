@@ -6,8 +6,15 @@ const workspaceRoot = path.resolve(import.meta.dirname, '..')
 const project = path.join(workspaceRoot, 'games', 'mosslight')
 const output = path.join(project, 'build', 'web')
 mkdirSync(output, { recursive: true })
-const localGodot = 'D:\\Godot_v4.7.2-stable_win64.exe\\Godot_v4.7.2-stable_win64_console.exe'
-const godot = process.env.GODOT_BIN ?? (existsSync(localGodot) ? localGodot : 'godot')
+const localGodotWin = 'D:\\Godot_v4.7.2-stable_win64.exe\\Godot_v4.7.2-stable_win64_console.exe'
+const localGodotMac = path.join(
+  process.env.HOME ?? '',
+  'Documents/github/_tools/godot-4.7.2/Godot.app/Contents/MacOS/Godot',
+)
+const godot = process.env.GODOT_BIN
+  ?? (existsSync(localGodotWin) ? localGodotWin : null)
+  ?? (existsSync(localGodotMac) ? localGodotMac : null)
+  ?? 'godot'
 
 for (const args of [
   ['--headless', '--path', project, '--editor', '--import'],

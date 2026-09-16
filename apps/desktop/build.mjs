@@ -1,10 +1,9 @@
-import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
+import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { embedNodeRuntime, materializeAppTree, requireBuiltArtifacts, root } from './pack-app.mjs'
 
-const root = fileURLToPath(new URL('../../', import.meta.url))
 const out = path.join(root, 'dist', `desktop-${Date.now()}`)
 const app = path.join(out, 'app')
 const compiler = path.join(process.env.WINDIR ?? 'C:/Windows', 'Microsoft.NET/Framework64/v4.0.30319/csc.exe')
@@ -14,44 +13,10 @@ const iscc = process.env.ISCC ?? [
 ].find(existsSync)
 if (!iscc || !existsSync(iscc)) throw new Error('请安装 Inno Setup 6，或通过 ISCC 指定编译器路径')
 if (process.platform !== 'win32' || process.arch !== 'x64' || !existsSync(compiler)) throw new Error('需要 Windows x64 和 .NET Framework 4.x 编译器')
-for (const file of ['packages/agent-isles-web/lib/client.js', 'games/mosslight/build/web/index.pck']) {
-  if (!existsSync(path.join(root, file))) throw new Error(`缺少 ${file}，请先构建 Web 和世界`)
-}
+requireBuiltArtifacts()
 mkdirSync(app, { recursive: true })
-let excludedFiles = 0
-function copy(source, destination) {
-  cpSync(path.join(root, source), path.join(app, destination ?? source), {
-    recursive: true, dereference: true,
-    filter: file => {
-      // Keep executable sources, package metadata and all licenses. Only omit
-      // type declarations and JS debugging maps, never entire source folders.
-      if (/\.(?:[cm]?js\.map|d\.[cm]?ts(?:\.map)?)$/i.test(file)) { excludedFiles++; return false }
-      return true
-    },
-  })
-}
-// Preserve the installed dynamic plugin dependency tree. Workspace junctions are materialized separately.
-for (const item of readdirSync(path.join(root, 'node_modules'), { withFileTypes: true })) {
-  if (item.name === '.bin' || item.name === '@agent-isles' || item.name === '.yarn-state.yml') continue
-  copy(`node_modules/${item.name}`)
-}
-for (const file of ['package.json', 'cordis.patch.yml', 'lib']) copy(`packages/agent-isles-web/${file}`, `node_modules/@agent-isles/web-plugin/${file}`)
-copy('packages/agent-isles-web/cordis.patch.yml')
-copy('apps/web/src/launch.mjs')
-copy('apps/web/src/supervise.mjs')
-copy('apps/desktop/boot.mjs')
-copy('games/mosslight/build/web')
-const web = JSON.parse(readFileSync(path.join(root, 'apps/web/package.json'), 'utf8'))
-writeFileSync(path.join(app, 'package.json'), JSON.stringify({ name: 'agent-isles-installed', private: true, type: 'module', dependencies: web.dependencies }, null, 2))
-mkdirSync(path.join(app, 'runtime'))
-cpSync(process.execPath, path.join(app, 'runtime/node.exe'))
-const licenseCache = path.join(root, 'dist', `node-${process.version}-LICENSE`)
-if (!existsSync(licenseCache)) {
-  const license = await fetch(`https://raw.githubusercontent.com/nodejs/node/${process.version}/LICENSE`, { signal: AbortSignal.timeout(30000) })
-  if (!license.ok) throw new Error('无法读取对应 Node 版本许可证')
-  writeFileSync(licenseCache, await license.text())
-}
-cpSync(licenseCache, path.join(app, 'runtime/LICENSE'))
+const { excludedFiles } = materializeAppTree(app)
+await embedNodeRuntime(app, { binaryName: 'node.exe' })
 writeFileSync(path.join(app, '发行说明.txt'), 'agent-isles 本地预览版\r\n双击 agent-isles.exe 进入。通知区域菜单可重新打开或退出。\r\n数据存放在 %LOCALAPPDATA%\\agent-isles\\data，卸载时保留。\r\n已内置 Node 和固定 DSH 运行时。模型需自行配置；项目所需 Git、Python 等开发工具需另行安装。\r\n第三方依赖许可证随 node_modules、runtime 和世界资源提供。\r\n')
 // Windows PowerShell 5.1 needs a BOM to display Chinese text correctly.
 writeFileSync(path.join(app, 'uninstall.ps1'), '\uFEFF' + readFileSync(path.join(root, 'apps/desktop/uninstall.ps1'), 'utf8').replace(/^\uFEFF/, ''))
