@@ -44,16 +44,30 @@ child.once('error', (error) => {
 
 child.once('exit', (code, signal) => {
   process.exitCode = code ?? (signal === null ? 1 : 128)
-  if (process.exitCode === 0) {
-    for (const [source, target] of [
-      ['web/cover.webp', 'cover.webp'],
-      ['web/cover-2560.webp', 'cover-2560.webp'],
-      ['web/cover-3840.webp', 'cover-3840.webp'],
-      ['web/_headers', '_headers'],
-      ['assets/fonts/OFL.txt', 'font-license.txt'],
-      ['assets/xi4u-LICENSE.txt', 'xi4u-LICENSE.txt'],
-    ]) {
-      copyFileSync(path.join(project, source), path.join(output, target))
-    }
+  if (process.exitCode !== 0) return
+  for (const [source, target] of [
+    ['web/cover.webp', 'cover.webp'],
+    ['web/cover-2560.webp', 'cover-2560.webp'],
+    ['web/cover-3840.webp', 'cover-3840.webp'],
+    ['web/_headers', '_headers'],
+    ['assets/fonts/OFL.txt', 'font-license.txt'],
+    ['assets/xi4u-LICENSE.txt', 'xi4u-LICENSE.txt'],
+  ]) {
+    copyFileSync(path.join(project, source), path.join(output, target))
+  }
+  // 主岛 HTML/PCK 之后再导出邻近区域 pack；shell 会 fetch('neighbors.pck')。
+  const neighbors = spawnSync(godot, [
+    '--headless',
+    '--path', project,
+    '--export-pack', 'Neighbors', path.join(output, 'neighbors.pck'),
+  ], { cwd: workspaceRoot, env: process.env, stdio: 'inherit' })
+  if (neighbors.error || neighbors.status !== 0) {
+    console.error('Godot Neighbors pack export failed.')
+    process.exitCode = neighbors.status ?? 1
+    return
+  }
+  if (!existsSync(path.join(output, 'neighbors.pck'))) {
+    console.error('neighbors.pck missing after Neighbors export.')
+    process.exitCode = 1
   }
 })
