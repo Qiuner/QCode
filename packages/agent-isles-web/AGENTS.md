@@ -7,5 +7,6 @@
 - Harness 拥有 Workspace、Session、工具、审批及其持久化；agent-isles 管理并持久化居民关联、教程学习记录等自身领域数据，不另建 DSH 会话与执行历史；Godot 只负责呈现与交互投影。
 - 修改跨 iframe 消息时，同步更新 `world-bridge.ts` 的类型和两端校验。
 - 组件样式留在本插件内；不要用无范围的选择器影响 `/workbench`。
+- 新增或修改用户可见文案时，复用现有语言服务并同步维护中英文语言字典；检查两种语言下的显示和切换，不将单一语言文案硬编码到界面。
 
 验证：运行 `corepack yarn workspace @agent-isles/web-plugin typecheck`；改变构建输出或插件入口时再运行 `corepack yarn build:web`。
