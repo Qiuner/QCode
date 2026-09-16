@@ -178,7 +178,23 @@ Godot 负责呈现世界和居民状态，React 负责 Workspace、居民选择�
 
 ## 参与贡献
 
-Bug 报告、功能建议和 Pull Request 都欢迎。开始前请阅读[贡献指南](CONTRIBUTING.md)，较大的功能或交互调整建议先通过 Issue 对齐范围。
+Bug 报告、功能建议和 Pull Request 都欢迎。较大的功能或交互调整建议先通过 Issue 对齐范围。
+
+贡献前先阅读：
+
+1. [贡献指南](CONTRIBUTING.md)：开发工具版本、环境准备、首次启动、测试与 PR 要求。
+2. [仓库约束](AGENTS.md)：代码边界、提交规则和施工文档维护；修改某个目录前，再阅读该目录的 `AGENTS.md`。
+3. [文档门户](docs/README.md)：按贡献方向找到相关规范，无需通读全部文档。
+
+再按本次改动选择专项文档：
+
+| 贡献方向 | 开始前阅读 |
+| --- | --- |
+| Web / Host 插件 | [插件开发指南](packages/agent-isles-web/docs/plugin-development.md)、[总体架构](docs/architecture.md) |
+| 新岛屿、居民与世界交互 | [岛屿接入契约](docs/world-integration-contract.md)、[世界开发说明](games/mosslight/README.md) |
+| 教程流程 | [教程架构](docs/tutorial-architecture.md)、[首课施工记录](docs/first-vibe-coding-tutorial-plan.md) |
+| Windows 启动器与发行 | [桌面说明](apps/desktop/README.md)、[发布检查清单](docs/release-checklist.md) |
+| 文档 | [文档维护指南](docs/documentation-guide.md) |
 
 - [获取帮助](SUPPORT.md)
 - [安全策略](SECURITY.md)

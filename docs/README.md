@@ -4,6 +4,8 @@
 
 ## 从这里开始
 
+- **参与贡献**：看[贡献指南](../CONTRIBUTING.md)，包含开发工具版本、首次启动和 PR 验证要求。
+
 - **使用产品**：先看根目录 [README](../README.md)，再看教程或自由创作相关说明。
 - **开发新岛屿**：先看[岛屿与插件开发指南](../packages/agent-isles-web/docs/plugin-development.md)，再看[岛屿接入契约](world-integration-contract.md)。
 - **理解系统**：先看[总体架构](architecture.md)，再按领域阅读专项契约。
