@@ -7,7 +7,8 @@ Node.js `^22.19.0` 或 `>=24.0.0`，通过 Corepack 使用 Yarn `4.18.0`。
 | 目录 | 职责 |
 | --- | --- |
 | `apps/web/` | 启动 DSH Web profile |
-| `apps/desktop/` | Windows Launcher、macOS Intel 便携启动器与本地预览版打包、验证 || `packages/agent-isles-web/` | agent-isles Host/Client Web 插件 |
+| `apps/desktop/` | Windows Launcher、macOS Intel 便携启动器与本地预览版打包、验证 |
+| `packages/agent-isles-web/` | agent-isles Host/Client Web 插件 |
 | `games/mosslight/` | Blender 与 Godot 世界 |
 | `deepseek-harness/` | 固定版本的上游 Git submodule |
 | `vendor/dsh-runtime/` | 固定并校验过的 DSH runtime 包 |
