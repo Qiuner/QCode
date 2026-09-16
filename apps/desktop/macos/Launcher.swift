@@ -203,7 +203,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     if setpgid(pid, pid) == 0 {
       servicePGID = pid
     } else {
-      servicePGID = getpgid(pid)
+      // After Process.run(), the child may already have exec'd and Darwin can
+      // reject setpgid with EACCES. Never signal an inherited process group.
+      servicePGID = -1
+      log("未能为后台服务创建独立进程组，将按子进程树清理。")
     }
     // Windows Launcher waits for Job assignment before stdin "start"; here the process is already ours.
     input.fileHandleForWriting.write("start\n".data(using: .utf8)!)
@@ -349,16 +352,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
   private func stopServiceTree() {
     guard let service else { return }
     let rootPid = processIdentifierSafe(service)
-    let pgid = servicePGID > 0 ? servicePGID : rootPid
-    if pgid > 0 {
-      kill(-pgid, SIGTERM)
-    }
     var stack = [rootPid]
     var all = [Int32]()
     while let pid = stack.popLast() {
       guard pid > 0 else { continue }
       all.append(pid)
       stack.append(contentsOf: childPIDs(of: pid))
+    }
+    if servicePGID > 0 {
+      kill(-servicePGID, SIGTERM)
     }
     for pid in all.reversed() {
       kill(pid, SIGTERM)
@@ -368,7 +370,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
       Thread.sleep(forTimeInterval: 0.05)
     }
     if service.isRunning || portStillListening() {
-      if pgid > 0 { kill(-pgid, SIGKILL) }
+      if servicePGID > 0 { kill(-servicePGID, SIGKILL) }
       for pid in all.reversed() { kill(pid, SIGKILL) }
     }
     stdoutClear()
