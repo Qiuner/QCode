@@ -53,3 +53,43 @@ jobs:
       - name: Run Web unit tests
         shell: pwsh
         run: node --test (Get-ChildItem packages/agent-isles-web/tests/*.test.mjs | ForEach-Object FullName)
+
+      - name: Run Web supervisor tests
+        shell: pwsh
+        run: node --test apps/web/tests/supervise.test.mjs
+
+  world:
+    name: Godot world checks
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Godot 4.7.2
+        shell: pwsh
+        run: |
+          $archive = Join-Path $env:RUNNER_TEMP 'godot.zip'
+          $destination = Join-Path $env:RUNNER_TEMP 'godot-4.7.2'
+          Invoke-WebRequest 'https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_win64.exe.zip' -OutFile $archive
+          if ((Get-FileHash $archive -Algorithm SHA256).Hash -ne '731980f9608d61333e5baf54a2ef17210acc7a538446c0cb9969f002aca1e953') {
+            throw 'Godot archive checksum mismatch'
+          }
+          Expand-Archive $archive -DestinationPath $destination
+          $godot = Join-Path $destination 'Godot_v4.7.2-stable_win64_console.exe'
+          if (-not (Test-Path $godot)) { throw 'Godot console executable missing' }
+          Add-Content -Path $env:GITHUB_ENV -Value "GODOT_BIN=$godot"
+
+      - name: Import world resources
+        shell: pwsh
+        run: |
+          & $env:GODOT_BIN --headless --path games/mosslight --editor --import
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Test real scene, residents and embedded HUD
+        shell: pwsh
+        run: |
+          foreach ($scenario in @('playthrough', 'residents', 'embedded_hud')) {
+            & $env:GODOT_BIN --headless --path games/mosslight --fixed-fps 60 --script "res://tests/$scenario.gd"
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }

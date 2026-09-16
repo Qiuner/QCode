@@ -180,6 +180,7 @@ I 打开六格背包，点击物品查看说明、选择拿出或收纳水壶；
 - `tests/first_person_feel.gd`：实际行走、撞墙、腾空、落地、暂停和减少动态设置下的第一人称反馈检查。
 - `tests/residents.gd`：居民出生位置、对话循环、遮挡、碰撞、进度对白、暂停与减少动态集成检查。
 - `tests/garden_inventory.gd`：拾取、接水、装备、三格浇灌、重复使用、成熟收获、叠放上限与背包暂停检查。
+- PR CI 使用 Godot 4.7.2 无头导入并运行 `playthrough.gd`、`residents.gd`、`embedded_hud.gd`；这些检查覆盖真实场景行为和 Host 消息处理，但不替代浏览器的 WebGL 画面、输入与跨进程验收。其余场景脚本按改动范围和发布清单运行。
 - `export_presets.cfg`：单线程网页导出配置。
 - `web/shell.html`：网页入口、加载进度、全屏及操作指南。
 - `tools/build_web.ps1`、`tools/serve_web.py`：网页构建与本地预览。
