@@ -526,6 +526,8 @@
     "upstream:prepare-runtime": "yarn upstream:install && yarn upstream:build:official && yarn upstream:pack:dsh",
     "build:web": "yarn workspace @agent-isles/web-plugin build",
     "build:world": "node scripts/export-world.mjs",
+    "build:desktop:darwin": "node apps/desktop/build-darwin.mjs",
+    "verify:desktop:darwin": "bash apps/desktop/verify-darwin.sh",
     "dev:web": "yarn build:web && yarn workspace @agent-isles/web start",
     "typecheck": "yarn workspace @agent-isles/web-plugin typecheck"
   },

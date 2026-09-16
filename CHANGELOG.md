@@ -6,6 +6,14 @@
 
 ## Unreleased
 
+### Added
+
+- macOS Intel（x86_64）便携预览：菜单栏启动器、内置 Node/DSH/世界资源、`yarn build:desktop:darwin` 与 `verify:desktop:darwin`。
+
+### Known limitations
+
+- macOS 预览未签名、无安装器与自动更新；暂不提供 Apple Silicon 专用包。
+
 ## 0.1.0-preview.1 — 2026-09-15
 
 首个 Windows 10/11 x64 便携预览版，只提供 ZIP，不发布安装器。
