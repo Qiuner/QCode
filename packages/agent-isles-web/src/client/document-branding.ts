@@ -1,7 +1,8 @@
+import { resourcePath } from './resource-path.js'
 const PRODUCT_TITLE = 'agent-isles'
 const TITLE_SEPARATOR = ' — '
 
-export const AGENT_ISLES_FAVICON = '/agent-isles/brand/favicon.ico'
+export const AGENT_ISLES_FAVICON = resourcePath('/agent-isles/brand/favicon.ico')
 
 export function agentIslesDocumentTitle(title: string): string {
   const separator = title.lastIndexOf(TITLE_SEPARATOR)
@@ -23,10 +24,10 @@ export function applyDocumentBranding(
   document.head.append(icon)
   const touchIcon = document.createElement('link')
   touchIcon.rel = 'apple-touch-icon'
-  touchIcon.href = '/agent-isles/brand/apple-touch-icon.png'
+  touchIcon.href = resourcePath('/agent-isles/brand/apple-touch-icon.png')
   const manifest = document.createElement('link')
   manifest.rel = 'manifest'
-  manifest.href = '/agent-isles/brand/site.webmanifest'
+  manifest.href = resourcePath('/agent-isles/brand/site.webmanifest')
   document.head.append(touchIcon)
   document.head.append(manifest)
 
