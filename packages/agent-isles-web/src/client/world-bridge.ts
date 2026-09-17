@@ -1,7 +1,7 @@
 export const WORLD_BRIDGE_VERSION = 1 as const
 
 export function worldFrameUrl(hostHref: string): URL {
-  const url = new URL('/world/?embed=1', hostHref)
+  const url = new URL(new URL(hostHref).protocol === 'dsh-app:' ? '/api/agent-isles/world/index.html?embed=1' : '/world/?embed=1', hostHref)
   return url
 }
 

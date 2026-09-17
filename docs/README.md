@@ -17,6 +17,7 @@
 | 文档 | 内容 |
 | --- | --- |
 | [总体架构](architecture.md) | 跨领域通用契约：职责、生命周期、持久化、接口、事件与隔离 |
+| [官方桌面接入施工](official-desktop-plan.md) | 固定官方版本、资源与协议兼容核验、迁移阶段及验收限制 |
 | [教程与自由创作架构](tutorial-architecture.md) | 教学专项契约：学习聚合、状态转换、验收、检查时序与恢复；继承总架构 |
 | [首次 Vibe Coding 教程施工](first-vibe-coding-tutorial-plan.md) | 首课流程、阿澜文件夹引导、需求续接、施工阶段与验收 |
 | [角色定义](roles.md) | Coder、File Keeper、Teacher 和 Coordinator |

@@ -1,3 +1,4 @@
+import { isDesktopRequest } from './desktop-transport.js'
 import type { Context } from '@deepseek-ai/cordis'
 import { defineDomain, domainTable, type KvTable } from '@deepseek-ai/dsh-storage-domain'
 import { WorkspaceId } from '@deepseek-ai/dsh-workspace'
@@ -44,7 +45,10 @@ export function createTutorialHandler(ctx: Context, runs: KvTable<string, Tutori
     const live = ctx.sessions.get(sessionId as SessionId)
     if (live) return live.snapshotEvents()
     const handle = await ctx.sessionPersistence.open(sessionId as SessionId, 'read', { signal: lifetime.signal })
-    try { return await handle.read(0, undefined, { signal: lifetime.signal }) } finally { await handle.close() }
+    try {
+      const result = await handle.read(0, undefined, { signal: lifetime.signal })
+      return ('events' in result ? result.events : result) as readonly SessionEvent[]
+    } finally { await handle.close() }
   }
   const artifact = async (run: TutorialRun) => {
     const workspace = workspaceFor(run)
@@ -191,7 +195,7 @@ export function createTutorialHandler(ctx: Context, runs: KvTable<string, Tutori
     async handle(req: IncomingMessage, res: ServerResponse) {
       const reply = (status: number, body: unknown) => { res.writeHead(status, { 'content-type': 'application/json', 'cache-control': 'no-store' }); res.end(JSON.stringify(body)) }
       if (closing) { reply(503, { error: '教程服务正在关闭。' }); return }
-      if (!['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(req.socket.remoteAddress ?? '') || !/^(127\.0\.0\.1|localhost|\[::1\]):\d+$/.test(req.headers.host ?? '') || req.headers['x-agent-isles-tutorial'] !== '1' || (req.headers.origin && req.headers.origin !== `http://${req.headers.host}`)) { reply(403, { error: '请求来源无效。' }); return }
+      if (!isDesktopRequest(req) && (!['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(req.socket.remoteAddress ?? '') || !/^(127\.0\.0\.1|localhost|\[::1\]):\d+$/.test(req.headers.host ?? '') || req.headers['x-agent-isles-tutorial'] !== '1' || (req.headers.origin && req.headers.origin !== `http://${req.headers.host}`))) { reply(403, { error: '请求来源无效。' }); return }
       try {
         if (req.method === 'GET') { await tail; reply(200, [...runs.entries()].map(([, run]) => run)); return }
         if (req.method !== 'POST') { reply(405, {}); return }

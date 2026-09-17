@@ -1,3 +1,4 @@
+import { isDesktopRequest } from './desktop-transport.js'
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-llm'
 import type {} from '@deepseek-ai/dsh-host-webserver'
@@ -16,7 +17,7 @@ export function modelFailureMessage(failure: Pick<LlmFailure, 'code' | 'status'>
 
 export interface ModelTestServices {
   llm: Pick<Context['llm'], 'stream'>
-  webServer: Pick<Context['webServer'], 'port'>
+  webServer?: Pick<Context['webServer'], 'port'>
   agentDefaultModel: { currentSelection(): Pick<GenerateOptions, 'provider' | 'model' | 'reasoningEffort'> }
 }
 
@@ -31,9 +32,9 @@ export function createModelTestHandler(ctx: ModelTestServices) {
     if (req.method !== 'POST') { reply(405); return }
     // Only the local app origin may spend the local user's model quota.
     const loopback = ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(req.socket.remoteAddress ?? '')
-    const origins = ['127.0.0.1', 'localhost', '[::1]'].map(host => `http://${host}:${ctx.webServer.port}`)
-    if (!loopback || !origins.includes(req.headers.origin ?? '')
-      || req.headers.origin !== `http://${req.headers.host}`
+    const origins = ['127.0.0.1', 'localhost', '[::1]'].map(host => `http://${host}:${ctx.webServer?.port}`)
+    if ((!isDesktopRequest(req) && (!loopback || !origins.includes(req.headers.origin ?? '')
+      || req.headers.origin !== `http://${req.headers.host}`))
       || req.headers['content-type'] !== 'application/json') { reply(403); return }
     if (testing) { reply(409, '已有连接测试正在进行'); return }
     testing = true

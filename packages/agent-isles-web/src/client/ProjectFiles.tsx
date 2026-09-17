@@ -1,3 +1,4 @@
+import { resourcePath } from './resource-path.js'
 import { useEffect, useRef, useState } from 'react'
 import { ArrowLeft, Folder, File, RefreshCw, X } from 'lucide-react'
 import type { AgentIslesTranslate } from './locales.js'
@@ -18,7 +19,7 @@ export function ProjectFiles({ projectId, title, initialView, close, t }: { proj
     const controller = new AbortController()
     setResult(undefined); setError('')
     const params = new URLSearchParams({ project: projectId, path: view === 'files' ? path : '', view })
-    void fetch(`/agent-isles/project-files?${params}`, { headers: { 'x-agent-isles-files': '1' }, signal: controller.signal })
+    void fetch(`${resourcePath('/agent-isles/project-files')}?${params}`, { headers: { 'x-agent-isles-files': '1' }, signal: controller.signal })
       .then(async response => {
         const data = await response.json()
         if (!response.ok) throw new Error(data.error ?? t('file.readFailed'))

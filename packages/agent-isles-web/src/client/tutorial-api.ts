@@ -1,7 +1,8 @@
+import { resourcePath } from './resource-path.js'
 import type { TutorialActions, TutorialRun } from '../tutorial-types.js'
 
 async function request(body?: unknown, signal?: AbortSignal) {
-  const response = await fetch('/agent-isles/tutorial', {
+  const response = await fetch(resourcePath('/agent-isles/tutorial'), {
     method: body ? 'POST' : 'GET', headers: { 'content-type': 'application/json', 'x-agent-isles-tutorial': '1' },
     ...(body ? { body: JSON.stringify(body) } : {}), signal: signal ?? AbortSignal.timeout(15000),
   })
