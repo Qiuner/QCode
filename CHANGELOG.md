@@ -11,10 +11,11 @@
 ### Added
 
 - macOS Intel（x86_64）便携预览：菜单栏启动器、内置 Node/DSH/世界资源、`yarn build:desktop:darwin` 与 `verify:desktop:darwin`。
+- macOS Apple Silicon（arm64）便携预览：复用菜单栏启动器，内置原生 arm64 Node 与依赖，并验证包内架构、服务就绪、单实例及退出清理。
 
 ### Known limitations
 
-- macOS 预览未签名、无安装器与自动更新；暂不提供 Apple Silicon 专用包。
+- macOS 预览未签名、无安装器与自动更新；Intel 与 Apple Silicon 分别提供对应架构的便携包，不提供 Universal 包。
 
 ## 0.1.0-preview.1 — 2026-09-15
 

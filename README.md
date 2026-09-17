@@ -13,7 +13,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/status-early_development-E9A23B?style=flat-square" alt="Status: early development">
   <img src="https://img.shields.io/badge/interface-Web-5D9C87?style=flat-square&logo=googlechrome&logoColor=white" alt="Interface: Web">
-  <img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20Intel-0078D4?style=flat-square" alt="Platform: Windows and macOS Intel">
+  <img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS-0078D4?style=flat-square" alt="Platform: Windows and macOS">
   <img src="https://img.shields.io/badge/Godot-4.7-478CBF?style=flat-square&logo=godotengine&logoColor=white" alt="Godot 4.7">
   <img src="https://img.shields.io/badge/Node.js-22.19%2B-339933?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js 22.19 or newer">
   <img src="https://img.shields.io/badge/DSH-0.1.3--alpha.1-5D9C87?style=flat-square" alt="DeepSeek Harness 0.1.3-alpha.1">
@@ -33,7 +33,7 @@
 <img src="docs/images/agent-isles-world-current.png" alt="The current Mosslight Isle world and its central Q computer" width="100%">
 
 > [!IMPORTANT]
-> agent-isles is in early development. It currently provides a local Web MVP, a Windows x64 launcher/package preview, and a portable macOS Intel preview. See the [desktop launcher guide](apps/desktop/README.en.md) for installation and build details.
+> agent-isles is in early development. It currently provides a local Web MVP and a Windows x64 launcher/package preview; portable macOS Intel / Apple Silicon builds are implemented but not yet published. See the [desktop launcher guide](apps/desktop/README.en.md) for installation and build details.
 
 **Windows portable preview:** [Download v0.1.0-preview.1](https://github.com/Qiuner/agent-isles/releases/tag/v0.1.0-preview.1). Extract the entire ZIP to a short path and run `agent-isles.exe`. You will need to configure a model the first time you use it. User data is stored in `%LOCALAPPDATA%\agent-isles\data`; stop the service from the system tray menu. The preview is unsigned and has no automatic updates. Exit the old version and extract an update to a new directory instead of overwriting files in use.
 
@@ -99,7 +99,7 @@ Q connects to native conversations and execution for real projects. Uncle Moss m
 
 ### Requirements
 
-- Windows or macOS Intel for source development; see the [desktop launcher guide](apps/desktop/README.en.md) for portable previews
+- Windows or macOS Intel / Apple Silicon for source development; see the [desktop launcher guide](apps/desktop/README.en.md) for portable previews
 - Node.js `^22.19.0` or `>=24.0.0`
 - Corepack
 - Git with submodule support
@@ -136,7 +136,7 @@ Godot renders the world and resident state. React provides workspace selection a
 | Directory | Purpose |
 | --- | --- |
 | `apps/web/` | Starts the agent-isles DSH Web profile |
-| `apps/desktop/` | Windows and macOS Intel launchers, packaging, and verification scripts |
+| `apps/desktop/` | Windows and macOS Intel / Apple Silicon launchers, packaging, and verification scripts |
 | `packages/agent-isles-web/` | agent-isles Host/Client Web plugins |
 | `games/mosslight/` | The world built with Blender and Godot |
 | `deepseek-harness/` | Pinned upstream Git submodule |

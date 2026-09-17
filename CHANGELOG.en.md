@@ -11,10 +11,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - Portable macOS Intel (x86_64) preview with a menu-bar launcher, bundled Node/DSH/world assets, `yarn build:desktop:darwin`, and `verify:desktop:darwin`.
+- Portable macOS Apple Silicon (arm64) preview reusing the menu-bar launcher, bundling native arm64 Node and dependencies, and verifying packaged architecture, service readiness, single-instance behavior, and shutdown cleanup.
 
 ### Known limitations
 
-- The macOS preview is unsigned and provides neither an installer nor automatic updates. There is no dedicated Apple Silicon build yet.
+- The macOS previews are unsigned and provide neither an installer nor automatic updates. Intel and Apple Silicon use separate architecture-specific archives; there is no Universal build.
 
 ## 0.1.0-preview.1 - 2026-09-15
 
