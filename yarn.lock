@@ -156,7 +156,7 @@ __metadata:
     "@deepseek-ai/dsh-subagent": "npm:0.1.3-alpha.1"
     "@deepseek-ai/dsh-subagent-in-process-driver": "npm:0.1.3-alpha.1"
     "@deepseek-ai/dsh-subprocess": "npm:0.1.3-alpha.1"
-    "@deepseek-ai/dsh-subprocess-local": "npm:0.1.3-alpha.1"
+    "@deepseek-ai/dsh-subprocess-local": "npm:0.1.3-alpha.2"
     "@deepseek-ai/dsh-system-prompt": "npm:0.1.3-alpha.1"
     "@deepseek-ai/dsh-terminal": "npm:0.1.3-alpha.1"
     "@deepseek-ai/dsh-terminal-bash": "npm:0.1.3-alpha.1"
@@ -3237,6 +3237,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@deepseek-ai/dsh-subprocess-local@npm:0.1.3-alpha.2":
+  version: 0.1.3-alpha.2
+  resolution: "@deepseek-ai/dsh-subprocess-local@npm:0.1.3-alpha.2"
+  dependencies:
+    "@deepseek-ai/dsh-win32-process": "npm:^0.1.3-alpha.2"
+    koffi: "npm:^3.1.0"
+    node-pty: "npm:1.2.0-beta.15"
+  peerDependencies:
+    "@deepseek-ai/cordis": ^4.0.2
+    "@deepseek-ai/dsh-subprocess": ^0.1.3-alpha.2
+    "@deepseek-ai/dsh-timeout": ^0.1.3-alpha.2
+  checksum: 10c0/96f8fe98fb71af75b1379957f50f7b94f481093f840da29d6dc05c86099190c0e5adbce3fd8573398a1299af59a39bc38f565384ddc2c36546c0b2ee95210451
+  languageName: node
+  linkType: hard
+
 "@deepseek-ai/dsh-subprocess@file:vendor/dsh-runtime/0.1.3-alpha.1/deepseek-ai-dsh-subprocess-0.1.3-alpha.1.tgz::locator=agent-isles%40workspace%3A.":
   version: 0.1.3-alpha.1
   resolution: "@deepseek-ai/dsh-subprocess@file:vendor/dsh-runtime/0.1.3-alpha.1/deepseek-ai-dsh-subprocess-0.1.3-alpha.1.tgz#vendor/dsh-runtime/0.1.3-alpha.1/deepseek-ai-dsh-subprocess-0.1.3-alpha.1.tgz::hash=f629da&locator=agent-isles%40workspace%3A."
@@ -3984,6 +3999,17 @@ __metadata:
   peerDependencies:
     "@deepseek-ai/cordis": ^4.0.2
   checksum: 10c0/b2ed029fbaa1e243e84126499d940d6696a1d9ed4f2f25abe85258a97162ca5b75a260818a751a9b34156085d7c48f6d0d137faeb286143aad0fab20130d485e
+  languageName: node
+  linkType: hard
+
+"@deepseek-ai/dsh-win32-process@npm:^0.1.3-alpha.2":
+  version: 0.1.3-alpha.2
+  resolution: "@deepseek-ai/dsh-win32-process@npm:0.1.3-alpha.2"
+  dependencies:
+    koffi: "npm:^3.1.0"
+  peerDependencies:
+    "@deepseek-ai/cordis": ^4.0.2
+  checksum: 10c0/59537aa2142eb08e9838531f91e7df016594b57f887dc6c5262479936eeef298443f46cf185ab86079c89d19613b439c97ae1a33b5b24a824be117d868f0dbd8
   languageName: node
   linkType: hard
 
