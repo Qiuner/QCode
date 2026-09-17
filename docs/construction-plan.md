@@ -4,6 +4,8 @@
 
 ## 产品目标
 
+仓库维护入口（2026-09-17，已实现待验收）：GitHub 私密漏洞报告已启用并经 API 核验，`dependencies` 标签已创建；本地补齐中英文安全与帮助说明、README 导航及 Issue 联系入口，Bug 表单补充 macOS / 架构信息。旧 `plan.md` 收拢为本索引入口；Dependabot 配置排除 `@deepseek-ai/*` 单包升级，保留成套固定版本流程。YAML 解析、文档同步及 diff 检查通过；文件改动尚未合并，新的 Dependabot 调度与 GitHub 表单展示待验收。后续工作见 [发行包自动验证 #18](https://github.com/Qiuner/agent-isles/issues/18) 与 [官方桌面真实闭环 #19](https://github.com/Qiuner/agent-isles/issues/19)；首课继续由 [#13](https://github.com/Qiuner/agent-isles/issues/13) 跟踪。
+
 用户交流群入口（2026-09-17，已实现待验收）：中英文 README 增加 QQ 群号与二维码，介绍网站页脚增加交流群弹窗，支持复制群号、手动选择及 GitHub Issues 分流。二维码共用 `docs/images/qq-community.png`，保留原码并裁去外围留白。脚本语法、文档同步检查及本地浏览器弹窗打开、复制成功提示与画面检查通过；QQ 实际扫码与线上部署待验收。本轮范围为 README 和网站，应用内入口尚未实施。
 
 官方桌面原生聊天显示（2026-09-17，已实现待验收）：兼容 `conversation` / `main.conversation` 新旧 slot；带项目 Q 面板的原生输入框及控件显示、关闭重开、resize 与世界保持实测通过。真实消息流和审批仍未验收，详见 [官方桌面接入施工](official-desktop-plan.md)。

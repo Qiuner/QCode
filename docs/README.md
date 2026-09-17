@@ -27,7 +27,6 @@
 | [岛屿与插件开发指南](../packages/agent-isles-web/docs/plugin-development.md) | 新增岛屿、Host / Client 插件的开发路径与最小交付物 |
 | [文档维护指南](documentation-guide.md) | 文档分类、状态标记、证据位置与更新规则 |
 | [网页优先 MVP](agent-isles-mvp-plan.md) | 当前最小业务闭环 |
-| [实施计划](plan.md) | 当前进度与后续阶段 |
 | [施工记录](construction-plan.md) | 工作闭环的实际交付、验证与后续施工顺序 |
 | [居民工作闭环](resident-work-loop.md) | 项目恢复、居民任务入口与存储边界 |
 | [居民工作闭环契约](resident-work-loop-contract.md) | 居民任务生命周期、入口、结果与状态约束 |
