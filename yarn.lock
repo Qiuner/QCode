@@ -11,7 +11,7 @@ __metadata:
   dependencies:
     "@deepseek-ai/cordis": "npm:^4.0.2"
     "@deepseek-ai/dsh-agent-default-model": "npm:0.1.3-alpha.1"
-    "@deepseek-ai/dsh-api-remotes": "npm:0.1.3-alpha.1"
+    "@deepseek-ai/dsh-api-remotes": "npm:0.1.3-alpha.2"
     "@deepseek-ai/dsh-api-session-controller": "npm:0.1.3-alpha.1"
     "@deepseek-ai/dsh-api-workspace-controller": "npm:0.1.3-alpha.1"
     "@deepseek-ai/dsh-client-locale": "npm:0.1.3-alpha.1"
@@ -57,7 +57,7 @@ __metadata:
     "@deepseek-ai/dsh-agent-presets": "npm:0.1.3-alpha.1"
     "@deepseek-ai/dsh-anonymous-user-id": "npm:0.1.3-alpha.1"
     "@deepseek-ai/dsh-api-gateway": "npm:0.1.3-alpha.1"
-    "@deepseek-ai/dsh-api-remotes": "npm:0.1.3-alpha.1"
+    "@deepseek-ai/dsh-api-remotes": "npm:0.1.3-alpha.2"
     "@deepseek-ai/dsh-api-session-controller": "npm:0.1.3-alpha.1"
     "@deepseek-ai/dsh-api-settings-controller": "npm:0.1.3-alpha.1"
     "@deepseek-ai/dsh-api-workspace-controller": "npm:0.1.3-alpha.1"
@@ -855,6 +855,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@deepseek-ai/dsh-api-remotes@npm:0.1.3-alpha.2":
+  version: 0.1.3-alpha.2
+  resolution: "@deepseek-ai/dsh-api-remotes@npm:0.1.3-alpha.2"
+  dependencies:
+    "@deepseek-ai/dsh-deque": "npm:^0.1.3-alpha.2"
+    "@deepseek-ai/dsh-session": "npm:^0.1.3-alpha.2"
+    "@deepseek-ai/dsh-util-values": "npm:^0.1.3-alpha.2"
+  peerDependencies:
+    "@deepseek-ai/cordis": ^4.0.2
+    "@deepseek-ai/dsh-scope": ^0.1.3-alpha.2
+  checksum: 10c0/b9edff9b58ca5852a1904711106f6c2ddf368bdbf71394e69294c6b33df48a71aaa8b814240e6b0f146f91d5ffa1af4435a0cc2cecf9f2194d2679e733144a35
+  languageName: node
+  linkType: hard
+
 "@deepseek-ai/dsh-api-session-controller@file:vendor/dsh-runtime/0.1.3-alpha.1/deepseek-ai-dsh-api-session-controller-0.1.3-alpha.1.tgz::locator=agent-isles%40workspace%3A.":
   version: 0.1.3-alpha.1
   resolution: "@deepseek-ai/dsh-api-session-controller@file:vendor/dsh-runtime/0.1.3-alpha.1/deepseek-ai-dsh-api-session-controller-0.1.3-alpha.1.tgz#vendor/dsh-runtime/0.1.3-alpha.1/deepseek-ai-dsh-api-session-controller-0.1.3-alpha.1.tgz::hash=549712&locator=agent-isles%40workspace%3A."
@@ -1135,6 +1149,15 @@ __metadata:
   peerDependencies:
     "@deepseek-ai/cordis": ^4.0.2
   checksum: 10c0/4c057f67de29c8a366841dc6a5ba2fa12be0fc58c4b7b7f8df6aad469ab7d74e97785cc6f82615d3d90db76283146ac103c7e12ca713cbcb2977738928e104c4
+  languageName: node
+  linkType: hard
+
+"@deepseek-ai/dsh-brand@npm:^0.1.3-alpha.2":
+  version: 0.1.3-alpha.2
+  resolution: "@deepseek-ai/dsh-brand@npm:0.1.3-alpha.2"
+  peerDependencies:
+    "@deepseek-ai/cordis": ^4.0.2
+  checksum: 10c0/79fa9fea2ebb7dec261de108eae14d962901f9c0a1299693566fea36d250d5cfd80c87cd0bb812c599032885c271d938b48986a1ae2c7d0eb1c8cfd1519b835a
   languageName: node
   linkType: hard
 
@@ -1839,6 +1862,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@deepseek-ai/dsh-deque@npm:^0.1.3-alpha.2":
+  version: 0.1.3-alpha.2
+  resolution: "@deepseek-ai/dsh-deque@npm:0.1.3-alpha.2"
+  peerDependencies:
+    "@deepseek-ai/cordis": ^4.0.2
+  checksum: 10c0/918671a179fd31c344a549c5976fb673bd8adc9fd98eed6d46773cfb3994fc60beefd7bb89fc97ea92c42ffa92fdcd6457913bbcd8fb45197f91f305fe51f8df
+  languageName: node
+  linkType: hard
+
 "@deepseek-ai/dsh-file-reference-local@file:vendor/dsh-runtime/0.1.3-alpha.1/deepseek-ai-dsh-file-reference-local-0.1.3-alpha.1.tgz::locator=agent-isles%40workspace%3A.":
   version: 0.1.3-alpha.1
   resolution: "@deepseek-ai/dsh-file-reference-local@file:vendor/dsh-runtime/0.1.3-alpha.1/deepseek-ai-dsh-file-reference-local-0.1.3-alpha.1.tgz#vendor/dsh-runtime/0.1.3-alpha.1/deepseek-ai-dsh-file-reference-local-0.1.3-alpha.1.tgz::hash=7949d0&locator=agent-isles%40workspace%3A."
@@ -2256,6 +2288,23 @@ __metadata:
   peerDependencies:
     "@deepseek-ai/cordis": ^4.0.2
   checksum: 10c0/76fba7273456b59c13225594b3c9b6a210301aee0f1fe75f341b3ee0d8237dfb6b49cff2b8266c60e83e3607d9a93a5df31fb06a26ca8e17db35dfa5833ea198
+  languageName: node
+  linkType: hard
+
+"@deepseek-ai/dsh-llm@npm:^0.1.3-alpha.2":
+  version: 0.1.3-alpha.2
+  resolution: "@deepseek-ai/dsh-llm@npm:0.1.3-alpha.2"
+  dependencies:
+    "@deepseek-ai/dsh-brand": "npm:^0.1.3-alpha.2"
+    "@deepseek-ai/dsh-timeout": "npm:^0.1.3-alpha.2"
+    "@deepseek-ai/dsh-typert-protocol": "npm:^0.1.3-alpha.2"
+    "@deepseek-ai/dsh-util-crypto": "npm:^0.1.3-alpha.2"
+    "@deepseek-ai/dsh-util-values": "npm:^0.1.3-alpha.2"
+    "@deepseek-ai/schemastery": "npm:^3.18.2"
+    zod: "npm:^4.4.3"
+  peerDependencies:
+    "@deepseek-ai/cordis": ^4.0.2
+  checksum: 10c0/eb16f021e39ba2376152055018722937ea61b198579d2ea3b37cde8ec6c55dc9b299bbb564f7692e984c99a46c086330f32919664f2c63bb68ab692e7f1a3941
   languageName: node
   linkType: hard
 
@@ -2954,6 +3003,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@deepseek-ai/dsh-session@npm:^0.1.3-alpha.2":
+  version: 0.1.3-alpha.2
+  resolution: "@deepseek-ai/dsh-session@npm:0.1.3-alpha.2"
+  dependencies:
+    "@deepseek-ai/dsh-brand": "npm:^0.1.3-alpha.2"
+    "@deepseek-ai/dsh-llm": "npm:^0.1.3-alpha.2"
+    "@deepseek-ai/dsh-util-values": "npm:^0.1.3-alpha.2"
+  peerDependencies:
+    "@deepseek-ai/cordis": ^4.0.2
+    "@deepseek-ai/dsh-scope": ^0.1.3-alpha.2
+  checksum: 10c0/c62264214c1e01af65c8ca89614826dd0723ad9c5990c2f9b91a676ce8ca06b5d25e88c3a02f83917538b9898a11e8eb41b2a2c345fd7666ae2fddaafb81187a
+  languageName: node
+  linkType: hard
+
 "@deepseek-ai/dsh-settings-file@file:vendor/dsh-runtime/0.1.3-alpha.1/deepseek-ai-dsh-settings-file-0.1.3-alpha.1.tgz::locator=agent-isles%40workspace%3A.":
   version: 0.1.3-alpha.1
   resolution: "@deepseek-ai/dsh-settings-file@file:vendor/dsh-runtime/0.1.3-alpha.1/deepseek-ai-dsh-settings-file-0.1.3-alpha.1.tgz#vendor/dsh-runtime/0.1.3-alpha.1/deepseek-ai-dsh-settings-file-0.1.3-alpha.1.tgz::hash=053da9&locator=agent-isles%40workspace%3A."
@@ -3316,6 +3379,15 @@ __metadata:
   peerDependencies:
     "@deepseek-ai/cordis": ^4.0.2
   checksum: 10c0/febd9c89be693926d3601d05260be20d3393bcb4e350fcb3bedbaa59da24b961414b63911f649c87a66c753cef7b365e7867159418af3315806f2c8aaaf3de7e
+  languageName: node
+  linkType: hard
+
+"@deepseek-ai/dsh-timeout@npm:^0.1.3-alpha.2":
+  version: 0.1.3-alpha.2
+  resolution: "@deepseek-ai/dsh-timeout@npm:0.1.3-alpha.2"
+  peerDependencies:
+    "@deepseek-ai/cordis": ^4.0.2
+  checksum: 10c0/1807a4c96998d89d32b595ca4e91cc59500d33050e7dc575c5a93bd0e46d1ccfbc9ffea781001f0b788adb1d9439e17966a978eabf56a49604cc53877fe8aef2
   languageName: node
   linkType: hard
 
@@ -3723,6 +3795,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@deepseek-ai/dsh-typert-protocol@npm:^0.1.3-alpha.2":
+  version: 0.1.3-alpha.2
+  resolution: "@deepseek-ai/dsh-typert-protocol@npm:0.1.3-alpha.2"
+  peerDependencies:
+    "@deepseek-ai/cordis": ^4.0.2
+  checksum: 10c0/f7e4149fd255c7ef592be7ed5560ed79b0197157f648737ed5cd8ae20a5ff04ed808be4f1cdb83d8f5c4a6be509432f9db35dca86924dd14aea15564d9b347ee
+  languageName: node
+  linkType: hard
+
 "@deepseek-ai/dsh-typert-registry@file:vendor/dsh-runtime/0.1.3-alpha.1/deepseek-ai-dsh-typert-registry-0.1.3-alpha.1.tgz::locator=agent-isles%40workspace%3A.":
   version: 0.1.3-alpha.1
   resolution: "@deepseek-ai/dsh-typert-registry@file:vendor/dsh-runtime/0.1.3-alpha.1/deepseek-ai-dsh-typert-registry-0.1.3-alpha.1.tgz#vendor/dsh-runtime/0.1.3-alpha.1/deepseek-ai-dsh-typert-registry-0.1.3-alpha.1.tgz::hash=f66256&locator=agent-isles%40workspace%3A."
@@ -3773,6 +3854,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@deepseek-ai/dsh-util-crypto@npm:^0.1.3-alpha.2":
+  version: 0.1.3-alpha.2
+  resolution: "@deepseek-ai/dsh-util-crypto@npm:0.1.3-alpha.2"
+  peerDependencies:
+    "@deepseek-ai/cordis": ^4.0.2
+  checksum: 10c0/c1446c3fefdc8190accdfccf15cb733cc1621eb7ce21e465bbb80f5fbee1bf2431c078182525f05a5b3119c2569da287c7ac8c2e80380da9c1948368611c01a0
+  languageName: node
+  linkType: hard
+
 "@deepseek-ai/dsh-util-time@file:vendor/dsh-runtime/0.1.3-alpha.1/deepseek-ai-dsh-util-time-0.1.3-alpha.1.tgz::locator=agent-isles%40workspace%3A.":
   version: 0.1.3-alpha.1
   resolution: "@deepseek-ai/dsh-util-time@file:vendor/dsh-runtime/0.1.3-alpha.1/deepseek-ai-dsh-util-time-0.1.3-alpha.1.tgz#vendor/dsh-runtime/0.1.3-alpha.1/deepseek-ai-dsh-util-time-0.1.3-alpha.1.tgz::hash=1cebdd&locator=agent-isles%40workspace%3A."
@@ -3788,6 +3878,15 @@ __metadata:
   peerDependencies:
     "@deepseek-ai/cordis": ^4.0.2
   checksum: 10c0/7460ba09a9684e0785f071dd8aae65b533c648710144eb01b845d7bc44e970a7b81243d1af5a3f3183eb5e93676096cdcbb4760fc9407f2b7218069012929c35
+  languageName: node
+  linkType: hard
+
+"@deepseek-ai/dsh-util-values@npm:^0.1.3-alpha.2":
+  version: 0.1.3-alpha.2
+  resolution: "@deepseek-ai/dsh-util-values@npm:0.1.3-alpha.2"
+  peerDependencies:
+    "@deepseek-ai/cordis": ^4.0.2
+  checksum: 10c0/fbcf6fa5ed1bf303ad1ba7a63cfb94922006de78c69f39c2c03019078d807f48f16d97cd3a2eabb7878f1ffc1237561a7e98ac15dcade2f0fa1b70486d366831
   languageName: node
   linkType: hard
 
