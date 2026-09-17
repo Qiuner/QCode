@@ -44,7 +44,10 @@ export function createTutorialHandler(ctx: Context, runs: KvTable<string, Tutori
     const live = ctx.sessions.get(sessionId as SessionId)
     if (live) return live.snapshotEvents()
     const handle = await ctx.sessionPersistence.open(sessionId as SessionId, 'read', { signal: lifetime.signal })
-    try { return await handle.read(0, undefined, { signal: lifetime.signal }) } finally { await handle.close() }
+    try {
+      const result = await handle.read(0, undefined, { signal: lifetime.signal })
+      return ('events' in result ? result.events : result) as readonly SessionEvent[]
+    } finally { await handle.close() }
   }
   const artifact = async (run: TutorialRun) => {
     const workspace = workspaceFor(run)
