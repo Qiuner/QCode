@@ -120,13 +120,15 @@ corepack yarn dev:web --no-open
 
 ## 交流与反馈
 
-欢迎加入 agent-isles 用户交流群，分享作品、交流使用心得、获取使用帮助。
+<p align="center">欢迎加入 agent-isles 用户交流群，分享作品、交流使用心得、获取使用帮助。</p>
 
-**QQ 群：`543293474`** — 使用 QQ 扫码，或复制群号搜索加入。
+<p align="center"><strong>QQ 群：<code>543293474</code></strong> — 使用 QQ 扫码，或复制群号搜索加入。</p>
 
-<img src="docs/images/qq-community.png" alt="agent-isles 用户交流群二维码，QQ群号 543293474" width="240" height="240">
+<p align="center">
+  <img src="docs/images/qq-community.png" alt="agent-isles 用户交流群二维码，QQ群号 543293474" width="240" height="240">
+</p>
 
-Bug 和功能建议请提交到 [GitHub Issues](https://github.com/Qiuner/agent-isles/issues)，方便跟踪处理进展。
+<p align="center">Bug 和功能建议请提交到 <a href="https://github.com/Qiuner/agent-isles/issues">GitHub Issues</a>，方便跟踪处理进展。</p>
 
 ## 工作原理
 
