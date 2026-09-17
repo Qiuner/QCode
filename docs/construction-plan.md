@@ -4,6 +4,8 @@
 
 ## 产品目标
 
+官方桌面接入（2026-09-17，实施中）：升级目标固定为官方 `dsh-v0.1.6-alpha.1` / `0a15e36e7f82b6ed45af6fa9759f29b40dcd965d`，记录于 `upstream.json.desktopTarget`。`corepack yarn upstream:desktop:prepare` 准备并校验隔离源码，不改上游源码；当前 activeChannel 与 vendored runtime 仍为 0.1.3-alpha.1，尚未切换。先验证官方资源通道、Godot iframe 与桥接，再迁移领域接口和正式依赖；桌面运行及真实任务尚未验收。
+
 高清加载封面（2026-09-13，已实现待验收）：从三岛场景重新渲染 3840×1564 源图，8× MSAA，生成 1920/2560/3840 三档高质量 WebP，页面按屏幕宽度与像素密度选择，更新旧图缓存 URL。已检查高清成图的细节与完整构图；Godot 渲染、编码和世界导出通过。3840 档约 469 KiB；浏览器实际选图与安装包待验收，未重新打包。再生成方法见 [世界说明](../games/mosslight/README.md)。
 
 隐藏开发者面板（2026-09-13，已实现待验收）：右下角五连击打开，可直接触发 Q 剧情对白。Node 交互逻辑、Godot 暂停测试及世界导出通过，浏览器实测待验收。详见 [居民对话系统](dialogue-system.md)。

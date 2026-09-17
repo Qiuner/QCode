@@ -1,6 +1,11 @@
 {
   "repository": "https://github.com/deepseek-ai/deepseek-harness.git",
   "activeChannel": "stable",
+  "desktopTarget": {
+    "tag": "dsh-v0.1.6-alpha.1",
+    "commit": "0a15e36e7f82b6ed45af6fa9759f29b40dcd965d",
+    "sourceVersion": "0.1.6-alpha.1"
+  },
   "channels": {
     "stable": {
       "commit": "d347e703908d0406b7a7ef80e3a0e594d86b2215",
