@@ -121,13 +121,15 @@ Development data is stored in `.agent-isles-home/` inside the repository by defa
 
 ## Community and feedback
 
-Share your creations, exchange tips, and get help in the agent-isles QQ community (primarily Chinese).
+<p align="center">Share your creations, exchange tips, and get help in the agent-isles QQ community (primarily Chinese).</p>
 
-**QQ group: `543293474`** — scan with QQ or copy the number to search for the group.
+<p align="center"><strong>QQ group: <code>543293474</code></strong> — scan with QQ or copy the number to search for the group.</p>
 
-<img src="docs/images/qq-community.png" alt="QR code for the agent-isles QQ community, group 543293474" width="240" height="240">
+<p align="center">
+  <img src="docs/images/qq-community.png" alt="QR code for the agent-isles QQ community, group 543293474" width="240" height="240">
+</p>
 
-For bugs and feature requests, use [GitHub Issues](https://github.com/Qiuner/agent-isles/issues) so progress can be tracked.
+<p align="center">For bugs and feature requests, use <a href="https://github.com/Qiuner/agent-isles/issues">GitHub Issues</a> so progress can be tracked.</p>
 
 ## How it works
 
