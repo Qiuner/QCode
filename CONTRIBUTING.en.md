@@ -66,7 +66,7 @@ If `corepack` is missing, follow the official Node.js/Corepack setup instruction
 - Use the Bug Report form for reproducible defects, including environment details, steps, and sanitized logs.
 - Discuss new capabilities or material workflow changes in a Feature Request before implementation.
 - Small documentation, spelling, and test fixes may go directly to a pull request.
-- Do not report security issues publicly. Check the repository Security page for its private reporting channel.
+- Do not report security issues publicly. Use the private reporting channel on the repository Security page and follow the Security Policy.
 
 See [Support](SUPPORT.en.md), the [Security Policy](SECURITY.en.md), and the [Code of Conduct](CODE_OF_CONDUCT.en.md) for the respective policies.
 

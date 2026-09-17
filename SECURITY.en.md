@@ -15,7 +15,7 @@ The project is in early development and has not published a stable release.
 
 ## Privately report a vulnerability
 
-Open the repository's **Security** page, choose **Report a vulnerability**, and submit through GitHub Private Vulnerability Reporting. The maintainer must enable this feature in repository settings before the repository is made public.
+GitHub Private Vulnerability Reporting is enabled for this repository. Use the [private vulnerability report form](https://github.com/Qiuner/agent-isles/security/advisories/new), or open the **Security** page and choose **Report a vulnerability**.
 
 Include as much of the following as possible:
 

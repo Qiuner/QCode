@@ -66,7 +66,7 @@ corepack yarn dev:web --no-open
 - 可复现的错误请使用 Bug 报告，并附环境、步骤和脱敏日志。
 - 新能力或明显改变用户流程的方案请先使用功能建议讨论。
 - 小型文档、拼写和测试修复可以直接提交 PR。
-- 安全问题不要公开到 Issue；请先查看仓库 Security 页面是否提供私密报告渠道。维护者在正式公开仓库前应启用该渠道并发布安全策略。
+- 安全问题不要公开到 Issue；请使用仓库 Security 页面的私密报告渠道，具体流程见安全策略。
 
 使用支持、安全报告和社区行为要求分别见 [SUPPORT.md](SUPPORT.md)、[SECURITY.md](SECURITY.md) 与 [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)。
 
