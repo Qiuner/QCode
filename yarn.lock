@@ -107,7 +107,7 @@ __metadata:
     "@deepseek-ai/dsh-goal": "npm:0.1.3-alpha.1"
     "@deepseek-ai/dsh-goal-round-driver": "npm:0.1.3-alpha.1"
     "@deepseek-ai/dsh-home-paths": "npm:0.1.3-alpha.1"
-    "@deepseek-ai/dsh-hook-protocol": "npm:0.1.3-alpha.1"
+    "@deepseek-ai/dsh-hook-protocol": "npm:0.1.3-alpha.2"
     "@deepseek-ai/dsh-host-directory-picker": "npm:0.1.3-alpha.1"
     "@deepseek-ai/dsh-host-directory-picker-browse": "npm:0.1.3-alpha.1"
     "@deepseek-ai/dsh-host-directory-picker-native": "npm:0.1.3-alpha.1"
@@ -1977,15 +1977,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@deepseek-ai/dsh-hook-protocol@file:vendor/dsh-runtime/0.1.3-alpha.1/deepseek-ai-dsh-hook-protocol-0.1.3-alpha.1.tgz::locator=agent-isles%40workspace%3A.":
-  version: 0.1.3-alpha.1
-  resolution: "@deepseek-ai/dsh-hook-protocol@file:vendor/dsh-runtime/0.1.3-alpha.1/deepseek-ai-dsh-hook-protocol-0.1.3-alpha.1.tgz#vendor/dsh-runtime/0.1.3-alpha.1/deepseek-ai-dsh-hook-protocol-0.1.3-alpha.1.tgz::hash=92a71b&locator=agent-isles%40workspace%3A."
+"@deepseek-ai/dsh-hook-protocol@npm:0.1.3-alpha.2":
+  version: 0.1.3-alpha.2
+  resolution: "@deepseek-ai/dsh-hook-protocol@npm:0.1.3-alpha.2"
   peerDependencies:
     "@deepseek-ai/cordis": ^4.0.2
-    "@deepseek-ai/dsh-invariants": ^0.1.3-alpha.1
-    "@deepseek-ai/dsh-session": ^0.1.3-alpha.1
-    "@deepseek-ai/dsh-shell": ^0.1.3-alpha.1
-  checksum: 10c0/75d3b058d7803abea7c794c7de11c370bb0281f3cb92f74ffe2eba01f75390725d548113da638015a8f0e9fe2a2e892d21e52adae882a96ebb7b9d66f184a758
+    "@deepseek-ai/dsh-invariants": ^0.1.3-alpha.2
+    "@deepseek-ai/dsh-session": ^0.1.3-alpha.2
+    "@deepseek-ai/dsh-shell": ^0.1.3-alpha.2
+  checksum: 10c0/7118a36f4d2edc6709f7fb8bd9806c623ac25a875aa6949a15f293a80b2780f56df54416d23f08a664400082bf5cd268533ea6293d401a829b3342da7b18269b
   languageName: node
   linkType: hard
 
