@@ -21,6 +21,9 @@
 </p>
 
 <p align="center">
+  <a href="https://qiuner.github.io/agent-isles/">官网</a> ·
+  <a href="https://github.com/Qiuner/agent-isles/releases">下载</a> ·
+  <a href="#交流与反馈">交流群</a> ·
   <a href="#agent-isles-是什么">产品介绍</a> ·
   <a href="#产品画面">产品画面</a> ·
   <a href="#快速开始">快速开始</a> ·

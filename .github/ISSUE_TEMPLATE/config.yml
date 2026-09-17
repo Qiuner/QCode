@@ -1,1 +1,11 @@
 blank_issues_enabled: false
+contact_links:
+  - name: 使用帮助 / Usage support
+    url: https://github.com/Qiuner/agent-isles/blob/master/SUPPORT.md
+    about: 安装、运行与常见问题入口 / Installation and usage help
+  - name: 用户交流群 / QQ community
+    url: https://github.com/Qiuner/agent-isles/blob/master/README.zh-CN.md#交流与反馈
+    about: 分享作品和交流心得，QQ群 543293474 / Share creations and tips (primarily Chinese)
+  - name: 私密报告漏洞 / Report a vulnerability privately
+    url: https://github.com/Qiuner/agent-isles/security/advisories/new
+    about: 安全问题请勿公开提交 / Do not disclose security issues publicly

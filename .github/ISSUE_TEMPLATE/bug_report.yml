@@ -27,7 +27,7 @@ body:
         - Web 小镇与居民面板
         - 教程流程
         - Godot 世界
-        - Windows 启动器或安装包
+        - Windows / macOS 启动器或发行包
         - DeepSeek Harness 集成
         - 构建或开发工具
         - 文档
@@ -67,12 +67,12 @@ body:
     id: environment
     attributes:
       label: 环境信息
-      description: 请填写安装方式、版本或 commit、Windows 版本、Node.js 版本和浏览器。
+      description: 请填写安装方式、版本或 commit、操作系统与芯片架构、浏览器；源码开发请补充 Node.js 版本。
       placeholder: |
-        安装方式：源码 / Windows 安装包
+        安装方式：源码 / Windows 安装包 / Windows 便携版 / macOS 便携版
         agent-isles 版本或 commit：
-        Windows：
-        Node.js：
+        操作系统版本与芯片架构：
+        Node.js（源码开发）：
         浏览器：
     validations:
       required: true

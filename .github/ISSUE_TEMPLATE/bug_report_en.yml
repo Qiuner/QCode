@@ -27,7 +27,7 @@ body:
         - Web island and resident panels
         - Tutorial flow
         - Godot world
-        - Windows launcher or package
+        - Windows / macOS launcher or package
         - DeepSeek Harness integration
         - Build or development tooling
         - Documentation
@@ -67,12 +67,12 @@ body:
     id: environment
     attributes:
       label: Environment
-      description: Include the installation method, version or commit, Windows version, Node.js version, and browser.
+      description: Include the installation method, version or commit, operating system, CPU architecture, and browser; include Node.js when developing from source.
       placeholder: |
-        Installation: source / Windows package
+        Installation: source / Windows installer / Windows portable / macOS portable
         agent-isles version or commit:
-        Windows:
-        Node.js:
+        Operating system version and CPU architecture:
+        Node.js (source development):
         Browser:
     validations:
       required: true

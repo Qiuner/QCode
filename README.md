@@ -21,6 +21,9 @@
 </p>
 
 <p align="center">
+  <a href="https://qiuner.github.io/agent-isles/">Website</a> ·
+  <a href="https://github.com/Qiuner/agent-isles/releases">Downloads</a> ·
+  <a href="#community-and-feedback">Community</a> ·
   <a href="#what-is-agent-isles">Introduction</a> ·
   <a href="#screenshots">Screenshots</a> ·
   <a href="#quick-start">Quick start</a> ·
