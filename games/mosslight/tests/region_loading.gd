@@ -8,6 +8,7 @@ func _initialize() -> void:
 
 
 func run() -> void:
+	TranslationServer.set_locale("zh")
 	var game: Node3D = load("res://scenes/island.tscn").instantiate()
 	root.add_child(game)
 	await physics_frame

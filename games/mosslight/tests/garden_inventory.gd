@@ -21,6 +21,7 @@ func move_to(at: Vector3) -> void:
 	await tick(5)
 
 func run() -> void:
+	TranslationServer.set_locale("zh")
 	game = load("res://scenes/island.tscn").instantiate()
 	root.add_child(game)
 	await tick(15)

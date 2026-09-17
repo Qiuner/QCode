@@ -42,6 +42,7 @@ func action(name: String) -> void:
 
 
 func run() -> void:
+	TranslationServer.set_locale("zh")
 	game = load("res://scenes/island.tscn").instantiate()
 	root.add_child(game)
 	await tick(10)
