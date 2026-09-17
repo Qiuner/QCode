@@ -1,3 +1,4 @@
+import { isDesktopRequest } from './desktop-transport.js'
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import { dirname } from 'node:path'
 import type { IncomingMessage, ServerResponse } from 'node:http'
@@ -27,10 +28,10 @@ export function createResidentStateHandler(file: string) {
       res.end(JSON.stringify(body))
     }
     // World assets are public; recovery data is restricted to same-origin app requests.
-    if (!['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(req.socket.remoteAddress ?? '')
+    if (!isDesktopRequest(req) && (!['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(req.socket.remoteAddress ?? '')
       || !/^(127\.0\.0\.1|localhost|\[::1\]):\d+$/.test(req.headers.host ?? '')
       || req.headers['x-agent-isles-state'] !== '1'
-      || (req.headers.origin && req.headers.origin !== `http://${req.headers.host}`)) {
+      || (req.headers.origin && req.headers.origin !== `http://${req.headers.host}`))) {
       reply(403, { error: '请求来源无效' }); return
     }
     try {

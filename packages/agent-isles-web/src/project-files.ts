@@ -1,3 +1,4 @@
+import { isDesktopRequest } from './desktop-transport.js'
 import type { Context } from '@deepseek-ai/cordis'
 import { WorkspaceId } from '@deepseek-ai/dsh-workspace'
 import type {} from '@deepseek-ai/dsh-host-webserver'
@@ -16,10 +17,10 @@ export function createProjectFilesHandler(ctx: Pick<Context, 'workspaceRegistry'
       res.writeHead(status, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' })
       res.end(JSON.stringify(body))
     }
-    if (!['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(req.socket.remoteAddress ?? '')
+    if (!isDesktopRequest(req) && (!['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(req.socket.remoteAddress ?? '')
       || !/^(127\.0\.0\.1|localhost|\[::1\]):\d+$/.test(req.headers.host ?? '')
       || req.headers['x-agent-isles-files'] !== '1'
-      || (req.headers.origin && req.headers.origin !== `http://${req.headers.host}`)) {
+      || (req.headers.origin && req.headers.origin !== `http://${req.headers.host}`))) {
       reply(403, { error: '请求来源无效' }); return
     }
     if (req.method !== 'GET') { reply(405, { error: '仅支持查看' }); return }
