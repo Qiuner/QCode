@@ -4,7 +4,11 @@
 
 ## 产品目标
 
-官方桌面接入（2026-09-17，实施中）：升级目标固定为官方 `dsh-v0.1.6-alpha.1` / `0a15e36e7f82b6ed45af6fa9759f29b40dcd965d`，记录于 `upstream.json.desktopTarget`。`corepack yarn upstream:desktop:prepare` 准备并校验隔离源码，不改上游源码；当前 activeChannel 与 vendored runtime 仍为 0.1.3-alpha.1，尚未切换。先验证官方资源通道、Godot iframe 与桥接，再迁移领域接口和正式依赖；桌面运行及真实任务尚未验收。
+官方桌面原生聊天显示（2026-09-17，已实现待验收）：兼容 `conversation` / `main.conversation` 新旧 slot；带项目 Q 面板的原生输入框及控件显示、关闭重开、resize 与世界保持实测通过。真实消息流和审批仍未验收，详见 [官方桌面接入施工](official-desktop-plan.md)。
+
+官方桌面产品插件（2026-09-17，已实现待验收）：`upstream:desktop:probe --product --preview` 使用现有 Web 产品插件和独立新版依赖图，恢复原版角色对话与项目引导；共享 Fetch 接入原有领域处理器。Windows 产品页面、主岛/邻岛、角色选择及 17 项针对性回归通过；真实项目、模型、审批、通知与教程全程尚待验收。详见 [官方桌面接入施工](official-desktop-plan.md)，生产 runtime 未切换。
+
+官方桌面接入（2026-09-17，实施中）：目标固定为 `dsh-v0.1.6-alpha.1`；Windows 最小资源插件已通过官方 Electron 壳与 Host 字节管道，主岛、邻岛、同源桥接、HEAD/404 和处理器取消/卸载测试通过。`upstream:desktop:probe --preview` 提供独立预览页并保留窗口，补齐 Q 的 E 交互打开官方工作台及返回入口。完整产品插件、居民会话绑定、领域接口、其余键鼠与模型闭环仍待验收；生产 runtime 仍为 0.1.3-alpha.1。源码证据、环境修复与剩余工作见 [官方桌面接入施工](official-desktop-plan.md)。
 
 高清加载封面（2026-09-13，已实现待验收）：从三岛场景重新渲染 3840×1564 源图，8× MSAA，生成 1920/2560/3840 三档高质量 WebP，页面按屏幕宽度与像素密度选择，更新旧图缓存 URL。已检查高清成图的细节与完整构图；Godot 渲染、编码和世界导出通过。3840 档约 469 KiB；浏览器实际选图与安装包待验收，未重新打包。再生成方法见 [世界说明](../games/mosslight/README.md)。
 
