@@ -57,7 +57,7 @@ powershell -NoProfile -File apps/desktop/verify.ps1 -BuildDirectory (Get-Content
 - [ ] 未签名时，发布页和安装说明醒目标注预览风险；不得暗示已完成代码签名。
 - [ ] 自动更新未实现时，发布说明写明升级和回滚步骤。
 
-## macOS Intel 发布物
+## macOS 发布物
 
 ```bash
 corepack yarn build:web
@@ -66,11 +66,11 @@ corepack yarn build:desktop:darwin
 corepack yarn verify:desktop:darwin
 ```
 
-- [ ] `agent-isles-darwin-x64.zip` 与 `SHA256SUMS.txt` 已生成并相互匹配。
-- [ ] 在干净的 macOS Intel 环境完成解压、首次启动、重复启动、菜单栏退出与进程清理验证。
+- [ ] 在对应架构的原生终端分别生成所需的 `agent-isles-darwin-x64.zip` / `agent-isles-darwin-arm64.zip`，并确认各自与 `SHA256SUMS.txt` 匹配。
+- [ ] 在对应的干净 macOS Intel / Apple Silicon 环境完成解压、首次启动、重复启动、菜单栏退出与进程清理验证。
 - [ ] 验证项目选择、模型配置、一次真实任务、人工审批和数据保留。
 - [ ] 未签名时，发布页醒目标注 Gatekeeper / 预览风险；不得暗示已完成公证。
-- [ ] 明确本预览不含 Apple Silicon 专用包与 `.pkg` 安装器。
+- [ ] 明确本预览不含 Universal 包与 `.pkg` 安装器，并提示用户下载匹配芯片架构的 ZIP。
 
 ## 发布后
 

@@ -1,4 +1,4 @@
-// agent-isles macOS Intel 启动器：对标 Windows Launcher.cs —— 单实例、菜单栏、进程树清理、就绪后打开系统浏览器。
+// agent-isles macOS 启动器：对标 Windows Launcher.cs —— 单实例、菜单栏、进程树清理、就绪后打开系统浏览器。
 import AppKit
 import Foundation
 
