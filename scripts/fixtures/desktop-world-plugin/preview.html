@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<title>Agent Isles · 官方桌面预览</title>
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#76a69c;color:white;font:16px system-ui}
+iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+#loading{position:fixed;inset:0;display:grid;place-content:center;background:#76a69c;pointer-events:none}
+#loading[hidden]{display:none}
+</style>
+<iframe id="world-probe" title="小岛世界" src="/api/agent-isles/world/index.html?embed=1"></iframe>
+<div id="loading">正在准备小岛……</div>
+<script>
+window.probeEvents=[];
+const frame=document.getElementById('world-probe');
+window.addEventListener('message',event=>{
+  if(event.source!==frame.contentWindow||event.origin!==location.origin||event.data?.source!=='agent-isles-world'||event.data?.version!==1)return;
+  probeEvents.push({origin:event.origin,type:event.data.type,payload:event.data.payload});
+  if(event.data.type==='world:ready')frame.contentWindow.postMessage({source:'agent-isles-host',version:1,type:'world:init',payload:{locale:'zh-CN',workspace:null,sessionId:null,panelOpen:false,residents:[]}},location.origin);
+  if(event.data.type==='world:playable')requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    document.getElementById('loading').hidden=true;
+    frame.contentWindow.focus();
+  }));
+});
+</script>
+<script src="/api/agent-isles/preview-workbench.js"></script>
+</html>
