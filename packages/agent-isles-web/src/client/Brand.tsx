@@ -1,3 +1,4 @@
+import { resourcePath } from './resource-path.js'
 import type {
   SidebarBrandMarkOwnerProps,
 } from '@deepseek-ai/dsh-client-ui-sidebar/client'
@@ -19,7 +20,7 @@ function AgentIslesMark({ size, className, hero = false }: {
   return <img
     aria-hidden="true"
     className={`${className ?? ''}${hero ? ' agent-isles-hero-mark' : ''}`.trim() || undefined}
-    src="/agent-isles/brand/android-chrome-192x192.png"
+    src={resourcePath("/agent-isles/brand/android-chrome-192x192.png")}
     style={{ display: 'block', flex: 'none', height: size, objectFit: 'contain', width: size }}
   />
 }

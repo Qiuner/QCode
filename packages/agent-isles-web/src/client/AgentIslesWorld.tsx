@@ -1,3 +1,4 @@
+import { resourcePath } from './resource-path.js'
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { BookOpen, ChevronDown, ArrowRight, Languages } from 'lucide-react'
 import { createPortal } from 'react-dom'
@@ -437,7 +438,7 @@ export function AgentIslesWorld(props: Props) {
       <div className="town-project-menu" ref={projectMenu} onKeyDown={event => {
         if (event.key === 'Escape' && projectMenuOpen) { event.preventDefault(); event.stopPropagation(); setProjectMenuOpen(false); projectTrigger.current?.focus() }
       }} onBlur={event => { if (event.relatedTarget && !event.currentTarget.contains(event.relatedTarget as Node)) setProjectMenuOpen(false) }}>
-        <button className="town-project-trigger" ref={projectTrigger} title={workspace?.path ?? t('project.choose')} aria-expanded={projectMenuOpen} aria-controls="town-project-list" onClick={() => setProjectMenuOpen(value => !value)}><img src="/agent-isles/brand/favicon-32x32.png" alt="" /><span>{loadingProjects ? t('project.restoring') : recoveryFailed ? t('project.recoveryRequired') : workspace?.title ?? t('project.choose')}</span><ChevronDown size={14} aria-hidden="true" /></button>
+        <button className="town-project-trigger" ref={projectTrigger} title={workspace?.path ?? t('project.choose')} aria-expanded={projectMenuOpen} aria-controls="town-project-list" onClick={() => setProjectMenuOpen(value => !value)}><img src={resourcePath("/agent-isles/brand/favicon-32x32.png")} alt="" /><span>{loadingProjects ? t('project.restoring') : recoveryFailed ? t('project.recoveryRequired') : workspace?.title ?? t('project.choose')}</span><ChevronDown size={14} aria-hidden="true" /></button>
         {projectMenuOpen && <section id="town-project-list" className="town-project-list" aria-label={t('project.switch')}>
           <strong>{t('project.yours')}</strong>
           {workspace && <p className="town-project-location">{workspace.path}</p>}

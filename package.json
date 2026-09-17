@@ -520,6 +520,7 @@
     "check:vendored-runtime": "node scripts/sync-vendored-runtime.mjs --check",
     "sync:vendored-runtime": "node scripts/sync-vendored-runtime.mjs --write",
     "upstream:desktop:prepare": "node scripts/prepare-upstream-desktop.mjs",
+    "upstream:desktop:probe": "node scripts/probe-official-desktop.mjs",
     "upstream:version": "cd deepseek-harness && corepack pnpm --version",
     "upstream:install": "cd deepseek-harness && CI=true corepack pnpm install --frozen-lockfile",
     "upstream:build": "cd deepseek-harness && CI=true corepack pnpm run build",

@@ -1,3 +1,4 @@
+import { resourcePath } from './resource-path.js'
 import type { Context as ClientContext } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-api-session-controller/client'
 import type {} from '@deepseek-ai/dsh-api-workspace-controller/client'
@@ -64,7 +65,7 @@ export function apply(ctx: Omit<ClientContext, 'sessions' | 'connection'> & { se
   const selecting = new Map<string, Promise<string>>()
   let saved: ResidentState = { sessions: {} }
   const stateRequest = async (update?: { projectId: string; residentId?: ResidentId; sessionId?: string }): Promise<ResidentState> => {
-    const response = await fetch('/agent-isles/resident-state', {
+    const response = await fetch(resourcePath('/agent-isles/resident-state'), {
       method: update ? 'POST' : 'GET', headers: { 'x-agent-isles-state': '1', 'content-type': 'application/json' },
       ...(update ? { body: JSON.stringify(update) } : {}), signal: AbortSignal.timeout(10_000),
     })
@@ -208,7 +209,7 @@ export function apply(ctx: Omit<ClientContext, 'sessions' | 'connection'> & { se
             if (!result.ok) throw new Error(t('error.removeKey'))
           },
           test: async () => {
-            const response = await fetch('/agent-isles/model-test', {
+            const response = await fetch(resourcePath('/agent-isles/model-test'), {
               method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}', signal: AbortSignal.timeout(35_000),
             })
             const result = await response.json() as { ok: boolean; message?: string }

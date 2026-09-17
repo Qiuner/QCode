@@ -21,3 +21,24 @@ git('checkout', '--detach', target.commit)
 const pkg = JSON.parse(readFileSync(join(directory, 'package.json'), 'utf8'))
 if (pkg.version !== target.sourceVersion) throw new Error('Desktop source version mismatch')
 console.log(`Verified desktop target ${pkg.version}: ${directory}`)
+if (process.argv.includes('--install')) {
+  execFileSync(process.platform === 'win32' ? 'corepack.cmd' : 'corepack', ['pnpm', 'install', '--frozen-lockfile'], {
+    cwd: directory, stdio: 'inherit', shell: process.platform === 'win32', env: { ...process.env, CI: 'true' },
+  })
+}
+if (process.argv.includes('--electron')) {
+  execFileSync(process.execPath, [join(directory, 'apps/desktop/node_modules/electron/install.js')], { cwd: directory, stdio: 'inherit' })
+}
+for (const [flag, script] of [['--build', 'build'], ['--shell-build', 'build:desktop'], ['--launch', 'start:desktop']]) {
+  if (!process.argv.includes(flag)) continue
+  execFileSync(process.platform === 'win32' ? 'corepack.cmd' : 'corepack', ['pnpm', 'run', script], {
+    cwd: directory, stdio: 'inherit', shell: process.platform === 'win32', env: {
+      ...process.env, CI: 'true',
+      ...(flag === '--launch' ? {
+        DSH_HOME: join(directory, 'apps/desktop/.desktop-build/probe-home'),
+        DSH_DESKTOP_MAIN_INSPECT_PORT: '19329', DSH_DESKTOP_RENDERER_DEBUG_PORT: '19322',
+        DSH_DESKTOP_HOST_INSPECT_PORT: '19330', DSH_DESKTOP_OPEN_DEVTOOLS: '0',
+      } : {}),
+    },
+  })
+}
