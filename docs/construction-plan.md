@@ -180,7 +180,7 @@ PR 检查增加 Web 服务托管、世界 shell 和 Godot 4.7.2 无头场景测�
 
 ### macOS Apple Silicon 分发（已实现待验收）
 
-2026-09-17：macOS 便携构建扩展到 Apple Silicon（arm64），保留 Intel 的 `darwin-x64` 输出，并新增 `darwin-arm64` 原生包。Swift 启动器显式以 macOS 12 为最低系统版本；打包继续内置当前架构的 Node 与原生依赖。验证脚本新增启动器、Node 与运行时架构检查，并继续覆盖服务就绪、退出清理、单实例及 `fs-ext`、`koffi`、`node-pty` 加载。目标解析自动化测试通过；在 Apple Silicon 上使用 Godot 4.7.2 完成世界导出并生成 183,517,171 字节的 arm64 ZIP，SHA-256 为 `a8a196af4ac67adb7e4edb5c08b9331dcd843768a0ebd162c43209ed76bb0f43`。包内 Swift 启动器与 Node 均确认是 arm64，包级冒烟、认证页面、世界资源、退出清理、单实例和三个原生模块加载全部通过。尚未在另一台干净 M 芯片 Mac 上验证，也未执行真实模型任务；预览仍未签名、未公证，不提供 Universal 包、`.pkg` 或自动更新。
+2026-09-17：macOS 便携构建扩展到 Apple Silicon（arm64），保留 Intel 的 `darwin-x64` 输出，并新增 `darwin-arm64` 原生包。Swift 启动器与应用清单显式以 macOS 13.5 为最低系统版本，与允许用于打包的 Node 24 官方二进制兼容边界一致；打包继续内置当前架构的 Node 与原生依赖。验证脚本新增启动器、Node 与运行时架构检查，并继续覆盖服务就绪、退出清理、单实例及 `fs-ext`、`koffi`、`node-pty` 加载。目标解析自动化测试通过；在 Apple Silicon 上使用 Godot 4.7.2 完成世界导出并生成 183,517,171 字节的 arm64 ZIP，SHA-256 为 `a8a196af4ac67adb7e4edb5c08b9331dcd843768a0ebd162c43209ed76bb0f43`。包内 Swift 启动器与 Node 均确认是 arm64，包级冒烟、认证页面、世界资源、退出清理、单实例和三个原生模块加载全部通过。该产物尚未公开发布，也未在另一台干净 M 芯片 Mac 上验证或执行真实模型任务；预览仍未签名、未公证，不提供 Universal 包、`.pkg` 或自动更新。
 
 ## 剩余施工与验收
 

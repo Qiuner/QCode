@@ -49,7 +49,7 @@ const infoPlist = `<?xml version="1.0" encoding="UTF-8"?>
   <key>CFBundleShortVersionString</key><string>0.0.0-preview</string>
   <key>CFBundleExecutable</key><string>agent-isles</string>
   <key>CFBundlePackageType</key><string>APPL</string>
-  <key>LSMinimumSystemVersion</key><string>12.0</string>
+  <key>LSMinimumSystemVersion</key><string>${target.minimumSystemVersion}</string>
   <key>LSUIElement</key><true/>
   <key>NSHighResolutionCapable</key><true/>
 </dict>

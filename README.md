@@ -33,7 +33,7 @@
 <img src="docs/images/agent-isles-world-current.png" alt="The current Mosslight Isle world and its central Q computer" width="100%">
 
 > [!IMPORTANT]
-> agent-isles is in early development. It currently provides a local Web MVP, a Windows x64 launcher/package preview, and portable macOS Intel / Apple Silicon previews. See the [desktop launcher guide](apps/desktop/README.en.md) for installation and build details.
+> agent-isles is in early development. It currently provides a local Web MVP and a Windows x64 launcher/package preview; portable macOS Intel / Apple Silicon builds are implemented but not yet published. See the [desktop launcher guide](apps/desktop/README.en.md) for installation and build details.
 
 **Windows portable preview:** [Download v0.1.0-preview.1](https://github.com/Qiuner/agent-isles/releases/tag/v0.1.0-preview.1). Extract the entire ZIP to a short path and run `agent-isles.exe`. You will need to configure a model the first time you use it. User data is stored in `%LOCALAPPDATA%\agent-isles\data`; stop the service from the system tray menu. The preview is unsigned and has no automatic updates. Exit the old version and extract an update to a new directory instead of overwriting files in use.
 

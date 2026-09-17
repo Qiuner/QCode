@@ -7,8 +7,8 @@ Release packages include Node.js, pinned DSH dependencies, the Web plugins, and 
 | Platform | Artifact | Status |
 | --- | --- | --- |
 | Windows 10/11 x64 | Installer EXE and portable ZIP | Available |
-| macOS Intel (x86_64) | Portable ZIP containing `Agent Isles.app` | Preview |
-| macOS Apple Silicon (arm64) | Portable ZIP containing `Agent Isles.app` | Preview |
+| macOS Intel (x86_64) | Portable ZIP containing `Agent Isles.app` | Implemented, not published |
+| macOS Apple Silicon (arm64) | Portable ZIP containing `Agent Isles.app` | Implemented, not published |
 
 ## Windows usage
 
@@ -22,7 +22,7 @@ User data is stored in `%LOCALAPPDATA%\agent-isles\data`; installed files are st
 
 ## macOS usage
 
-Download `agent-isles-darwin-x64.zip` on an Intel Mac or `agent-isles-darwin-arm64.zip` on an Apple Silicon Mac. Extract the entire archive to a short path and open `Agent Isles.app`. The launcher appears in the menu bar and opens your default browser after the service is ready. Opening the app again asks the running instance to reopen the island. Use "Quit agent-isles" from the menu-bar item to stop it.
+The macOS portable archives have not been published yet; for now, build one on a Mac with the matching architecture by following the instructions below. Once published, use `agent-isles-darwin-x64.zip` on an Intel Mac or `agent-isles-darwin-arm64.zip` on an Apple Silicon Mac. Extract the entire archive to a short path and open `Agent Isles.app`. The launcher appears in the menu bar and opens your default browser after the service is ready. Opening the app again asks the running instance to reopen the island. Use "Quit agent-isles" from the menu-bar item to stop it.
 
 User data is stored in `~/Library/Application Support/agent-isles/data`. The preview is unsigned. If Gatekeeper blocks it, right-click and choose Open, or allow it in System Settings. There is currently no `.pkg` installer or automatic updater.
 
@@ -54,7 +54,7 @@ corepack yarn build:desktop:darwin
 corepack yarn verify:desktop:darwin
 ```
 
-The Swift menu-bar launcher source is in `apps/desktop/macos/Launcher.swift` and is compiled with the system `swiftc` from Command Line Tools, targeting macOS 12 or later. Packaging shares `apps/desktop/pack-app.mjs` with Windows and copies the current architecture's Node runtime and native dependencies. Intel and Apple Silicon packages must be installed, built, and verified separately in matching native environments. Artifacts are written to `dist/desktop-darwin-*/`, including `agent-isles-darwin-x64.zip` or `agent-isles-darwin-arm64.zip` and `SHA256SUMS.txt`. Verification covers binary architecture, readiness smoke tests, process cleanup on exit, single-instance behavior, and native module loading.
+The Swift menu-bar launcher source is in `apps/desktop/macos/Launcher.swift` and is compiled with the system `swiftc` from Command Line Tools, targeting macOS 13.5 or later to match the official Node 24 binary supported by the packaging workflow. Packaging shares `apps/desktop/pack-app.mjs` with Windows and copies the current architecture's Node runtime and native dependencies. Intel and Apple Silicon packages must be installed, built, and verified separately in matching native environments. Artifacts are written to `dist/desktop-darwin-*/`, including `agent-isles-darwin-x64.zip` or `agent-isles-darwin-arm64.zip` and `SHA256SUMS.txt`. Verification covers binary architecture, readiness smoke tests, process cleanup on exit, single-instance behavior, and native module loading.
 
 An online edition would require a separate account authentication and permission-isolation design; local temporary credentials are not an online login solution.
 

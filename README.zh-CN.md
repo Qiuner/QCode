@@ -32,7 +32,7 @@
 <img src="docs/images/agent-isles-world-current.png" alt="当前版本苔光之屿与中央 Q 计算机的世界实景" width="100%">
 
 > [!IMPORTANT]
-> agent-isles 仍处于早期开发阶段。目前提供本地 Web MVP、Windows x64 启动器/安装包预览，以及 macOS Intel / Apple Silicon 便携预览。安装与构建说明见 [桌面启动器](apps/desktop/README.md)。
+> agent-isles 仍处于早期开发阶段。目前提供本地 Web MVP、Windows x64 启动器/安装包预览；macOS Intel / Apple Silicon 便携构建已实现，公开下载待发布。安装与构建说明见 [桌面启动器](apps/desktop/README.md)。
 
 **Windows 便携预览版**：[下载 v0.1.0-preview.1](https://github.com/Qiuner/agent-isles/releases/tag/v0.1.0-preview.1)。下载 ZIP，完整解压到较短路径后运行 `agent-isles.exe`；首次使用需配置模型。用户数据保存在 `%LOCALAPPDATA%\agent-isles\data`，退出服务使用系统托盘菜单。版本未签名、无自动更新，更新时退出旧版后将新版解压到新目录，不覆盖运行中的文件。
 

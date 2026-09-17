@@ -3,14 +3,16 @@ const targets = {
     archiveArch: 'arm64',
     displayName: 'macOS Apple Silicon（arm64）',
     fileArchitecture: 'arm64',
-    swiftTarget: 'arm64-apple-macos12.0',
+    minimumSystemVersion: '13.5',
+    swiftTarget: 'arm64-apple-macos13.5',
     unameArchitecture: 'arm64',
   },
   x64: {
     archiveArch: 'x64',
     displayName: 'macOS Intel（x86_64）',
     fileArchitecture: 'x86_64',
-    swiftTarget: 'x86_64-apple-macos12.0',
+    minimumSystemVersion: '13.5',
+    swiftTarget: 'x86_64-apple-macos13.5',
     unameArchitecture: 'x86_64',
   },
 }
