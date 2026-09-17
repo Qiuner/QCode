@@ -8,6 +8,9 @@ updates:
       time: "09:00"
       timezone: Asia/Shanghai
     open-pull-requests-limit: 5
+    # DSH packages are upgraded together via the root upstream:* workflow.
+    ignore:
+      - dependency-name: "@deepseek-ai/*"
     labels:
       - dependencies
   - package-ecosystem: github-actions
