@@ -118,6 +118,16 @@ corepack yarn dev:web --no-open
 
 开发数据默认保存在仓库内的 `.agent-isles-home/`。如需更换位置，可在启动前设置 `DSH_HOME`。
 
+## 交流与反馈
+
+欢迎加入 agent-isles 用户交流群，分享作品、交流使用心得、获取使用帮助。
+
+**QQ 群：`543293474`** — 使用 QQ 扫码，或复制群号搜索加入。
+
+<img src="docs/images/qq-community.png" alt="agent-isles 用户交流群二维码，QQ群号 543293474" width="240" height="240">
+
+Bug 和功能建议请提交到 [GitHub Issues](https://github.com/Qiuner/agent-isles/issues)，方便跟踪处理进展。
+
 ## 工作原理
 
 ```text

@@ -4,6 +4,8 @@
 
 ## 产品目标
 
+用户交流群入口（2026-09-17，已实现待验收）：中英文 README 增加 QQ 群号与二维码，介绍网站页脚增加交流群弹窗，支持复制群号、手动选择及 GitHub Issues 分流。二维码共用 `docs/images/qq-community.png`，保留原码并裁去外围留白。脚本语法、文档同步检查及本地浏览器弹窗打开、复制成功提示与画面检查通过；QQ 实际扫码与线上部署待验收。本轮范围为 README 和网站，应用内入口尚未实施。
+
 官方桌面原生聊天显示（2026-09-17，已实现待验收）：兼容 `conversation` / `main.conversation` 新旧 slot；带项目 Q 面板的原生输入框及控件显示、关闭重开、resize 与世界保持实测通过。真实消息流和审批仍未验收，详见 [官方桌面接入施工](official-desktop-plan.md)。
 
 官方桌面产品插件（2026-09-17，已实现待验收）：`upstream:desktop:probe --product --preview` 使用现有 Web 产品插件和独立新版依赖图，恢复原版角色对话与项目引导；共享 Fetch 接入原有领域处理器。Windows 产品页面、主岛/邻岛、角色选择及 17 项针对性回归通过；真实项目、模型、审批、通知与教程全程尚待验收。详见 [官方桌面接入施工](official-desktop-plan.md)，生产 runtime 未切换。

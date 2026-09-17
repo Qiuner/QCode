@@ -119,6 +119,16 @@ Open the local URL printed in the terminal. On first use, follow the interface t
 
 Development data is stored in `.agent-isles-home/` inside the repository by default. Set `DSH_HOME` before startup to use another location.
 
+## Community and feedback
+
+Share your creations, exchange tips, and get help in the agent-isles QQ community (primarily Chinese).
+
+**QQ group: `543293474`** — scan with QQ or copy the number to search for the group.
+
+<img src="docs/images/qq-community.png" alt="QR code for the agent-isles QQ community, group 543293474" width="240" height="240">
+
+For bugs and feature requests, use [GitHub Issues](https://github.com/Qiuner/agent-isles/issues) so progress can be tracked.
+
 ## How it works
 
 ```text
