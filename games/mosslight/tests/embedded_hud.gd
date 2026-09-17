@@ -7,13 +7,8 @@ func _initialize() -> void:
 	call_deferred("run")
 
 
-func tick(count: int) -> void:
-	for i in range(count):
-		await physics_frame
-		await process_frame
-
-
 func run() -> void:
+	TranslationServer.set_locale("zh")
 	var game = load("res://scenes/island.tscn").instantiate()
 	root.add_child(game)
 	await process_frame
@@ -27,7 +22,7 @@ func run() -> void:
 	var npc: StaticBody3D = game.residents.residents[2]
 	game.player.position = npc.position + Vector3(0, 0, 1.15)
 	game.player.velocity = Vector3.ZERO
-	await tick(4)
+	await physics_frame
 	game._interact()
 	check(game.resident_dialogue.opened and game.resident_dialogue.speaker.text == "苔伯", "embedded resident opens shared dialogue before Host handoff")
 	var message := {"source": "agent-isles-host", "version": 1, "type": "world:init", "payload": {"panelOpen": true, "residents": [], "workspace": null}}
@@ -50,13 +45,13 @@ func run() -> void:
 	check(game.resident_dialogue.opened and game.resident_dialogue.next_resident_id == "teacher", "functional resident dialogue keeps its Host handoff")
 	game.resident_dialogue.close()
 	game.player.position = game.residents.residents[0].position + Vector3(0, 0, 1.15)
-	await tick(4)
+	await physics_frame
 	game._interact()
 	check(game.resident_dialogue.opened and game.resident_dialogue.next_resident_id.is_empty(), "gardener uses shared local dialogue in embedded world")
 	game._on_agent_isles_message([JSON.stringify(message)])
 	check(game.resident_dialogue.opened, "background host updates preserve gardener dialogue")
 	game.player.position = game.sanctuary_computer.LANDING
-	await tick(4)
+	await physics_frame
 	game._interact()
 	message.payload.panelOpen = true
 	message.payload.residents = [{"id": "coder", "status": "working"}]
