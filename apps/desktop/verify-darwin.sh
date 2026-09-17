@@ -1,15 +1,16 @@
 #!/bin/bash
-# 验收 macOS Intel 便携包：冒烟就绪、退出清进程、单实例、原生模块。
+# 验收当前 Mac 架构的便携包：架构、冒烟就绪、退出清进程、单实例、原生模块。
 set -euo pipefail
 
 if [[ "$(uname -s)" != "Darwin" ]]; then
   echo "需要在 macOS 上运行" >&2
   exit 1
 fi
-if [[ "$(uname -m)" != "x86_64" ]]; then
-  echo "本预览验收针对 Intel Mac（x86_64）" >&2
-  exit 1
-fi
+case "$(uname -m)" in
+  arm64) NODE_ARCH="arm64"; FILE_ARCH="arm64" ;;
+  x86_64) NODE_ARCH="x64"; FILE_ARCH="x86_64" ;;
+  *) echo "macOS 便携包仅支持 x86_64 和 arm64" >&2; exit 1 ;;
+esac
 
 BUILD_DIRECTORY="${1:-}"
 if [[ -z "$BUILD_DIRECTORY" ]]; then
@@ -24,6 +25,19 @@ if [[ ! -x "$LAUNCHER" ]]; then
   echo "找不到启动器：$LAUNCHER" >&2
   exit 1
 fi
+if [[ ! -x "$NODE" ]]; then
+  echo "找不到内置 Node：$NODE" >&2
+  exit 1
+fi
+if ! file "$LAUNCHER" | grep -q "$FILE_ARCH"; then
+  echo "启动器架构与当前 Mac 不一致：$(file "$LAUNCHER")" >&2
+  exit 1
+fi
+if ! file "$NODE" | grep -q "$FILE_ARCH"; then
+  echo "内置 Node 架构与当前 Mac 不一致：$(file "$NODE")" >&2
+  exit 1
+fi
+"$NODE" -e "if (process.arch !== '$NODE_ARCH') throw new Error('expected $NODE_ARCH, got ' + process.arch)"
 
 DATA_HOME="$(mktemp -d /tmp/agent-isles-isolated-data.XXXXXX)"
 export AGENT_ISLES_DATA_HOME="$DATA_HOME"
@@ -120,4 +134,4 @@ if lsof -nP -iTCP:"$HELD_PORT" -sTCP:LISTEN >/dev/null 2>&1; then
   exit 1
 fi
 
-echo "PASS: smoke ready, exit cleanup, single instance, native modules"
+echo "PASS: native architecture, smoke ready, exit cleanup, single instance, native modules"
