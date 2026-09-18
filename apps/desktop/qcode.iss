@@ -1,5 +1,5 @@
 #define AppName "QCode"
-#define AppVersion "0.0.0-preview"
+#define AppVersion "0.1.0-preview.2"
 [Setup]
 ; Keep the historical AppId so QCode upgrades the existing agent-isles installation.
 AppId={{7F3CEB5A-6A2E-4A79-9D2B-AGENTISLES}}

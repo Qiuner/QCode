@@ -43,7 +43,7 @@
 > [!IMPORTANT]
 > QCode is in early development. It currently provides a local Web MVP and a Windows x64 launcher/package preview; portable macOS Intel / Apple Silicon builds are implemented but not yet published. See the [desktop launcher guide](apps/desktop/README.en.md) for installation and build details.
 
-**Windows portable preview:** [Download v0.1.0-preview.1](https://github.com/Qiuner/QCode/releases/tag/v0.1.0-preview.1). This historical release still uses the old executable name. New QCode builds use `QCode.exe`, store data in `%LOCALAPPDATA%\QCode\data`, and migrate the old data directory on first launch when no new directory exists. The preview is unsigned and has no automatic updates.
+**Windows portable preview:** [Download v0.1.0-preview.2](https://github.com/Qiuner/QCode/releases/tag/v0.1.0-preview.2). Extract the ZIP and run `QCode.exe`. Data is stored in `%LOCALAPPDATA%\QCode\data`; an old data directory is migrated on first launch only when the new directory does not exist. The preview is unsigned and has no automatic updates. The [previous release](https://github.com/Qiuner/QCode/releases/tag/v0.1.0-preview.1) remains available.
 
 ## What is QCode?
 

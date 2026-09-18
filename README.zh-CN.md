@@ -42,7 +42,7 @@
 > [!IMPORTANT]
 > QCode 仍处于早期开发阶段。目前提供本地 Web MVP、Windows x64 启动器/安装包预览；macOS Intel / Apple Silicon 便携构建已实现，公开下载待发布。安装与构建说明见 [桌面启动器](apps/desktop/README.md)。
 
-**Windows 便携预览版**：[下载 v0.1.0-preview.1](https://github.com/Qiuner/QCode/releases/tag/v0.1.0-preview.1)。该历史版本仍使用旧可执行文件名；新的 QCode 构建使用 `QCode.exe`，数据保存在 `%LOCALAPPDATA%\QCode\data`，且会在新目录不存在时迁移旧数据。预览版未签名、无自动更新。
+**Windows 便携预览版**：[下载 v0.1.0-preview.2](https://github.com/Qiuner/QCode/releases/tag/v0.1.0-preview.2)。解压 ZIP 后运行 `QCode.exe`。数据保存在 `%LOCALAPPDATA%\QCode\data`；仅在新目录不存在时首次启动会迁移旧数据。预览版未签名、无自动更新。[上一版本](https://github.com/Qiuner/QCode/releases/tag/v0.1.0-preview.1)仍可下载。
 
 ## QCode 是什么
 
