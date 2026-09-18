@@ -200,7 +200,7 @@ PowerShell（将程序路径替换为本机安装路径）：
 # 类型 / 资源导入检查
 & 'D:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe' --headless --path . --editor --import
 
-# 从现有居民模型重新生成剧情对白透明立绘
+# 校验芽芽的正式剧情对白透明立绘存在（不会用 3D 模型覆盖）
 & 'D:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64.exe' --path . --script res://tools/render_resident_portraits.gd -- --dialogue-assets-only
 
 # 真实场景集成检查（无窗口、无音频）

@@ -20,6 +20,8 @@ func run() -> void:
 	root.add_child(game)
 	await tick(12)
 	check(game.residents.residents.size() == 3, "three distinct residents load without a duplicate project guide")
+	var gardener_portrait: Texture2D = game.residents.dialogue_portrait(game.residents.residents[0])
+	check(gardener_portrait.get_width() >= 1000 and gardener_portrait.get_height() >= 1400, "gardener uses the authored high-resolution dialogue portrait")
 	game._on_agent_isles_message([JSON.stringify({"source": "agent-isles-host", "version": 1, "type": "world:locale", "payload": {"locale": "en"}})])
 	check(TranslationServer.get_locale() == "en" and str(game.residents.residents[0].get_meta("display_name")).begins_with("Sprout"), "English locale refreshes resident labels")
 	check(game.residents.dialogue_lines(game.residents.residents[2], true)[0].begins_with("I'm Uncle Moss"), "English locale translates resident dialogue")
