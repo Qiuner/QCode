@@ -70,7 +70,7 @@ body:
       description: 请填写安装方式、版本或 commit、操作系统与芯片架构、浏览器；源码开发请补充 Node.js 版本。
       placeholder: |
         安装方式：源码 / Windows 安装包 / Windows 便携版 / macOS 便携版
-        agent-isles 版本或 commit：
+        QCode 版本或 commit：
         操作系统版本与芯片架构：
         Node.js（源码开发）：
         浏览器：

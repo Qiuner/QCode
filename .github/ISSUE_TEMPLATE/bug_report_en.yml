@@ -39,7 +39,7 @@ body:
     id: description
     attributes:
       label: Problem
-      description: Explain what happened and how it affected your use of agent-isles.
+      description: Explain what happened and how it affected your use of QCode.
       placeholder: What happened?
     validations:
       required: true
@@ -70,7 +70,7 @@ body:
       description: Include the installation method, version or commit, operating system, CPU architecture, and browser; include Node.js when developing from source.
       placeholder: |
         Installation: source / Windows installer / Windows portable / macOS portable
-        agent-isles version or commit:
+        QCode version or commit:
         Operating system version and CPU architecture:
         Node.js (source development):
         Browser:

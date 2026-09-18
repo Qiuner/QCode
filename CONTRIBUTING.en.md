@@ -1,8 +1,8 @@
-# Contributing to agent-isles
+# Contributing to QCode
 
 [简体中文](CONTRIBUTING.md) · **English**
 
-Thank you for contributing to agent-isles. The project is still in early development. Search existing Issues before submitting one, and open an Issue to align on scope before beginning a large feature, interaction redesign, or architecture change.
+Thank you for contributing to QCode. The project is still in early development. Search existing Issues before submitting one, and open an Issue to align on scope before beginning a large feature, interaction redesign, or architecture change.
 
 By participating, you agree to follow the [Code of Conduct](CODE_OF_CONDUCT.en.md). See [Support](SUPPORT.en.md) for general usage questions and the [Security Policy](SECURITY.en.md) for privately reporting vulnerabilities.
 
@@ -38,8 +38,8 @@ corepack yarn --version
 External contributors should fork the repository and clone their fork. The commands below clone the official repository as an example. For an existing clone, run `git submodule update --init --recursive` to fetch the pinned upstream source. Do not use `--remote` to move the submodule to the latest upstream revision.
 
 ```powershell
-git clone --recurse-submodules https://github.com/Qiuner/agent-isles.git
-cd agent-isles
+git clone --recurse-submodules https://github.com/Qiuner/QCode.git
+cd QCode
 corepack enable
 corepack yarn install --immutable
 corepack yarn check:upstream
@@ -57,7 +57,7 @@ corepack yarn dev:web --no-open
 
 Continue only after each step succeeds. `dev:web` builds the Web plugins and starts the service, but it does not export the world. Open the local URL printed in the terminal and press Ctrl+C to stop the foreground service. Rebuild and restart after Web changes; re-export after world changes. Do not assume every part supports hot reload.
 
-Development data is written to `.agent-isles-home/` inside the repository by default. Do not commit this directory or authenticated launch URLs. Real AI tasks require your own model configuration; interface work, documentation, and most automated tests do not require a model key. Tasks may modify files, so use a dedicated test project and inspect session permissions first.
+Development data is written to `.qcode-home/` inside the repository by default. Do not commit this directory or authenticated launch URLs. Real AI tasks require your own model configuration; interface work, documentation, and most automated tests do not require a model key. Tasks may modify files, so use a dedicated test project and inspect session permissions first.
 
 If `corepack` is missing, follow the official Node.js/Corepack setup instructions. If `install --immutable` fails while building `fs-ext` or `node-gyp`, inspect the build log and confirm that Python and the C++ toolchain are available; skipping build scripts does not count as a successful installation. If Godot reports missing export templates, verify that both the engine and templates are version 4.7.2.
 
@@ -72,18 +72,18 @@ See [Support](SUPPORT.en.md), the [Security Policy](SECURITY.en.md), and the [Co
 
 ## Code boundaries
 
-- Product Web code lives in `packages/agent-isles-web/`; its startup profile lives in `apps/web/`.
+- Product Web code lives in `packages/qcode-web/`; its startup profile lives in `apps/web/`.
 - Windows and macOS Intel launchers and local preview packaging live in `apps/desktop/`.
 - The Godot and Blender world lives in `games/mosslight/`.
 - Do not modify the `deepseek-harness/` submodule directly.
 - Do not manually edit tarballs or manifests in `vendor/dsh-runtime/`.
-- Do not commit `.agent-isles-home/`, build output, temporary screenshots, editor caches, or personal configuration.
+- Do not commit `.qcode-home/`, build output, temporary screenshots, editor caches, or personal configuration.
 
 ## Implementation and verification
 
 Choose the relevant entry point for your change:
 
-- Web/Host plugins: [plugin development guide](packages/agent-isles-web/docs/plugin-development.md).
+- Web/Host plugins: [plugin development guide](packages/qcode-web/docs/plugin-development.md).
 - New islands and world interactions: [island integration contract](docs/world-integration-contract.md) and [world development guide](games/mosslight/README.md).
 - Desktop launchers and distribution: [desktop guide](apps/desktop/README.en.md).
 - Documentation: [documentation portal](docs/README.md) and [documentation maintenance guide](docs/documentation-guide.md).
@@ -106,7 +106,7 @@ You do not need to run every command for every change, but a pull request must a
 For Web behavior changes, run the related tests. To run all Web tests:
 
 ```powershell
-node --test (Get-ChildItem packages/agent-isles-web/tests/*.test.mjs | ForEach-Object FullName)
+node --test (Get-ChildItem packages/qcode-web/tests/*.test.mjs | ForEach-Object FullName)
 ```
 
 Run the relevant `tests/*.gd` scripts described by the world guide for Godot changes; a successful export alone is not interaction verification. Documentation-only changes need link/content review and `git diff --check`. When capability, acceptance status, or known limitations change, update `docs/construction-plan.md` and the relevant implementation document, keeping "implemented, pending acceptance" distinct from "accepted."

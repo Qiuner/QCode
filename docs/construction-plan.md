@@ -4,9 +4,11 @@
 
 ## 产品目标
 
+QCode 重命名（2026-09-18，已实现待验收）：产品与公开仓库已改名为 QCode；Mosslight / 苔光之屿继续作为世界名称。workspace、Web 插件目录与包名、TypeScript / Godot 自有符号、DOM 命名空间、Web/Godot Bridge、桌面应用、产品文档和发布链接已改用 QCode；新路由和消息使用 `/qcode/*`、`qcode-host`、`qcode-world`，迁移期兼容旧路由、请求头、消息来源和 Bridge 名称。浏览器存储、开发目录、Host 状态文件及桌面用户数据均采用无覆盖迁移，教程存储 domain 保持旧稳定身份以读取既有进度，世界导出状态改用 `.qcode-world-export.json`；`check:qcode-naming` 已接入 CI，开发目录迁移测试也已加入 CI。immutable 安装、类型检查、Web 构建、61 项插件测试、23 项本轮启动/迁移/文档及辅助测试、Godot 4.7.2 的 7 个 CI 场景、世界导出及哈希校验通过；隔离临时数据目录在 3081 端口启动后，认证入口、首页、QCode 图标与世界 HTML/WASM/PCK 的 HTTP 冒烟通过。Windows QCode 安装包与便携包完成安装提取、认证页面、世界资源、退出清理、单实例、原生模块、旧数据迁移与双目录冲突验收。介绍页通过 1440px 桌面截图检查，真实 390px 浏览器视口无横向溢出，动态标题正确。GitHub API 确认公开仓库为 `Qiuner/QCode`、remote 和 Pages 地址已更新且主分支保护保持不变，新 Pages 路径返回 200。macOS 脚本已同步但未在原生环境执行；真实浏览器 WebGL 与模型请求未在本轮验收，远端 CI 与线上页面的新内容仍待验收。本地 checkout 路径暂不改名，以免使活跃任务工作区失效。详见 [QCode 重命名施工方案](qcode-renaming-plan.md)。
+
 世界导出新鲜度校验（2026-09-18，已实现待验收）：Godot Web 导出记录场景、脚本、运行时资源与 Web 壳输入的总体 SHA-256；`check:world-export`、开发启动及桌面打包在哈希不一致、状态缺失或关键产物缺失时停止并要求重新执行 `build:world`。4 项校验器测试、脚本语法、真实世界重新导出、独立校验命令与桌面打包前置检查通过；未重新生成安装包。
 
-仓库维护入口（2026-09-17，已实现待验收）：GitHub 私密漏洞报告已启用并经 API 核验，`dependencies` 标签已创建；本地补齐中英文安全与帮助说明、README 导航及 Issue 联系入口，Bug 表单补充 macOS / 架构信息。旧 `plan.md` 收拢为本索引入口；Dependabot 配置排除 `@deepseek-ai/*` 单包升级，保留成套固定版本流程。YAML 解析、文档同步及 diff 检查通过；文件改动尚未合并，新的 Dependabot 调度与 GitHub 表单展示待验收。后续工作见 [发行包自动验证 #18](https://github.com/Qiuner/agent-isles/issues/18) 与 [官方桌面真实闭环 #19](https://github.com/Qiuner/agent-isles/issues/19)；首课继续由 [#13](https://github.com/Qiuner/agent-isles/issues/13) 跟踪。
+仓库维护入口（2026-09-17，已实现待验收）：GitHub 私密漏洞报告已启用并经 API 核验，`dependencies` 标签已创建；本地补齐中英文安全与帮助说明、README 导航及 Issue 联系入口，Bug 表单补充 macOS / 架构信息。旧 `plan.md` 收拢为本索引入口；Dependabot 配置排除 `@deepseek-ai/*` 单包升级，保留成套固定版本流程。YAML 解析、文档同步及 diff 检查通过；文件改动尚未合并，新的 Dependabot 调度与 GitHub 表单展示待验收。后续工作见 [发行包自动验证 #18](https://github.com/Qiuner/QCode/issues/18) 与 [官方桌面真实闭环 #19](https://github.com/Qiuner/QCode/issues/19)；首课继续由 [#13](https://github.com/Qiuner/QCode/issues/13) 跟踪。
 
 用户交流群入口（2026-09-17，已实现待验收）：中英文 README 增加 QQ 群号与二维码，介绍网站页脚增加交流群弹窗，支持复制群号、手动选择及 GitHub Issues 分流。二维码共用 `docs/images/qq-community.png`，保留原码并裁去外围留白。脚本语法、文档同步检查及本地浏览器弹窗打开、复制成功提示与画面检查通过；QQ 实际扫码与线上部署待验收。本轮范围为 README 和网站，应用内入口尚未实施。
 
@@ -176,7 +178,7 @@ PR 检查增加 Web 服务托管、世界 shell 和 Godot 4.7.2 无头场景测�
 
 便携版补充验收（2026-09-15）：实际 ZIP 解压后通过认证页面、无外部链接、正常 / 强制退出清理、单实例和四个原生模块加载检查；GitHub Windows CI `34924896750` 成功。发行 ZIP 增补 VERSION、MIT LICENSE 和便携使用说明，只附 ZIP 与对应 SHA-256；不发布生成的安装 EXE。上述验证不替代真实模型和跨机器验收。
 
-2026-09-15 便携预览 `v0.1.0-preview.1`（已实现待验收）：从包含中英文切换的当前源码重新构建，仅发布版本化 ZIP 和 SHA-256，不上传安装器。Web / 世界导出、字体、类型、上游与 runtime 校验及 56 项 Web 测试通过；恢复测试补齐 locale 夹具。immutable install 因环境缺 Python 未完成 fs-ext 源码构建，包内现有模块能加载；解压后完整启动验证结果另行补充。完整真实模型、长路径、干净系统仍待验收。使用和升级说明见 [Release](https://github.com/Qiuner/agent-isles/releases/tag/v0.1.0-preview.1) 与根 README。
+2026-09-15 便携预览 `v0.1.0-preview.1`（已实现待验收）：从包含中英文切换的当前源码重新构建，仅发布版本化 ZIP 和 SHA-256，不上传安装器。Web / 世界导出、字体、类型、上游与 runtime 校验及 56 项 Web 测试通过；恢复测试补齐 locale 夹具。immutable install 因环境缺 Python 未完成 fs-ext 源码构建，包内现有模块能加载；解压后完整启动验证结果另行补充。完整真实模型、长路径、干净系统仍待验收。使用和升级说明见 [Release](https://github.com/Qiuner/QCode/releases/tag/v0.1.0-preview.1) 与根 README。
 
 2026-09-14 重新打包：当前 Web 构建、Godot 资源导出与字体检查通过，Inno Setup 生成安装 EXE（216,626,378 字节）和便携 ZIP（259,131,769 字节），产物位于本地 `dist/desktop-1789382691978/`，两者 SHA-256 复核通过。`apps/desktop/verify.ps1` 在独立目录静默安装耗时 63.9 秒，外部链接检查、认证页面、正常 / 强制退出清理、单实例和四个原生模块加载均通过；安装日志保存在产物目录。完整模型工作流、安装向导视觉、升级卸载及真实世界交互未在本轮验收，保持“已实现待验收”。
 
@@ -220,7 +222,7 @@ PR 检查增加 Web 服务托管、世界 shell 和 Godot 4.7.2 无头场景测�
 
 补充排查：3080 旧服务未加载新增图标路由，ICO 请求返回 404；重启并切换后台托管后返回 200，响应字节与品牌源 ICO 一致。浏览器刷新后的标签图标仍待视觉确认。
 
-项目已更名为 `agent-isles`。仓库标题、产品品牌、包作用域、插件目录、状态存储、Host 路由和世界桥统一使用新名称。
+历史阶段曾将项目命名为 `agent-isles`；现已由顶部的 QCode 重命名专项取代。当前仓库标题、产品品牌、包作用域、插件目录、状态存储、Host 路由和世界桥均以 QCode 为准，旧名称仅保留在迁移兼容和历史记录中。
 
 ## 更新规则
 
@@ -228,6 +230,6 @@ PR 检查增加 Web 服务托管、世界 shell 和 Godot 4.7.2 无头场景测�
 
 ### 介绍页与截图更新 · 2026-09-14（已实现待验收）
 
-2026-09-15 线上部署补充：启用仓库 GitHub Pages（workflow 模式），部署运行 `34921798063` 成功；首页、CSS 与 Logo 的 HTTP HEAD 返回 200，仓库 About 的 Website 已设为 `https://qiuner.github.io/agent-isles/`。世界截图网络检查未取得完整结果，线上全页与窄屏视觉仍待验收；本次未发布 Release。
+2026-09-15 线上部署补充：启用仓库 GitHub Pages（workflow 模式），部署运行 `34921798063` 成功；首页、CSS 与 Logo 的 HTTP HEAD 返回 200。仓库更名后 About 的 Website 已自动更新为 `https://qiuner.github.io/QCode/`；新内容部署后需复验。世界截图网络检查未取得完整结果，线上全页与窄屏视觉仍待验收；本次未发布 Release。
 
 参考 Voyager 首屏，介绍页采用白底、绿色品牌名、左文右 Logo、圆角按钮及浅灰功能卡片，保留真实创作流程和双路径入口。README 与官网使用 2026-09-13 从当前源码渲染的世界及 Q 近景，移除旧网页及窄屏截图引用。截图脚本运行、图片目视检查、静态资源检查和差异检查通过；浏览器全页与窄屏验收、网页面板新截图及线上部署仍待完成，Release 下载附件可用性尚未核实。

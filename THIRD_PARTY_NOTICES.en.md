@@ -2,7 +2,7 @@
 
 [简体中文](THIRD_PARTY_NOTICES.md) · **English**
 
-The root [MIT License](LICENSE) applies to agent-isles-owned code and documentation. It does not alter the copyrights or license terms of third-party components, fonts, or assets.
+The root [MIT License](LICENSE) applies to QCode-owned code and documentation. It does not alter the copyrights or license terms of third-party components, fonts, or assets.
 
 The repository currently includes or pins the following major third-party content:
 

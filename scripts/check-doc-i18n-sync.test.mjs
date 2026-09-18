@@ -22,7 +22,7 @@ test('rejects a Chinese-only documentation change', () => {
 test('normalizes Windows paths and ignores unrelated files', () => {
   assert.deepEqual(
     findUnsyncedDocumentPairs([
-      'packages/agent-isles-web/src/client/index.ts',
+      'packages/qcode-web/src/client/index.ts',
       'apps\\desktop\\README.md',
       'apps\\desktop\\README.en.md',
     ]),

@@ -2,7 +2,7 @@
 
 [简体中文](SECURITY.md) · **English**
 
-agent-isles can access local project files and perform actions through AI tools. Do not disclose vulnerability details, API keys, access tokens, local paths, or other sensitive information in public Issues, Discussions, pull requests, or logs.
+QCode can access local project files and perform actions through AI tools. Do not disclose vulnerability details, API keys, access tokens, local paths, or other sensitive information in public Issues, Discussions, pull requests, or logs.
 
 ## Supported versions
 
@@ -15,7 +15,7 @@ The project is in early development and has not published a stable release.
 
 ## Privately report a vulnerability
 
-GitHub Private Vulnerability Reporting is enabled for this repository. Use the [private vulnerability report form](https://github.com/Qiuner/agent-isles/security/advisories/new), or open the **Security** page and choose **Report a vulnerability**.
+GitHub Private Vulnerability Reporting is enabled for this repository. Use the [private vulnerability report form](https://github.com/Qiuner/QCode/security/advisories/new), or open the **Security** page and choose **Report a vulnerability**.
 
 Include as much of the following as possible:
 
@@ -29,4 +29,4 @@ Do not include real credentials, personal data, or unrelated project files. Use 
 
 The maintainer will acknowledge the report as soon as practical and share an impact assessment and remediation plan after initial reproduction. This early-stage project does not promise a fixed response time or bug bounty. Do not publicly disclose details until a fix has been released and the maintainer confirms disclosure is appropriate.
 
-If an issue affects only `deepseek-harness/` or another third-party dependency, follow that project's security reporting process as well. You may still notify agent-isles privately so the impact on its pinned version can be assessed.
+If an issue affects only `deepseek-harness/` or another third-party dependency, follow that project's security reporting process as well. You may still notify QCode privately so the impact on its pinned version can be assessed.

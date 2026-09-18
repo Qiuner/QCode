@@ -110,7 +110,7 @@
 
 初步定位入口（实施前定点复核最新代码）：
 
-- React 教学入口及居民面板：插件的 `AgentIslesWorld.tsx` 与 Client 入口；提取必要的教学模块，避免继续将所有业务堆入单组件。
+- React 教学入口及居民面板：插件的 `QCodeWorld.tsx` 与 Client 入口；提取必要的教学模块，避免继续将所有业务堆入单组件。
 - 需求提交和居民关联：复用现有 Client / DSH 接口，准备期草稿与教程数据放入对应领域模块。
 - 世界通信：同步修改 `world-bridge.ts`、Web shell 与 Godot 接收/发送端的校验。
 - 世界演出：检查 `island.gd`、`island_residents.gd` 现有居民定位、交谈与输入控制后再确定最小修改位置。
@@ -153,7 +153,7 @@
 补充交互：制作中保留“回答芽芽 / 补充说明”，回答使用新的请求身份继续原会话与当前步骤，检查转向这次回答的执行回合；上一请求尚未结束时拒绝登记新回答。回复草稿按当前请求在浏览器备份。审批沿用真实允许/拒绝按钮，目标卡提示待决定，不根据普通回复文本猜测审批或自动放行。已通过追问无工具不通过、执行中不能回答、跨会话拒绝、回答后执行可验收的回归场景。
 
 - `corepack yarn build:web`（含 TypeScript 编译）通过。
-- `node --test packages/agent-isles-web/tests/tutorial.test.mjs packages/agent-isles-web/tests/world-bridge.test.mjs packages/agent-isles-web/tests/resident-recovery.test.mjs`：14 项通过。覆盖真实 JSON 领域存储关闭/重开、无项目草稿、过期 revision、跨项目会话拒绝、错误回合不借用后续成功、失败重试、预览变化、修正循环、自主改动与返回门槛。
+- `node --test packages/qcode-web/tests/tutorial.test.mjs packages/qcode-web/tests/world-bridge.test.mjs packages/qcode-web/tests/resident-recovery.test.mjs`：14 项通过。覆盖真实 JSON 领域存储关闭/重开、无项目草稿、过期 revision、跨项目会话拒绝、错误回合不借用后续成功、失败重试、预览变化、修正循环、自主改动与返回门槛。
 - Godot headless `tutorial_keeper.gd`：6 项通过；`embedded_hud.gd`：12 项通过；既有 `residents.gd` 通过。演出测试加载真实岛屿场景，不使用替代世界。
 - `corepack yarn build:world`：字体检查与 Web 导出通过。
 - `git diff --check`：通过（仅仓库已有的换行提示）。

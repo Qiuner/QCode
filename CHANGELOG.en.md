@@ -2,7 +2,7 @@
 
 [简体中文](CHANGELOG.md) · **English**
 
-This file records user-facing changes to agent-isles. Until the project establishes a stable versioning policy, unreleased changes are listed under `Unreleased`.
+This file records user-facing changes to QCode. Until the project establishes a stable versioning policy, unreleased changes are listed under `Unreleased`.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 

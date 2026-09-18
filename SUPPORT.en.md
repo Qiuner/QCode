@@ -13,7 +13,7 @@ If the problem remains, use the English Bug Report form and include:
 - minimal reproducible steps;
 - sanitized error logs.
 
-agent-isles is in early development and does not provide a service-level agreement, guaranteed response time, or one-to-one usage support.
+QCode is in early development and does not provide a service-level agreement, guaranteed response time, or one-to-one usage support.
 
 ## Feature discussions
 

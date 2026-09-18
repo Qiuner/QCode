@@ -1,4 +1,4 @@
-# agent-isles 总体架构
+# QCode 总体架构
 
 本文定义系统的职责边界、对象生命周期、状态转换、持久化一致性及接口与事件契约。它用于约束设计和实现；开发操作、文件位置、页面交互和施工进度由专项文档维护。
 
@@ -8,20 +8,20 @@
 
 ## 1. 系统边界与责任
 
-agent-isles 将真实项目中的创作与学习组织为居民交互。执行与教学是两个不同的责任域：DSH 决定任务如何执行并记录执行事实；agent-isles 决定居民关联、学习目标与验收结论。
+QCode 将真实项目中的创作与学习组织为居民交互。执行与教学是两个不同的责任域：DSH 决定任务如何执行并记录执行事实；QCode 决定居民关联、学习目标与验收结论。
 
 | 责任域 | 拥有的能力与决策 | 不拥有的状态 |
 | --- | --- | --- |
 | 运行宿主 / Launcher | Host 进程存活、正常关闭与异常回收 | 会话结果、学习进度 |
 | DSH runtime | Workspace、Session、执行、工具权限、审批、模型配置与凭据 | 教程步骤是否满足教学目标 |
-| agent-isles Host 插件 | 居民关联、教程定义、学习记录、检查协调与验收 | DSH 的执行历史与权限实现 |
+| QCode Host 插件 | 居民关联、教程定义、学习记录、检查协调与验收 | DSH 的执行历史与权限实现 |
 | React Client | 提交用户意图、读取业务快照、维护交互状态 | 权威执行结果与学习进度 |
 | Godot 世界 | 空间交互与业务状态的可视化投影 | 会话、审批、验收与持久化关联 |
 
 ```mermaid
 flowchart LR
     World[Godot 世界] <-->|交互意图 / 展示投影| Client[React Client]
-    Client <-->|领域命令 / 快照 / 变化通知| Domain[agent-isles Host 领域服务]
+    Client <-->|领域命令 / 快照 / 变化通知| Domain[QCode Host 领域服务]
     Client <-->|现有会话与审批接口| Runtime[DSH runtime]
     Domain -->|公开执行能力| Runtime
     Domain --> DomainData[居民关联与学习记录]
@@ -45,11 +45,11 @@ Host 插件与 DSH 可以同进程部署，业务边界不等于进程边界。C
 | 对象 | 身份与关联 | 生命周期所有者 |
 | --- | --- | --- |
 | Workspace | DSH 项目标识；关联真实项目目录 | DSH |
-| Resident | 稳定居民标识，与具体 Session 分离 | agent-isles |
-| ResidentBinding | 关联 Workspace、Resident 与当前复用的 Session | agent-isles Host |
+| Resident | 稳定居民标识，与具体 Session 分离 | QCode |
+| ResidentBinding | 关联 Workspace、Resident 与当前复用的 Session | QCode Host |
 | Session | 归属 Workspace，可承载多轮执行；不等同于单次任务 | DSH |
 | 执行操作 | 一次提交或可追踪的执行，引用 DSH 标识 | DSH |
-| TutorialRun | 通过 Workspace 与执行引用接入系统的学习记录；内部对象见教程架构 | agent-isles Host |
+| TutorialRun | 通过 Workspace 与执行引用接入系统的学习记录；内部对象见教程架构 | QCode Host |
 
 当前居民关联表达“当前复用会话”，不能代替完整任务历史。教程的定义、检查对象及项目内数量约束由 [教程领域模型](tutorial-architecture.md#2-领域模型与持久化聚合) 维护。
 
@@ -111,8 +111,8 @@ stateDiagram-v2
 | --- | --- | --- |
 | Workspace、Session、执行与审批事实 | DSH | 使用原有持久化，产品层不复制完整历史 |
 | 模型配置与凭据 | DSH | 使用其设置与凭据接口，不另建产品密钥库 |
-| 居民关联 | agent-isles Host | 保存稳定标识，恢复时验证引用有效性与项目归属 |
-| 教程定义与学习记录 | agent-isles 教程域 | 引用项目与执行事实；聚合结构和内容版本规则由教程架构定义 |
+| 居民关联 | QCode Host | 保存稳定标识，恢复时验证引用有效性与项目归属 |
+| 教程定义与学习记录 | QCode 教程域 | 引用项目与执行事实；聚合结构和内容版本规则由教程架构定义 |
 | 项目作品 | 用户项目文件 | 与业务状态分开，不将文件修改视为数据库事务的一部分 |
 | 草稿与呈现状态 | Client | 可本地保存，不承担权威进度或执行恢复 |
 | 居民动作、摘要与通知 | 派生层 | 可由事实重建，不能反向覆盖来源数据 |

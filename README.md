@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="assets/brand/android-chrome-512x512.png" alt="agent-isles logo" width="128" height="128">
+  <img src="assets/brand/android-chrome-512x512.png" alt="QCode logo" width="128" height="128">
 </p>
 
-<h1 align="center">agent-isles</h1>
+<h1 align="center">QCode</h1>
 
 <p align="center"><a href="README.zh-CN.md">简体中文</a> · <strong>English</strong></p>
 
@@ -22,11 +22,11 @@
 </p>
 
 <p align="center">
-  <a href="https://qiuner.github.io/agent-isles/">Website</a> ·
-  <a href="https://github.com/Qiuner/agent-isles/releases">Downloads</a> ·
+  <a href="https://qiuner.github.io/QCode/">Website</a> ·
+  <a href="https://github.com/Qiuner/QCode/releases">Downloads</a> ·
   <a href="https://www.xiaohongshu.com/explore/6aaa7374000000002601ba97?xsec_token=ABZnBGKcFdIU_duBj-QUdqXeTQPbn-81Ek_6xvyRuJaZU=&amp;xsec_source=pc_user">Demo video</a> ·
   <a href="#community-and-feedback">Community</a> ·
-  <a href="#what-is-agent-isles">Introduction</a> ·
+  <a href="#what-is-qcode">Introduction</a> ·
   <a href="#screenshots">Screenshots</a> ·
   <a href="#quick-start">Quick start</a> ·
   <a href="#how-it-works">How it works</a> ·
@@ -36,18 +36,18 @@
 </p>
 
 <a href="https://www.xiaohongshu.com/explore/6aaa7374000000002601ba97?xsec_token=ABZnBGKcFdIU_duBj-QUdqXeTQPbn-81Ek_6xvyRuJaZU=&amp;xsec_source=pc_user">
-  <img src="docs/images/agent-isles-demo-cover.png" alt="Watch the agent-isles demo video: Mosslight Isle, Q, and the creator companion" width="100%">
+  <img src="docs/images/qcode-demo-cover.png" alt="Watch the QCode demo video: Mosslight Isle, Q, and the creator companion" width="100%">
 </a>
 <p align="center"><strong><a href="https://www.xiaohongshu.com/explore/6aaa7374000000002601ba97?xsec_token=ABZnBGKcFdIU_duBj-QUdqXeTQPbn-81Ek_6xvyRuJaZU=&amp;xsec_source=pc_user">&#9654; Watch the demo video</a></strong></p>
 
 > [!IMPORTANT]
-> agent-isles is in early development. It currently provides a local Web MVP and a Windows x64 launcher/package preview; portable macOS Intel / Apple Silicon builds are implemented but not yet published. See the [desktop launcher guide](apps/desktop/README.en.md) for installation and build details.
+> QCode is in early development. It currently provides a local Web MVP and a Windows x64 launcher/package preview; portable macOS Intel / Apple Silicon builds are implemented but not yet published. See the [desktop launcher guide](apps/desktop/README.en.md) for installation and build details.
 
-**Windows portable preview:** [Download v0.1.0-preview.1](https://github.com/Qiuner/agent-isles/releases/tag/v0.1.0-preview.1). Extract the entire ZIP to a short path and run `agent-isles.exe`. You will need to configure a model the first time you use it. User data is stored in `%LOCALAPPDATA%\agent-isles\data`; stop the service from the system tray menu. The preview is unsigned and has no automatic updates. Exit the old version and extract an update to a new directory instead of overwriting files in use.
+**Windows portable preview:** [Download v0.1.0-preview.1](https://github.com/Qiuner/QCode/releases/tag/v0.1.0-preview.1). This historical release still uses the old executable name. New QCode builds use `QCode.exe`, store data in `%LOCALAPPDATA%\QCode\data`, and migrate the old data directory on first launch when no new directory exists. The preview is unsigned and has no automatic updates.
 
-## What is agent-isles?
+## What is QCode?
 
-agent-isles is an explorable environment for learning and creating with AI coding. It turns Agent capabilities that normally sit behind chat boxes, terminals, and tool lists into companions, places, and actions in an island world. You can begin with an idea and work with AI to turn it into a real, runnable project without first mastering models, sessions, tool calls, or repository structure.
+QCode is an explorable environment for learning and creating with AI coding. It turns Agent capabilities that normally sit behind chat boxes, terminals, and tool lists into companions, places, and actions in an island world. You can begin with an idea and work with AI to turn it into a real, runnable project without first mastering models, sessions, tool calls, or repository structure.
 
 Choose **guided learning** to discover requirements, projects, execution, approvals, and verification while completing your first project. Or choose **free creation** to connect an existing project and explore at your own pace. Learning is attached to real work rather than separated into a course: AI can act, but you still propose, experience, judge, and refine the result.
 
@@ -55,7 +55,7 @@ The explorable world makes a first encounter with AI coding less intimidating wi
 
 ## Current experience
 
-On Windows, the installed preview starts the service and opens the island from the agent-isles shortcut, with its runtime and assets included. Source builds can still use `打开小岛.cmd` to open an already-running development service; this script is not the installed application entry point.
+On Windows, the installed preview starts the service and opens the island from the QCode shortcut, with its runtime and assets included. Source builds can still use `打开小岛.cmd` to open an already-running development service; this script is not the installed application entry point.
 
 ## Main features
 
@@ -93,13 +93,13 @@ On Windows, the installed preview starts the service and opens the island from t
 - **Residents are capability entry points:** each resident has a clear responsibility, conversation, and state.
 - **The process is visible:** characters, speech bubbles, and animation reflect the AI's working state.
 - **The professional interface remains available:** the advanced workbench shows complete conversations, tool results, and human approvals.
-- **No duplicate execution engine:** agent-isles uses a pinned DeepSeek Harness runtime underneath.
+- **No duplicate execution engine:** QCode uses a pinned DeepSeek Harness runtime underneath.
 
 ## Screenshots
 
 ### The current island and Q
 
-![Q and its two robotic arms on the central platform](docs/images/agent-isles-q-current.png)
+![Q and its two robotic arms on the central platform](docs/images/qcode-q-current.png)
 
 Q connects to native conversations and execution for real projects. Uncle Moss manages projects and conversation history, while Alan inspects files. Web panel and narrow-screen screenshots will be recaptured; obsolete images were removed to avoid misrepresenting the current interface.
 
@@ -125,39 +125,39 @@ corepack yarn dev:web --no-open
 
 Open the local URL printed in the terminal. On first use, follow the interface to configure a model and select a local project directory, then talk to a resident.
 
-Development data is stored in `.agent-isles-home/` inside the repository by default. Set `DSH_HOME` before startup to use another location.
+Development data is stored in `.qcode-home/` inside the repository by default. An existing `.agent-isles-home/` is migrated when `.qcode-home/` does not yet exist. Set `DSH_HOME` before startup to use another location.
 
 ## Community and feedback
 
-<p align="center">Share your creations, exchange tips, and get help in the agent-isles QQ community (primarily Chinese).</p>
+<p align="center">Share your creations, exchange tips, and get help in the QCode QQ community (primarily Chinese).</p>
 
 <p align="center"><strong>QQ group: <code>543293474</code></strong> — scan with QQ or copy the number to search for the group.</p>
 
 <p align="center">
-  <img src="docs/images/qq-community.png" alt="QR code for the agent-isles QQ community, group 543293474" width="240" height="240">
+  <img src="docs/images/qq-community.png" alt="QR code for the QCode QQ community, group 543293474" width="240" height="240">
 </p>
 
-<p align="center">For bugs and feature requests, use <a href="https://github.com/Qiuner/agent-isles/issues">GitHub Issues</a> so progress can be tracked.</p>
+<p align="center">For bugs and feature requests, use <a href="https://github.com/Qiuner/QCode/issues">GitHub Issues</a> so progress can be tracked.</p>
 
 ## How it works
 
 ```text
 Creator / learner
-  -> agent-isles Web: island world, residents, conversations, and state
-    -> agent-isles Host/Client plugins: Workspace and Resident/Session mapping
+  -> QCode Web: island world, residents, conversations, and state
+    -> QCode Host/Client plugins: Workspace and Resident/Session mapping
       -> DeepSeek Harness: models, tools, approvals, files, and terminals
         -> Local project
 ```
 
-Godot renders the world and resident state. React provides workspace selection and resident interaction panels. DeepSeek Harness remains the single source of truth for conversations and execution state. agent-isles integrates through the public DSH/Cordis plugin interfaces; it does not modify upstream source or wrap a second Session API around it.
+Godot renders the world and resident state. React provides workspace selection and resident interaction panels. DeepSeek Harness remains the single source of truth for conversations and execution state. QCode integrates through the public DSH/Cordis plugin interfaces; it does not modify upstream source or wrap a second Session API around it.
 
 ## Repository layout
 
 | Directory | Purpose |
 | --- | --- |
-| `apps/web/` | Starts the agent-isles DSH Web profile |
+| `apps/web/` | Starts the QCode DSH Web profile |
 | `apps/desktop/` | Windows and macOS Intel / Apple Silicon launchers, packaging, and verification scripts |
-| `packages/agent-isles-web/` | agent-isles Host/Client Web plugins |
+| `packages/qcode-web/` | QCode Host/Client Web plugins |
 | `games/mosslight/` | The world built with Blender and Godot |
 | `deepseek-harness/` | Pinned upstream Git submodule |
 | `vendor/dsh-runtime/` | Pinned and verified DSH runtime packages |
@@ -180,7 +180,7 @@ The current stable channel pins DeepSeek Harness `0.1.3-alpha.1` at commit `d347
 
 - Do not modify `deepseek-harness/` directly.
 - Update the pinned version before running compatibility verification for a runtime upgrade.
-- Keep agent-isles product logic in its own plugins and world code.
+- Keep QCode product logic in its own plugins and world code.
 
 ## Current limitations
 
