@@ -8,7 +8,7 @@ import {
 } from 'node:fs'
 import path from 'node:path'
 
-const STATE_FILE = '.agent-isles-world-export.json'
+const STATE_FILE = '.qcode-world-export.json'
 const SOURCE_ENTRIES = [
   'project.godot',
   'export_presets.cfg',

@@ -45,8 +45,8 @@ func run() -> void:
 			round_segments = round_segments and is_equal_approx(segment.basis.x.length(), 1.0) and is_equal_approx(segment.basis.z.length(), 1.0)
 	check(round_segments, "curved segments retain circular cross sections")
 	check(not computer.grab(), "distant players are not grabbed")
-	game._on_agent_isles_message([JSON.stringify({"source": "agent-isles-host", "version": 1, "type": "world:init", "payload": {"panelOpen": false, "sessionId": "", "residents": [{"id": "coder", "status": "working"}]}})])
-	game._on_agent_isles_message([JSON.stringify({"source": "agent-isles-host", "version": 1, "type": "world:init", "payload": {"panelOpen": false, "sessionId": "", "residents": [{"id": "coder", "status": "completed"}]}})])
+	game._on_qcode_message([JSON.stringify({"source": "qcode-host", "version": 1, "type": "world:init", "payload": {"panelOpen": false, "sessionId": "", "residents": [{"id": "coder", "status": "working"}]}})])
+	game._on_qcode_message([JSON.stringify({"source": "qcode-host", "version": 1, "type": "world:init", "payload": {"panelOpen": false, "sessionId": "", "residents": [{"id": "coder", "status": "completed"}]}})])
 	game.player.position = Vector3(18, .05, 3)
 	game.player.velocity = Vector3.ZERO
 	await tick(310)
@@ -121,10 +121,10 @@ func run() -> void:
 		await tick(8)
 		check(game.player.position == frozen and computer.time == frozen_time, "pause freezes player and tentacles together")
 		game.set_game_paused(false)
-		game.agent_isles_panel_open = true
+		game.qcode_panel_open = true
 		await tick(8)
 		check(game.player.position == frozen and computer.time == frozen_time, "web panel suspends transport")
-		game.agent_isles_panel_open = false
+		game.qcode_panel_open = false
 		await tick(240)
 		check(not computer.active and game.player.position.distance_to(computer.LANDING) < .12, "player is released on the sanctuary landing")
 		check(game.player.is_on_floor(), "landing has real floor support")
@@ -160,7 +160,7 @@ func run() -> void:
 	await tick(5)
 	game._interact()
 	check(game.resident_dialogue.opened and game.resident_dialogue.speaker.text == "芽芽", "shared resident dialogue remains available outside the grab zone")
-	check(game.residents.residents[0].get_meta("agent_isles_id") == "gardener", "gardener no longer owns the coder session")
+	check(game.residents.residents[0].get_meta("qcode_id") == "gardener", "gardener no longer owns the coder session")
 	print("MOSSLIGHT_COMPUTER_TESTS_COMPLETE failures=", failures)
 	game.queue_free()
 	await tick(2)

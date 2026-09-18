@@ -1,0 +1,4 @@
+# QCode browser presentation layered over the official Web profile.
+- insert:
+    - id: qcode-web
+      name: '@qcode/web-plugin'

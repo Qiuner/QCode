@@ -22,7 +22,7 @@ const handlerFactory = new Function('createRequire', 'join', 'realpathSync', 'di
 )
 const handler = handlerFactory({ emit() {}, clientModules: { fetchBundle: () => new Response(null, { status: 404 }) } }, fixture)
 const results = []
-for (const pathname of ['/world/', '/world/index.wasm', '/world/index.pck', '/agent-isles/resident-state']) {
+for (const pathname of ['/world/', '/world/index.wasm', '/world/index.pck', '/qcode/resident-state']) {
   const response = await handler.fetch(new Request(`dsh-app://app${pathname}`))
   const body = await response.text()
   assert.equal(body, '<html>UPSTREAM_FRONTEND_FIXTURE</html>')

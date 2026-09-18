@@ -90,13 +90,13 @@ var residents: Node3D
 var garden: Node3D
 var resident_dialogue: CanvasLayer
 var sanctuary_computer: Node3D
-var agent_isles_message_handler: JavaScriptObject
-var agent_isles_bridge: JavaScriptObject
-var agent_isles_connected := false
-var agent_isles_workspace_id := ""
-var agent_isles_session_id := ""
+var qcode_message_handler: JavaScriptObject
+var qcode_bridge: JavaScriptObject
+var qcode_connected := false
+var qcode_workspace_id := ""
+var qcode_session_id := ""
 var embedded_mode := false
-var agent_isles_panel_open := false
+var qcode_panel_open := false
 var coder_completion_recall_left := -1.0
 var coder_agent_status := "idle"
 var region_barriers: Array[StaticBody3D] = []
@@ -119,7 +119,7 @@ func _ready() -> void:
 	add_child(environment_details)
 	residents = ISLAND_RESIDENTS.new()
 	add_child(residents)
-	residents.tutorial_motion.connect(func(encounter_id: String, status: String): _emit_agent_isles("tutorial:keeper", {"encounterId": encounter_id, "status": status}))
+	residents.tutorial_motion.connect(func(encounter_id: String, status: String): _emit_qcode("tutorial:keeper", {"encounterId": encounter_id, "status": status}))
 	if OS.has_feature("web"):
 		nature_motion = not bool(JavaScriptBridge.eval("window.matchMedia('(prefers-reduced-motion: reduce)').matches"))
 		camera_motion = nature_motion
@@ -127,7 +127,7 @@ func _ready() -> void:
 	camera.add_child(first_person_feedback)
 	first_person_feedback.visible = false
 	_build_ui()
-	_setup_agent_isles_bridge()
+	_setup_qcode_bridge()
 	garden = GARDEN_INVENTORY.new()
 	add_child(garden)
 	resident_dialogue = RESIDENT_DIALOGUE.new()
@@ -190,31 +190,33 @@ func _apply_embedded_hud() -> void:
 		garden.bag_hint.visible = not embedded_mode
 
 
-func _setup_agent_isles_bridge() -> void:
+func _setup_qcode_bridge() -> void:
 	if not OS.has_feature("web"):
 		return
-	agent_isles_bridge = JavaScriptBridge.get_interface("agentIslesWorldBridge")
-	if agent_isles_bridge == null:
+	qcode_bridge = JavaScriptBridge.get_interface("qcodeWorldBridge")
+	if qcode_bridge == null:
+		qcode_bridge = JavaScriptBridge.get_interface("agentIslesWorldBridge")
+	if qcode_bridge == null:
 		return
-	agent_isles_message_handler = JavaScriptBridge.create_callback(_on_agent_isles_message)
-	agent_isles_bridge.attachGodot(agent_isles_message_handler)
+	qcode_message_handler = JavaScriptBridge.create_callback(_on_qcode_message)
+	qcode_bridge.attachGodot(qcode_message_handler)
 
 
-func _emit_agent_isles(type: String, payload: Dictionary) -> void:
-	if not OS.has_feature("web") or agent_isles_bridge == null:
+func _emit_qcode(type: String, payload: Dictionary) -> void:
+	if not OS.has_feature("web") or qcode_bridge == null:
 		return
 	# JavaScriptBridge cannot marshal Dictionary arguments; pass JSON across the boundary.
-	agent_isles_bridge.emit(type, JSON.stringify(payload))
+	qcode_bridge.emit(type, JSON.stringify(payload))
 
 
-func _on_agent_isles_message(arguments: Array) -> void:
+func _on_qcode_message(arguments: Array) -> void:
 	if arguments.is_empty():
 		return
 	var parsed: Variant = JSON.parse_string(str(arguments[0]))
 	if typeof(parsed) != TYPE_DICTIONARY:
 		return
 	var message := parsed as Dictionary
-	if message.get("source") != "agent-isles-host" or int(message.get("version", 0)) != 1:
+	if message.get("source") not in ["qcode-host", "agent-isles-host"] or int(message.get("version", 0)) != 1:
 		return
 	if message.get("type") == "world:locale":
 		_set_world_locale(str(message.get("payload", {}).get("locale", "zh")))
@@ -225,7 +227,7 @@ func _on_agent_isles_message(arguments: Array) -> void:
 			set_game_paused(true)
 		elif action == "preview-review":
 			set_game_paused(false)
-			if agent_isles_panel_open or sanctuary_computer.active or sanctuary_computer.remote_active or garden.opened:
+			if qcode_panel_open or sanctuary_computer.active or sanctuary_computer.remote_active or garden.opened:
 				_show_toast(tr("preview.finish_interaction"), 3)
 			else:
 				sanctuary_computer.review_dialogue.open()
@@ -289,12 +291,12 @@ func _on_agent_isles_message(arguments: Array) -> void:
 		return
 	if message.get("type") != "world:init":
 		return
-	agent_isles_connected = true
+	qcode_connected = true
 	var payload: Dictionary = message.get("payload", {})
 	_set_world_locale(str(payload.get("locale", "zh")))
 	var panel_open := bool(payload.get("panelOpen", false))
-	if panel_open != agent_isles_panel_open:
-		agent_isles_panel_open = panel_open
+	if panel_open != qcode_panel_open:
+		qcode_panel_open = panel_open
 		mouse_was_captured = false
 		player.velocity = Vector3.ZERO
 		for action in ["walk_left", "walk_right", "walk_up", "walk_down", "jump", "sprint", "interact", "echo", "undo_echo"]:
@@ -306,7 +308,7 @@ func _on_agent_isles_message(arguments: Array) -> void:
 		resident_dialogue.close()
 		sanctuary_computer.magic_review_after = false
 	prompt.visible = not panel_open
-	agent_isles_session_id = str(payload.get("sessionId", ""))
+	qcode_session_id = str(payload.get("sessionId", ""))
 	for resident: Dictionary in payload.get("residents", []):
 		if resident.get("id") == "coder":
 			var next_status := str(resident.get("status", "idle"))
@@ -319,12 +321,12 @@ func _on_agent_isles_message(arguments: Array) -> void:
 		residents.set_agent_status(str(resident.get("id", "")), str(resident.get("status", "idle")))
 	var workspace: Variant = payload.get("workspace")
 	if typeof(workspace) != TYPE_DICTIONARY:
-		agent_isles_workspace_id = ""
+		qcode_workspace_id = ""
 		return
-	var previous_workspace_id := agent_isles_workspace_id
-	agent_isles_workspace_id = str((workspace as Dictionary).get("workspaceId", ""))
+	var previous_workspace_id := qcode_workspace_id
+	qcode_workspace_id = str((workspace as Dictionary).get("workspaceId", ""))
 	var workspace_title := str((workspace as Dictionary).get("title", ""))
-	if not workspace_title.is_empty() and agent_isles_workspace_id != previous_workspace_id:
+	if not workspace_title.is_empty() and qcode_workspace_id != previous_workspace_id:
 		_show_toast(tr("workspace.connected") % workspace_title, 4.0)
 
 
@@ -660,7 +662,7 @@ func _material(color: Color, roughness: float, glow: bool = false) -> StandardMa
 
 
 func _physics_process(delta: float) -> void:
-	if game_paused or agent_isles_panel_open or sanctuary_computer.review_dialogue.opened:
+	if game_paused or qcode_panel_open or sanctuary_computer.review_dialogue.opened:
 		return
 	sanctuary_computer.advance(delta)
 	if sanctuary_computer.review_dialogue.opened:
@@ -761,7 +763,7 @@ func set_echo_active(value: bool) -> void:
 
 
 func use_echo() -> void:
-	if game_paused or agent_isles_panel_open or not knows_echo(selected_echo):
+	if game_paused or qcode_panel_open or not knows_echo(selected_echo):
 		return
 	if not echo_active:
 		set_echo_active(true)
@@ -875,12 +877,12 @@ func place_echo() -> bool:
 
 
 func _interact() -> void:
-	if game_paused or agent_isles_panel_open or sanctuary_computer.active:
+	if game_paused or qcode_panel_open or sanctuary_computer.active:
 		return
 	if sanctuary_computer.can_use():
-		if embedded_mode or agent_isles_connected:
+		if embedded_mode or qcode_connected:
 			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-			_emit_agent_isles("resident:selected", {"residentId": "coder"})
+			_emit_qcode("resident:selected", {"residentId": "coder"})
 		else:
 			_show_toast(tr("q.open_web"), 4)
 		return
@@ -908,14 +910,14 @@ func _interact() -> void:
 	else:
 		var npc: StaticBody3D = residents.nearest(player)
 		if npc != null:
-			var resident_id := str(npc.get_meta("agent_isles_id"))
-			var followup_id := resident_id if (embedded_mode or agent_isles_connected) and resident_id != "gardener" else ""
+			var resident_id := str(npc.get_meta("qcode_id"))
+			var followup_id := resident_id if (embedded_mode or qcode_connected) and resident_id != "gardener" else ""
 			var lines: Array[String]
 			var dialogue_options: Array[Dictionary] = []
 			if followup_id.is_empty():
 				lines = residents.dialogue_lines(npc, learned)
 			else:
-				var handoff: Dictionary = residents.agent_isles_talk(npc, not agent_isles_workspace_id.is_empty())
+				var handoff: Dictionary = residents.qcode_talk(npc, not qcode_workspace_id.is_empty())
 				lines = [str(handoff.text)]
 				if resident_id == "coordinator":
 					dialogue_options = [
@@ -1024,7 +1026,7 @@ func _process(delta: float) -> void:
 	distance_haze.set_shader_parameter("clear_radius", 10.0 if view_mode == ViewMode.OVERVIEW else 7.0)
 	if game_paused:
 		return
-	if agent_isles_panel_open:
+	if qcode_panel_open:
 		coder_completion_recall_left = -1.0
 	elif coder_completion_recall_left >= 0:
 		coder_completion_recall_left -= delta
@@ -1061,7 +1063,7 @@ func _process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if agent_isles_panel_open or sanctuary_computer.review_dialogue.opened:
+	if qcode_panel_open or sanctuary_computer.review_dialogue.opened:
 		return
 	if garden.opened:
 		if event.is_action_pressed("inventory") or event.is_action_pressed("close_game"):

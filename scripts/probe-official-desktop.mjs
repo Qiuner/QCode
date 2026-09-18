@@ -31,7 +31,7 @@ for (const entry of await readdir(join(template, 'node_modules'), { withFileType
     for (const child of await readdir(source)) await link(join(source, child), join(dest, child))
   } else await link(source, dest)
 }
-const pluginName = 'agent-isles-desktop-world-probe'
+const pluginName = 'qcode-desktop-world-probe'
 const plugin = join(modules, pluginName)
 await mkdir(plugin)
 await writeFile(join(plugin, 'package.json'), JSON.stringify({ name: pluginName, version: '0.0.0', type: 'module', main: 'index.mjs' }))
@@ -45,11 +45,11 @@ const profile = JSON.parse(await readFile(join(template, 'package.json'), 'utf8'
 profile.dependencies[pluginName] = '0.0.0'
 if (product) {
   await buildDesktopPlugin(root, upstream, modules, output)
-  profile.dependencies['@agent-isles/web-plugin'] = '0.0.0'
+  profile.dependencies['@qcode/web-plugin'] = '0.0.0'
   await writeFile(join(plugin, 'brand-root.json'), JSON.stringify(join(output, 'brand')))
 }
 await writeFile(join(project, 'package.json'), JSON.stringify(profile))
-await writeFile(join(project, 'cordis.patch.yml'), JSON.stringify([{ insert: [{ id: pluginName, name: pluginName }, ...(product ? [{ id: 'agent-isles', name: '@agent-isles/web-plugin' }] : [])] }]))
+await writeFile(join(project, 'cordis.patch.yml'), JSON.stringify([{ insert: [{ id: pluginName, name: pluginName }, ...(product ? [{ id: 'qcode', name: '@qcode/web-plugin' }] : [])] }]))
 const appManifest = JSON.parse(await readFile(join(upstream, 'apps/desktop/package.json'), 'utf8'))
 await writeFile(join(app, 'package.json'), JSON.stringify(appManifest))
 await link(join(upstream, 'apps/desktop/lib'), join(app, 'lib'))
@@ -108,14 +108,14 @@ try {
     await delay(250)
   }
   if (product) {
-    assert.equal(await evaluate(`__DSH_BOOT__.entries.some(e=>e.id==='@agent-isles/web-plugin')`), true)
-    await evaluate(`(()=>{window.probeEvents=[];window.addEventListener('message',e=>{if(e.origin===location.origin&&e.data?.source==='agent-isles-world')probeEvents.push(e.data)});})()`)
+    assert.equal(await evaluate(`__DSH_BOOT__.entries.some(e=>e.id==='@qcode/web-plugin')`), true)
+    await evaluate(`(()=>{window.probeEvents=[];window.addEventListener('message',e=>{if(e.origin===location.origin&&e.data?.source==='qcode-world')probeEvents.push(e.data)});})()`)
   }
   const resourceStart = Date.now()
   const checks = await evaluate(`(async()=>{
-    const head=await fetch('/api/agent-isles/world/index.wasm',{method:'HEAD'});
-    const missing=await fetch('/api/agent-isles/world/not-exported.pck');
-    const outside=await fetch('/api/agent-isles/package.json');
+    const head=await fetch('/api/qcode/world/index.wasm',{method:'HEAD'});
+    const missing=await fetch('/api/qcode/world/not-exported.pck');
+    const outside=await fetch('/api/qcode/package.json');
     return {wasmStatus:head.status,mime:head.headers.get('content-type'),headBytes:(await head.arrayBuffer()).byteLength,missing:missing.status,outside:outside.status,origin:location.origin};
   })()`)
   console.log('Resource checks:', checks)
@@ -124,17 +124,17 @@ try {
   const cancelStart = Date.now()
   const cancellation = await evaluate(`(async()=>{
     const controller=new AbortController();
-    const response=await fetch('/api/agent-isles/world/index.pck',{signal:controller.signal});
+    const response=await fetch('/api/qcode/world/index.pck',{signal:controller.signal});
     const reader=response.body.getReader();await reader.read();controller.abort();
     let aborted=false;try{while(!(await reader.read()).done){}}catch(e){aborted=e.name==='AbortError'}
-    const after=await fetch('/api/agent-isles/world/index.html');await after.arrayBuffer();
+    const after=await fetch('/api/qcode/world/index.html');await after.arrayBuffer();
     return {aborted,afterCancel:after.status};
   })()`)
   assert.deepEqual(cancellation, { aborted: true, afterCancel: 200 })
   timings.cancellationMs = Date.now() - cancelStart
   console.log('Cancellation checks:', cancellation)
   const worldStart = Date.now()
-  if (!product) await rpc('Page.navigate', { url: 'dsh-app://app/api/agent-isles/preview' })
+  if (!product) await rpc('Page.navigate', { url: 'dsh-app://app/api/qcode/preview' })
   await rpc('Page.bringToFront')
   // Keep the unattended validation advancing while the user works in another app.
   await rpc('Emulation.setFocusEmulationEnabled', { enabled: true })
@@ -148,7 +148,7 @@ try {
   timings.worldMs = Date.now() - worldStart
   const interaction = product ? await evaluate(`(async()=>{
     const frame=document.querySelector('.town-shell iframe'),original=frame.contentDocument;
-    frame.contentWindow.eval('parent.postMessage({source:"agent-isles-world",version:1,type:"resident:selected",payload:{residentId:"coder"}},location.origin)');
+    frame.contentWindow.eval('parent.postMessage({source:"qcode-world",version:1,type:"resident:selected",payload:{residentId:"coder"}},location.origin)');
     await new Promise(r=>setTimeout(r,500));
     const opened=!!document.querySelector('.town-conversation,.town-model-settings');
     const seat=document.querySelector('.town-native-chat-seat');
@@ -163,7 +163,7 @@ try {
   })()`) : await evaluate(`(async()=>{
     const world=document.querySelector('#world-probe'),worldDocument=world.contentDocument;
     const panel=document.querySelector('#preview-workbench'),chat=panel.querySelector('iframe');
-    const message={source:'agent-isles-world',version:1,type:'resident:selected',payload:{residentId:'coder'}};
+    const message={source:'qcode-world',version:1,type:'resident:selected',payload:{residentId:'coder'}};
     window.postMessage(message,location.origin);await new Promise(r=>setTimeout(r,50));
     const rejectedForeignSource=panel.hidden;
     world.contentWindow.eval('parent.postMessage('+JSON.stringify(message)+',location.origin)');

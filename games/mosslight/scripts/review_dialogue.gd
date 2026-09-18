@@ -202,7 +202,7 @@ func close() -> void:
 	options.clear()
 	for option in option_buttons:
 		option.visible = false
-	if was_opened and not game.agent_isles_panel_open and game.toast != null:
+	if was_opened and not game.qcode_panel_open and game.toast != null:
 		game.toast.visible = true
 
 
@@ -233,7 +233,7 @@ func advance() -> void:
 		var followup := next_resident_id
 		close()
 		if not followup.is_empty():
-			game._emit_agent_isles("resident:selected", {"residentId": followup})
+			game._emit_qcode("resident:selected", {"residentId": followup})
 
 func _select_option(index: int) -> void:
 	if not opened or index < 0 or index >= options.size() or words.visible_characters < words.text.length():
@@ -241,12 +241,12 @@ func _select_option(index: int) -> void:
 	var target := str(options[index].get("resident_id", ""))
 	close()
 	if not target.is_empty():
-		game._emit_agent_isles("resident:selected", {"residentId": target})
+		game._emit_qcode("resident:selected", {"residentId": target})
 
 func _process(delta: float) -> void:
 	if not opened:
 		return
-	if game.agent_isles_panel_open:
+	if game.qcode_panel_open:
 		close()
 		return
 	elapsed += delta

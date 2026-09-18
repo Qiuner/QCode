@@ -4,10 +4,11 @@ import { createHash } from 'node:crypto'
 import { mkdirSync, openSync, closeSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { resolveQCodeHome } from './home.mjs'
 
 const root = fileURLToPath(new URL('../../../', import.meta.url))
-const home = path.resolve(process.env.DSH_HOME ?? path.join(root, '.agent-isles-home'))
-const pipe = `\\\\.\\pipe\\agent-isles-${createHash('sha256').update(home.toLowerCase()).digest('hex').slice(0, 24)}`
+const home = resolveQCodeHome(root, process.env.DSH_HOME)
+const pipe = `\\\\.\\pipe\\qcode-${createHash('sha256').update(home.toLowerCase()).digest('hex').slice(0, 24)}`
 const action = process.argv[2] ?? 'start'
 function request(command) {
   return new Promise((resolve, reject) => {

@@ -10,7 +10,7 @@ import {
 } from './world-export-state.mjs'
 
 function fixture() {
-  const root = mkdtempSync(path.join(tmpdir(), 'agent-isles-world-state-'))
+  const root = mkdtempSync(path.join(tmpdir(), 'qcode-world-state-'))
   const project = path.join(root, 'games', 'mosslight')
   const output = path.join(project, 'build', 'web')
   for (const directory of ['assets', 'locales', 'scenes', 'scripts', 'web', 'build/web']) {

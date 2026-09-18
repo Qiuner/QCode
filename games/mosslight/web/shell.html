@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#649c8c">
-  <title>agent-isles</title>
+  <title>QCode</title>
   <link rel="icon" type="image/webp" href="cover.webp">
   <style>
     :root { color-scheme: light; font-family: "Segoe UI", "Microsoft YaHei", sans-serif; color: #172d29; background: #649c8c; }
@@ -70,7 +70,7 @@
     <canvas id="canvas" width="1600" height="1000" tabindex="0" aria-label="苔光之屿游戏画面，使用 WASD 移动、空格跳跃">当前浏览器不支持画布，请使用新版 Chrome、Edge 或 Firefox。</canvas>
     <section id="gate" aria-label="进入游戏">
       <img class="art" src="cover.webp?v=2" srcset="cover.webp?v=2 1920w, cover-2560.webp 2560w, cover-3840.webp 3840w" sizes="100vw" width="3840" height="1564" alt="溪间庭院、苔光之屿和晴沙绿洲，由石桥相连的三个世界地块" fetchpriority="high">
-      <h1>agent-isles</h1>
+      <h1>QCode</h1>
       <div class="entry">
         <button id="start">进入世界</button>
         <div id="status" role="status" aria-live="polite"></div>
@@ -82,7 +82,9 @@
   </main>
   <script src="$GODOT_URL"></script>
   <script>
-    const AGENT_ISLES_BRIDGE_VERSION = 1;
+    const QCODE_BRIDGE_VERSION = 1;
+    const QCODE_HOST_SOURCE = 'qcode-host';
+    const LEGACY_HOST_SOURCE = 'agent-isles-host';
     const embedded = new URLSearchParams(location.search).get('embed') === '1';
     // The host and iframe must use the same loopback origin after a hard refresh.
     // Referrer is authoritative when the world is embedded; fall back to same-origin
@@ -131,7 +133,7 @@
     }
     const pendingHostMessages = [];
     let godotMessageHandler = null;
-    window.agentIslesWorldBridge = {
+    const qcodeWorldBridge = {
       attachGodot(handler) {
         godotMessageHandler = handler;
         for (const message of pendingHostMessages.splice(0)) handler(JSON.stringify(message));
@@ -141,16 +143,18 @@
         // Godot sends JSON strings; shell-originated events already use JS objects.
         if (typeof payload === 'string') payload = JSON.parse(payload);
         window.parent.postMessage({
-          source: 'agent-isles-world', version: AGENT_ISLES_BRIDGE_VERSION, type, ...(payload === undefined ? {} : { payload })
+          source: 'qcode-world', version: QCODE_BRIDGE_VERSION, type, ...(payload === undefined ? {} : { payload })
         }, parentOrigin);
       }
     };
+    window.qcodeWorldBridge = qcodeWorldBridge;
+    window.agentIslesWorldBridge = qcodeWorldBridge;
     window.addEventListener('message', event => {
       if (event.origin !== parentOrigin || event.source !== window.parent) return;
       const message = event.data;
       if (typeof message !== 'object' || message === null
-        || message.source !== 'agent-isles-host'
-        || message.version !== AGENT_ISLES_BRIDGE_VERSION) return;
+        || (message.source !== QCODE_HOST_SOURCE && message.source !== LEGACY_HOST_SOURCE)
+        || message.version !== QCODE_BRIDGE_VERSION) return;
       if (message.type === 'world:show-guide') {
         document.getElementById('guide').showModal();
         return;
@@ -166,15 +170,15 @@
         return;
       }
       if (message.type === 'world:init' && window.neighborState) {
-        window.agentIslesWorldBridge.emit('world:regions', window.neighborState);
+        window.qcodeWorldBridge.emit('world:regions', window.neighborState);
       }
       if (message.type === 'world:init' && message.payload?.workspace) {
-        document.title = `${message.payload.workspace.title} · agent-isles`;
+        document.title = `${message.payload.workspace.title} · QCode`;
       }
       if (godotMessageHandler) godotMessageHandler(JSON.stringify(message));
       else pendingHostMessages.push(message);
     });
-    window.agentIslesWorldBridge.emit('world:ready');
+    window.qcodeWorldBridge.emit('world:ready');
 
     const config = $GODOT_CONFIG;
     const engine = new Engine(config);
@@ -183,7 +187,7 @@
     window.neighborState = { stage: 'waiting', detail: shell('waiting') };
     function reportNeighbors(stage, detail) {
       window.neighborState = { stage, detail };
-      window.agentIslesWorldBridge.emit('world:regions', window.neighborState);
+      window.qcodeWorldBridge.emit('world:regions', window.neighborState);
     }
     window.finishNeighborRegions = (ok) => {
       clearTimeout(neighborInstallTimeout);
@@ -201,7 +205,7 @@
       loadingNeighbors = true;
       reportNeighbors('downloading', shell('downloading'));
       setTimeout(() => godotMessageHandler?.(JSON.stringify({
-        source: 'agent-isles-host', version: AGENT_ISLES_BRIDGE_VERSION, type: 'world:neighbors-started'
+        source: QCODE_HOST_SOURCE, version: QCODE_BRIDGE_VERSION, type: 'world:neighbors-started'
       })), 0);
       let type = 'world:neighbors-failed';
       let failure = '';
@@ -237,7 +241,7 @@
           break;
         } catch (error) {
           failure = error.name === 'AbortError' ? shell('timeout') : (error instanceof TypeError ? shell('disconnected') : error.message);
-          console.error('agent-isles region download failed:', error);
+          console.error('QCode region download failed:', error);
           if (attempt === 0) {
             reportNeighbors('downloading', shell('retrying')(failure));
             await new Promise(resolve => setTimeout(resolve, 1000));
@@ -252,7 +256,7 @@
       }
       // Defer re-entry into Godot until the current WASM callback has returned.
       setTimeout(() => godotMessageHandler?.(JSON.stringify({
-        source: 'agent-isles-host', version: AGENT_ISLES_BRIDGE_VERSION, type
+        source: QCODE_HOST_SOURCE, version: QCODE_BRIDGE_VERSION, type
       })), 0);
     };
     const canvas = document.getElementById('canvas');
@@ -281,7 +285,7 @@
     let guideFromPause = false;
     const pauseHome = document.getElementById('pause-home');
     const pauseSettings = document.getElementById('pause-settings');
-    const pauseAction = (action, extra = {}) => godotMessageHandler?.(JSON.stringify({ source: 'agent-isles-host', version: 1, type: 'world:pause-action', payload: { action, ...extra } }));
+    const pauseAction = (action, extra = {}) => godotMessageHandler?.(JSON.stringify({ source: QCODE_HOST_SOURCE, version: QCODE_BRIDGE_VERSION, type: 'world:pause-action', payload: { action, ...extra } }));
     const backToPause = () => { pauseSettings.hidden = true; pauseHome.hidden = false; document.getElementById('pause-title').textContent = shell('rest'); document.getElementById('pause-resume').focus(); };
     window.showIslandPause = state => {
       if (!state.open) { pause.close(); canvas.focus(); return; }
@@ -352,7 +356,7 @@
     guide.addEventListener('close', () => { if (guideFromPause) { guideFromPause = false; pause.showModal(); backToPause(); } else if (started) canvas.focus(); });
     applyShellLocale(shellLocale);
     window.addEventListener('message', event => {
-      if (event.origin !== parentOrigin || event.source !== window.parent || event.data?.source !== 'agent-isles-host' || event.data.version !== 1 || event.data.type !== 'world:init') return;
+      if (event.origin !== parentOrigin || event.source !== window.parent || ![QCODE_HOST_SOURCE, LEGACY_HOST_SOURCE].includes(event.data?.source) || event.data.version !== QCODE_BRIDGE_VERSION || event.data.type !== 'world:init') return;
       document.getElementById('pause-task').hidden = !event.data.payload?.residents?.some(item => item.id === 'coder' && ['working', 'thinking'].includes(item.status));
     });
     let started = false;
@@ -365,7 +369,7 @@
       start.disabled = false;
       start.textContent = shell('reload');
       status.textContent = shell('loadFailed');
-      console.error('agent-isles failed to start:', error);
+      console.error('QCode failed to start:', error);
     }
     async function startGame() {
       if (started) return;
@@ -394,7 +398,7 @@
         gate.hidden = true;
         canvas.focus();
         document.getElementById('connection').textContent = '';
-        window.agentIslesWorldBridge.emit('world:playable');
+        window.qcodeWorldBridge.emit('world:playable');
       } catch (error) { reportFailure(error); }
     }
     start.addEventListener('click', startGame);

@@ -5,8 +5,8 @@ import { stripTypeScriptTypes } from 'node:module'
 
 /** Compile the real product plugin against the isolated official dependency graph. */
 export async function buildDesktopPlugin(root, upstream, modules, output) {
-  const source = join(root, 'packages/agent-isles-web')
-  const target = join(modules, '@agent-isles/web-plugin')
+  const source = join(root, 'packages/qcode-web')
+  const target = join(modules, '@qcode/web-plugin')
   await mkdir(target, { recursive: true })
   await cp(join(source, 'src'), join(target, 'src'), { recursive: true })
   await symlink(join(upstream, 'node_modules/.pnpm/node_modules'), join(target, 'node_modules'), 'junction')

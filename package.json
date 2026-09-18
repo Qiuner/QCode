@@ -1,8 +1,8 @@
 {
-  "name": "agent-isles",
+  "name": "qcode",
   "private": true,
   "license": "MIT",
-  "description": "agent-isles workspace",
+  "description": "QCode workspace",
   "packageManager": "yarn@4.18.0",
   "engines": {
     "node": "^22.19.0 || >=24.0.0"
@@ -516,6 +516,7 @@
   },
   "scripts": {
     "check:doc-i18n": "node scripts/check-doc-i18n-sync.mjs --working-tree",
+    "check:qcode-naming": "node scripts/check-qcode-naming.mjs",
     "check:world-export": "node scripts/check-world-export.mjs",
     "check:upstream": "node scripts/check-upstream.mjs",
     "check:vendored-runtime": "node scripts/sync-vendored-runtime.mjs --check",
@@ -528,12 +529,12 @@
     "upstream:build:official": "cd deepseek-harness && CI=true DSH_BUILD_CLIENT_PROFILE=official corepack pnpm run build",
     "upstream:pack:dsh": "cd deepseek-harness && CI=true corepack pnpm run release:pack --family dsh",
     "upstream:prepare-runtime": "yarn upstream:install && yarn upstream:build:official && yarn upstream:pack:dsh",
-    "build:web": "yarn workspace @agent-isles/web-plugin build",
+    "build:web": "yarn workspace @qcode/web-plugin build",
     "build:world": "node scripts/export-world.mjs",
     "build:desktop:darwin": "node apps/desktop/build-darwin.mjs",
     "verify:desktop:darwin": "bash apps/desktop/verify-darwin.sh",
-    "dev:web": "yarn check:world-export && yarn build:web && yarn workspace @agent-isles/web start",
-    "typecheck": "yarn workspace @agent-isles/web-plugin typecheck"
+    "dev:web": "yarn check:world-export && yarn build:web && yarn workspace @qcode/web start",
+    "typecheck": "yarn workspace @qcode/web-plugin typecheck"
   },
   "devDependencies": {
     "@types/node": "^22.20.0",

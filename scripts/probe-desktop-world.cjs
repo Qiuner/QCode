@@ -6,7 +6,7 @@ const { createRequire } = require('node:module')
 const { pathToFileURL } = require('node:url')
 const root = path.resolve(__dirname, '..')
 const sharedFetch = process.argv.includes('--shared-fetch')
-const worldPath = sharedFetch ? '/api/agent-isles/world/' : '/world/'
+const worldPath = sharedFetch ? '/api/qcode/world/' : '/world/'
 const output = path.join(root, 'dist', sharedFetch ? 'desktop-shared-fetch-probe' : 'desktop-world-probe')
 app.setPath('userData', path.join(output, `user-data-${process.pid}`))
 protocol.registerSchemesAsPrivileged([{ scheme: 'dsh-app', privileges: {
@@ -19,9 +19,9 @@ const html = `<!doctype html><body><iframe src="${worldPath}index.html?embed=1" 
 window.probeEvents=[];
 const frame=document.querySelector('iframe');
 window.addEventListener('message', e=>{
-  if(e.source!==frame.contentWindow||e.origin!==location.origin||e.data?.source!=='agent-isles-world'||e.data?.version!==1)return;
+  if(e.source!==frame.contentWindow||e.origin!==location.origin||e.data?.source!=='qcode-world'||e.data?.version!==1)return;
   probeEvents.push({origin:e.origin,type:e.data?.type,payload:e.data?.payload});
-  if(e.data?.type==='world:ready')frame.contentWindow.postMessage({source:'agent-isles-host',version:1,type:'world:init',payload:{locale:'en',workspace:null,sessionId:null,panelOpen:false,residents:[]}},location.origin);
+  if(e.data?.type==='world:ready')frame.contentWindow.postMessage({source:'qcode-host',version:1,type:'world:init',payload:{locale:'en',workspace:null,sessionId:null,panelOpen:false,residents:[]}},location.origin);
 });
 </script>`
 app.whenReady().then(async () => {
@@ -60,7 +60,7 @@ app.whenReady().then(async () => {
     if (missing.status !== 404) throw new Error('Unregistered resources must return 404')
     const head = await handler.fetch(new Request('dsh-app://app' + worldPath + 'index.wasm', { method: 'HEAD' }))
     if (head.status !== 200 || head.headers.get('content-type') !== 'application/wasm' || (await head.arrayBuffer()).byteLength !== 0) throw new Error('Invalid WASM HEAD response')
-    const outside = await handler.fetch(new Request('dsh-app://app/api/agent-isles/package.json'))
+    const outside = await handler.fetch(new Request('dsh-app://app/api/qcode/package.json'))
     if (outside.status !== 404) throw new Error('Unregistered paths must not expose files')
     Object.assign(routeChecks, { missing: true, wasmHead: true, unregisteredPath: true })
   }

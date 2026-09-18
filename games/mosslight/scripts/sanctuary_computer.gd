@@ -178,7 +178,7 @@ func _ready() -> void:
 
 
 func can_use() -> bool:
-	return not active and not review_dialogue.opened and not game.game_paused and not game.agent_isles_panel_open and not game.garden.opened and game.player.global_position.distance_to(LANDING) < 1.25
+	return not active and not review_dialogue.opened and not game.game_paused and not game.qcode_panel_open and not game.garden.opened and game.player.global_position.distance_to(LANDING) < 1.25
 
 
 func set_status(status: String) -> void:
@@ -209,14 +209,14 @@ func refresh_locale() -> void:
 
 
 func can_grab() -> bool:
-	if active or game.game_paused or game.agent_isles_panel_open or game.garden.opened:
+	if active or game.game_paused or game.qcode_panel_open or game.garden.opened:
 		return false
 	var point: Vector3 = game.player.global_position
 	# Only the open front approach is reachable; the ruins and cottage stay out of range.
 	return absf(point.x - ORIGIN.x) < 1.65 and point.z > -3.65 and point.z < -.7 and absf(point.y) < .25
 
 func can_remote_grab() -> bool:
-	return not active and not remote_active and magic_time >= MAGIC_DURATION and not review_dialogue.opened and not game.game_paused and not game.agent_isles_panel_open and not game.garden.opened and game.player.global_position.distance_to(LANDING) > 4.0
+	return not active and not remote_active and magic_time >= MAGIC_DURATION and not review_dialogue.opened and not game.game_paused and not game.qcode_panel_open and not game.garden.opened and game.player.global_position.distance_to(LANDING) > 4.0
 
 func remote_grab(for_review: bool = false) -> bool:
 	if not can_remote_grab():
@@ -278,10 +278,10 @@ func grab() -> bool:
 
 
 func advance(delta: float) -> void:
-	if game.agent_isles_panel_open:
+	if game.qcode_panel_open:
 		review_dialogue.close()
 		magic_review_after = false
-	if game.game_paused or game.agent_isles_panel_open or game.garden.opened:
+	if game.game_paused or game.qcode_panel_open or game.garden.opened:
 		return
 	if not game.nature_motion and (magic_time < MAGIC_DURATION or magic_pending):
 		var show_review := magic_review_after
@@ -680,7 +680,7 @@ func _start_magic(for_review: bool, trick: String = "") -> void:
 func preview_magic(trick: String = "starlight") -> bool:
 	if trick not in MAGIC_TRICKS:
 		return false
-	if active or remote_active or review_dialogue.opened or game.game_paused or game.agent_isles_panel_open or game.garden.opened or not game.nature_motion or magic_time < MAGIC_DURATION:
+	if active or remote_active or review_dialogue.opened or game.game_paused or game.qcode_panel_open or game.garden.opened or not game.nature_motion or magic_time < MAGIC_DURATION:
 		return false
 	_start_magic(false, trick)
 	magic_preview = true
