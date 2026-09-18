@@ -1,6 +1,7 @@
 import { spawn, spawnSync } from 'node:child_process'
 import { copyFileSync, existsSync, mkdirSync } from 'node:fs'
 import path from 'node:path'
+import { captureWorldSourceState, writeWorldExportState } from './world-export-state.mjs'
 
 const workspaceRoot = path.resolve(import.meta.dirname, '..')
 const project = path.join(workspaceRoot, 'games', 'mosslight')
@@ -26,6 +27,8 @@ for (const args of [
     process.exit(result.status ?? 1)
   }
 }
+
+const sourceState = captureWorldSourceState(project)
 
 const child = spawn(godot, [
   '--headless',
@@ -69,5 +72,7 @@ child.once('exit', (code, signal) => {
   if (!existsSync(path.join(output, 'neighbors.pck'))) {
     console.error('neighbors.pck missing after Neighbors export.')
     process.exitCode = 1
+    return
   }
+  writeWorldExportState(project, output, sourceState)
 })

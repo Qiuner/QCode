@@ -24,7 +24,7 @@
 
 ## 实施次序与验收
 
-1. 资源通道：采用 `connection.fetch.register` 注册 `/api/agent-isles/world/` 下的精确文件路径，由官方共享 Fetch 通道承载，不把世界写入上游前端 dist 或禁用沙箱。
+1. 资源通道：采用 `connection.fetch.register` 注册 `/api/qcode/world/` 下的精确文件路径，由官方共享 Fetch 通道承载，不把世界写入上游前端 dist 或禁用沙箱；迁移期保留旧路由别名。
 2. 最小桌面演示：加载一个真实 Godot 世界，验证 WASM MIME、PCK 与邻岛加载、iframe 握手、鼠标锁定和输入焦点。此阶段不接真实模型。
 3. Runtime 与插件升级：成套更新 submodule、runtime、依赖与锁文件，执行类型、构建和回归；不能混用两套 DSH 服务实例。
 4. 领域接入：迁移教程、项目文件、居民关联和模型测试接口；Web 仍可运行，桌面不再启动我们自己的 Launcher / Host。
@@ -58,7 +58,7 @@
 
 官方 `packages/client/connection/src/rpc.ts` 公开 `ConnectionFetchRoute`；`rpc-host.ts` 的 `fetch.register` 注册精确路径，并随 Cordis Context 销毁移除。官方 desktop-host 已把 `/api/` 分派给 `connection.createSharedFetchHandler('/api')`，Web 也使用此处理器。因此不需要上游新增世界资源 API。
 
-- 构建时形成允许发布的世界文件清单，插件启动时逐个登记 `/api/agent-isles/world/<相对路径>`，入口明确使用 `index.html`；相对引用可继续加载 JS、WASM、PCK 与邻岛。
+- 构建时形成允许发布的世界文件清单，插件启动时逐个登记 `/api/qcode/world/<相对路径>`，入口明确使用 `index.html`；相对引用可继续加载 JS、WASM、PCK 与邻岛。
 - 正式处理器仅服务清单内文件，校验真实路径不越过世界根目录，提供正确 MIME、GET/HEAD、404 和取消/资源释放行为。后续最小 Host 插件已采用流式响应；大文件峰值内存仍待测量。
 - 插件资源服务依赖 `connection`，移除强制 `webServer` 依赖；Web 旧 `/world/` 如需兼容，仅作为可选适配。品牌资源使用同样机制。
 - 教程、项目文件、居民状态和模型测试迁入 `/api` 下的共享 Fetch 或官方 Typert Remote 服务。HTTP socket/origin 检查改由官方载体身份边界承担；业务仍校验会话归属、路径和权限，不能直接删除原检查后裸露接口。
@@ -78,7 +78,7 @@
 
 - `scripts/fixtures/desktop-world-plugin/index.mjs` 是验证用 Host 插件，仅依赖 `connection`，不提供产品会话与教程功能。按导出文件清单注册精确路径，使用文件流返回内容，检查真实路径包含关系；请求取消与 Context 卸载会中止读取。
 - `corepack yarn upstream:desktop:probe` 运行固定版本未改动的官方 Electron main、官方 Host 子进程及原生双向字节管道。生成独立 app/profile、DSH_HOME 和 userData，仅链接已构建的官方依赖；所有运行产物位于 `dist/official-desktop-probe/<时间戳>/`。不改上游源码、原开发 profile 或生产 vendor。
-- 测试导航到插件提供的 `/api/agent-isles/preview` 独立页面，页面负责同源 iframe 和握手，不再临时覆盖官方工作台 DOM。保留严格 origin、消息版本和 iframe 窗口校验。验证后保存 `preview.png` 核对可见画面，默认关闭窗口并由官方生命周期停止 Host；`--preview` 则保留窗口供人工检查。
+- 测试导航到插件提供的 `/api/qcode/preview` 独立页面，页面负责同源 iframe 和握手，不再临时覆盖官方工作台 DOM。保留严格 origin、消息版本和 iframe 窗口校验。验证后保存 `preview.png` 核对可见画面，默认关闭窗口并由官方生命周期停止 Host；`--preview` 则保留窗口供人工检查。
 - 实际通过：WASM HEAD 为 200 / application/wasm 且无响应体；未知资源与未登记路径为 404；真实主岛 world:playable、邻岛 ready、world:ready/init 消息桥。资源插件单测覆盖完整字节读取、HEAD、缺失文件、符号链接越界、请求取消及卸载中止读取。
 - 最终管道复验 `dist/official-desktop-probe/1789606750000/result.json`：PCK 读到首块后取消得到 AbortError，后续 HTML 请求为 200，随后世界加载通过。资源检查 604 ms，取消与后续请求 46 ms，世界达到主岛 playable 且邻岛 ready 用时 57,158 ms；这是本机单次样本，不是性能基准。测试退出码 0，官方 Host 已随壳关闭。
 
@@ -100,11 +100,11 @@ Q 交互补齐：预览页原先未处理 `resident:selected`，导致按 E 无�
 
 已实现待验收。此前 E 打开整个官方工作台只是资源测试替代入口，不符合网页版功能一致的产品目标；产品预览改用 `corepack yarn upstream:desktop:probe --product --preview`，不加载该替代界面。
 
-- `build-desktop-plugin.mjs` 从当前插件源码在隔离官方依赖图中编译 Host 与 Client，复用 `AgentIslesWorld`、角色对话、项目管理、教程、模型设置与原生聊天组件，不复制 UI。生产依赖仍固定旧版本，桌面实验编译不混入旧 runtime。
+- `build-desktop-plugin.mjs` 从当前插件源码在隔离官方依赖图中编译 Host 与 Client，复用 `QCodeWorld`、角色对话、项目管理、教程、模型设置与原生聊天组件，不复制 UI。生产依赖仍固定旧版本，桌面实验编译不混入旧 runtime。
 - 新增 `src/desktop.ts` 与 `desktop-transport.ts`：居民记录、文件浏览、教程与模型测试复用现有业务处理器，通过共享 Fetch 接入。只有校验过 `dsh-app://app` 的载体请求获得进程内 WeakSet 身份，不用可伪造请求头冒充 loopback；Web 原有检查仍保留。客户端仅按协议调整资源/API 路径。
 - 教程持久化读取兼容旧版事件数组与新版 `{ events, eventState }`。独立构建配置须放在目标安装目录，避免 bundle 输出回源码目录导致官方客户端模块缺失。
 - Windows 实测 `dist/official-desktop-probe/1789614376052/result.json`、`preview.png`：真实产品插件进入官方模块图，主岛和邻岛完成；来自世界 iframe 的 coder 选择事件打开原有角色卡片，世界文档保持。无项目时进入项目引导，这是现有 Web 逻辑；没有用测试绕过项目/API 配置。新窗口保留。
-- 验证：`corepack yarn build:web` 通过；直接执行本地 TypeScript 的插件 noEmit 检查通过；桌面原生依赖图编译通过；desktop-transport、resident-recovery、project-files、tutorial、world-bridge 共 17 项测试通过。`corepack yarn workspace @agent-isles/web-plugin typecheck` 本机单独运行报找不到 tsc，未标为通过；等价本地编译器命令已验证。
+- 验证：`corepack yarn build:web` 通过；直接执行本地 TypeScript 的插件 noEmit 检查通过；桌面原生依赖图编译通过；desktop-transport、resident-recovery、project-files、tutorial、world-bridge 共 17 项测试通过。`corepack yarn workspace @qcode/web-plugin typecheck` 本机单独运行报找不到 tsc，未标为通过；等价本地编译器命令已验证。
 
 剩余：实际项目创建/恢复、带会话 Q 聊天、模型调用、工具审批、后台通知、教程全程、其它 NPC 与安装包还需端到端验收。界面复用不代表功能全量已验收。测试使用焦点模拟保证后台验收推进，不代表后台渲染性能已修复。生产 pin/vendor 未切换。
 

@@ -2,7 +2,7 @@
 
 **简体中文** · [English](CHANGELOG.en.md)
 
-本文件记录 agent-isles 面向使用者的重要变化。项目正式确定版本策略前，所有尚未发布的变化记录在 `Unreleased`。
+本文件记录 QCode 面向使用者的重要变化。项目正式确定版本策略前，所有尚未发布的变化记录在 `Unreleased`。
 
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
@@ -16,6 +16,26 @@
 ### Known limitations
 
 - macOS 预览未签名、无安装器与自动更新；Intel 与 Apple Silicon 分别提供对应架构的便携包，不提供 Universal 包。
+
+## 0.1.0-preview.2 — 2026-09-18
+
+QCode 品牌下的 Windows 10/11 x64 便携预览版。macOS 构建尚未公开发布。
+
+### Added
+
+- 世界导出新鲜度校验，在开发启动和桌面打包前检测 Godot 输入与导出资源是否匹配。
+- 居民对话立绘、社区与演示入口，以及更完整的 Web、世界和桌面回归检查。
+
+### Changed
+
+- 产品、仓库、Web 插件、世界协议和 Windows 启动器统一更名为 QCode；Mosslight / 苔光之屿仍为世界名称。
+- 新版本使用 `QCode.exe` 和 `%LOCALAPPDATA%\QCode\data`；首次启动在新目录不存在时迁移旧数据。旧路由、消息和教程存储身份保留兼容读取。
+
+### Known limitations
+
+- 仅发布 Windows 便携 ZIP，不发布未经完整安装、升级和卸载人工验收的安装 EXE，也不提供 macOS 下载。
+- 未签名、无自动更新；需自行配置模型，并安装项目所需的 Git、Python 等工具。
+- 真实模型任务、干净 Windows 系统、长安装路径与完整浏览器交互仍待验收。新旧数据目录同时存在时不会自动合并，需人工处理。
 
 ## 0.1.0-preview.1 — 2026-09-15
 

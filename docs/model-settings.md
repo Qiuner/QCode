@@ -14,12 +14,12 @@
 - API Key 只经 `credentials.set` 写入本机凭据存储，不写入 settings、localStorage、居民提示词或 Godot 消息。页面保存或关闭后清空密钥输入，不提供读取现有密钥的接口。
 - 启动环境凭据优先于本机保存值。只读来源禁用替换和删除；删除本机保存值后，原有 `.env` 凭据可能重新生效，页面重新读取实际状态。
 - 居民提交前调用 `session.selectModel` 应用当前默认模型，已有会话也会使用新选择；当前正在执行的模型请求不会因此取消。后续模型请求由 DSH 适配器解析用户凭据。
-- `/agent-isles/model-test` 仅接受本机同源 JSON POST，不接收 Key、模型地址或项目内容。测试复用 runtime 的默认模型和凭据，不创建 Session、不提供工具，30 秒取消，并拒绝重叠测试。响应只含成功状态或固定分类错误，不返回提供方原始错误。
+- `/qcode/model-test` 仅接受本机同源 JSON POST，不接收 Key、模型地址或项目内容。测试复用 runtime 的默认模型和凭据，不创建 Session、不提供工具，30 秒取消，并拒绝重叠测试。响应只含成功状态或固定分类错误，不返回提供方原始错误；迁移期兼容旧路由。
 - 小镇通过公开 UI slot 替换上游的密钥引导步骤，保留首次使用声明；高级工作台继续使用原有设置界面。
 
 ## 存储与边界
 
-开发启动默认使用项目内 `.agent-isles-home`，支持 `DSH_HOME` 覆盖；检测到更名前的数据目录时继续使用原目录，避免会话与凭据丢失。默认凭据文件为 `$DSH_HOME/.credentials.yaml`，它是本机文件存储，不代表操作系统加密，也不能隔离同一系统用户下的工具进程。未来 Launcher 分发应为每位用户设置应用数据目录，此次没有实现 Launcher。
+开发启动默认使用项目内 `.qcode-home`，支持 `DSH_HOME` 覆盖；当新目录不存在时迁移旧 `.agent-isles-home`，新旧目录同时存在则停止并要求人工处理。默认凭据文件为 `$DSH_HOME/.credentials.yaml`，它是本机文件存储，不代表操作系统加密，也不能隔离同一系统用户下的工具进程。桌面启动器使用各平台的 QCode 用户数据目录，并采用同样的迁移与冲突规则。
 
 当前针对单用户本机部署。连接测试不支持远程网页入口；多人服务不能共享这一套进程级凭据和默认模型。
 
@@ -27,7 +27,7 @@
 
 ```powershell
 corepack yarn build:web
-node --test packages/agent-isles-web/tests/model-settings.test.mjs
+node --test packages/qcode-web/tests/model-settings.test.mjs
 ```
 
 测试覆盖凭据与普通设置分离、环境只读凭据、设置冲突、缺少配置时阻止提交、已有居民模型同步、连接测试的来源限制和错误脱敏。完整浏览器验证可连接本机模拟模型服务，使用测试 Key 检查保存、刷新、删除和居民任务请求；无需消耗真实模型额度。

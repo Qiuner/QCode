@@ -2,7 +2,7 @@
 
 **简体中文** · [English](THIRD_PARTY_NOTICES.en.md)
 
-根目录的 [MIT License](LICENSE) 适用于 agent-isles 的自有代码与文档，不改变第三方组件、字体和素材的版权或许可条件。
+根目录的 [MIT License](LICENSE) 适用于 QCode 的自有代码与文档，不改变第三方组件、字体和素材的版权或许可条件。
 
 本仓库当前包含或固定引用的主要第三方内容包括：
 

@@ -32,6 +32,9 @@ jobs:
       - name: Test documentation sync checker
         run: node --test scripts/check-doc-i18n-sync.test.mjs
 
+      - name: Check QCode naming boundaries
+        run: node scripts/check-qcode-naming.mjs
+
       - name: Verify Chinese and English documentation changed together
         env:
           DOC_SYNC_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
@@ -76,11 +79,11 @@ jobs:
 
       - name: Run Web unit tests
         shell: pwsh
-        run: node --test (Get-ChildItem packages/agent-isles-web/tests/*.test.mjs | ForEach-Object FullName)
+        run: node --test (Get-ChildItem packages/qcode-web/tests/*.test.mjs | ForEach-Object FullName)
 
       - name: Run Web supervisor and world shell tests
         shell: pwsh
-        run: node --test apps/desktop/darwin-target.test.mjs apps/web/tests/supervise.test.mjs games/mosslight/tests/developer_panel.test.mjs
+        run: node --test apps/desktop/darwin-target.test.mjs apps/web/tests/home.test.mjs apps/web/tests/supervise.test.mjs games/mosslight/tests/developer_panel.test.mjs scripts/world-export-state.test.mjs
 
   world:
     name: Godot world checks

@@ -2,9 +2,10 @@ import { readFile } from 'node:fs/promises'
 import { spawn } from 'node:child_process'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { resolveQCodeHome } from './home.mjs'
 
 const root = fileURLToPath(new URL('../../../', import.meta.url))
-const home = process.env.DSH_HOME ?? path.join(root, '.agent-isles-home')
+const home = resolveQCodeHome(root, process.env.DSH_HOME, false)
 try {
   const url = (await readFile(path.join(home, 'browser-url.txt'), 'utf8')).trim()
   const parsed = new URL(url)
@@ -13,8 +14,8 @@ try {
   await response.body?.cancel()
   if (response.status !== 303) throw new Error('保存的入口已失效，请重新启动服务。')
   // Keep the validated URL in an environment value, not executable shell text.
-  const child = spawn('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', 'Start-Process -FilePath $env:AGENT_ISLES_OPEN_URL'], {
-    env: { ...process.env, AGENT_ISLES_OPEN_URL: url }, windowsHide: true, stdio: 'inherit',
+  const child = spawn('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', 'Start-Process -FilePath $env:QCODE_OPEN_URL'], {
+    env: { ...process.env, QCODE_OPEN_URL: url }, windowsHide: true, stdio: 'inherit',
   })
   child.on('error', error => { console.error(error.message); process.exitCode = 1 })
   child.on('exit', code => { process.exitCode = code ?? 1 })

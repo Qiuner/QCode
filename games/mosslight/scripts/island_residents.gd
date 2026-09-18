@@ -79,7 +79,7 @@ func guide_keeper(encounter_id: String, action: String, traveler: Vector3, reduc
 
 func _ready() -> void:
 	var name_keys := ["resident.gardener.name", "resident.file_keeper.name", "resident.teacher.name"]
-	var agent_isles_ids := ["gardener", "file_keeper", "teacher"]
+	var qcode_ids := ["gardener", "file_keeper", "teacher"]
 	var homes := [Vector3(-7.2, .06, 1.3), Vector3(6.6, .06, 2.9), Vector3(-4.25, .06, -4.5)]
 	for i in range(3):
 		var body := StaticBody3D.new()
@@ -88,7 +88,7 @@ func _ready() -> void:
 		body.collision_layer = 1
 		body.collision_mask = 0
 		body.set_meta("resident_id", i)
-		body.set_meta("agent_isles_id", agent_isles_ids[i])
+		body.set_meta("qcode_id", qcode_ids[i])
 		body.set_meta("display_name_key", name_keys[i])
 		body.set_meta("display_name", tr(name_keys[i]))
 		body.set_meta("agent_status", "idle")
@@ -123,10 +123,10 @@ func _ready() -> void:
 		residents.append(body)
 
 
-func set_agent_status(agent_isles_id: String, status: String) -> void:
+func set_agent_status(qcode_id: String, status: String) -> void:
 	var labels := {"working": "resident.status.working", "thinking": "resident.status.thinking", "approval": "resident.status.approval", "completed": "resident.status.completed", "failed": "resident.status.failed"}
 	for npc: StaticBody3D in residents:
-		if npc.get_meta("agent_isles_id") != agent_isles_id:
+		if npc.get_meta("qcode_id") != qcode_id:
 			continue
 		var label := npc.get_meta("name_label") as Label3D
 		npc.set_meta("agent_status", status)
@@ -139,7 +139,7 @@ func refresh_locale() -> void:
 	for npc: StaticBody3D in residents:
 		var display_name := tr(str(npc.get_meta("display_name_key")))
 		npc.set_meta("display_name", display_name)
-		set_agent_status(str(npc.get_meta("agent_isles_id")), str(npc.get_meta("agent_status")))
+		set_agent_status(str(npc.get_meta("qcode_id")), str(npc.get_meta("agent_status")))
 
 
 func advance(delta: float, traveler: Vector3, motion_enabled: bool, labels_enabled: bool) -> void:
@@ -175,13 +175,13 @@ func nearest(traveler: CharacterBody3D) -> StaticBody3D:
 	return result
 
 
-func agent_isles_talk(npc: StaticBody3D, has_workspace: bool) -> Dictionary:
+func qcode_talk(npc: StaticBody3D, has_workspace: bool) -> Dictionary:
 	var identities := {
 		"gardener": ["resident.gardener.identity", "resident.gardener.handoff"],
 		"file_keeper": ["resident.file_keeper.identity", "resident.file_keeper.handoff"],
 		"teacher": ["resident.teacher.identity", "resident.teacher.handoff"],
 	}
-	var identity: Array = identities.get(str(npc.get_meta("agent_isles_id")), ["resident.default.identity", "resident.default.handoff"])
+	var identity: Array = identities.get(str(npc.get_meta("qcode_id")), ["resident.default.identity", "resident.default.handoff"])
 	return {
 		"name": identity[0],
 		"text": tr(identity[1]) + (tr("resident.handoff.continue") if has_workspace else tr("resident.handoff.choose_project")),
@@ -198,11 +198,11 @@ func dialogue_role(npc: StaticBody3D) -> String:
 		"file_keeper": "role.file_keeper",
 		"teacher": "role.teacher",
 	}
-	return tr(roles.get(str(npc.get_meta("agent_isles_id")), "role.gardener"))
+	return tr(roles.get(str(npc.get_meta("qcode_id")), "role.gardener"))
 
 
 func dialogue_portrait(npc: StaticBody3D) -> Texture2D:
-	return DIALOGUE_PORTRAITS.get(str(npc.get_meta("agent_isles_id")))
+	return DIALOGUE_PORTRAITS.get(str(npc.get_meta("qcode_id")))
 
 
 func talk(npc: StaticBody3D, learned: bool) -> String:

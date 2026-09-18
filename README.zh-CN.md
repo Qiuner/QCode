@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="assets/brand/android-chrome-512x512.png" alt="agent-isles Logo" width="128" height="128">
+  <img src="assets/brand/android-chrome-512x512.png" alt="QCode Logo" width="128" height="128">
 </p>
 
-<h1 align="center">agent-isles</h1>
+<h1 align="center">QCode</h1>
 
 <p align="center"><strong>简体中文</strong> · <a href="README.md">English</a></p>
 
@@ -18,10 +18,15 @@
   <img src="https://img.shields.io/badge/Node.js-22.19%2B-339933?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js 22.19 or newer">
   <img src="https://img.shields.io/badge/DSH-0.1.3--alpha.1-5D9C87?style=flat-square" alt="DeepSeek Harness 0.1.3-alpha.1">
   <img src="https://img.shields.io/badge/license-MIT-2F6F62?style=flat-square" alt="License: MIT">
+  <a href="https://linux.do/"><img src="https://img.shields.io/badge/Join-linux.do-orange?style=flat-square" alt="Join linux.do"></a>
 </p>
 
 <p align="center">
-  <a href="#agent-isles-是什么">产品介绍</a> ·
+  <a href="https://qiuner.github.io/QCode/">官网</a> ·
+  <a href="https://github.com/Qiuner/QCode/releases">下载</a> ·
+  <a href="https://www.xiaohongshu.com/explore/6aaa7374000000002601ba97?xsec_token=ABZnBGKcFdIU_duBj-QUdqXeTQPbn-81Ek_6xvyRuJaZU=&amp;xsec_source=pc_user">演示视频</a> ·
+  <a href="#交流与反馈">交流群</a> ·
+  <a href="#qcode-是什么">产品介绍</a> ·
   <a href="#产品画面">产品画面</a> ·
   <a href="#快速开始">快速开始</a> ·
   <a href="#工作原理">工作原理</a> ·
@@ -29,16 +34,19 @@
   <a href="CONTRIBUTING.md">参与贡献</a> ·
   <a href="SUPPORT.md">获取帮助</a>
 </p>
-<img src="docs/images/agent-isles-world-current.png" alt="当前版本苔光之屿与中央 Q 计算机的世界实景" width="100%">
+<a href="https://www.xiaohongshu.com/explore/6aaa7374000000002601ba97?xsec_token=ABZnBGKcFdIU_duBj-QUdqXeTQPbn-81Ek_6xvyRuJaZU=&amp;xsec_source=pc_user">
+  <img src="docs/images/qcode-demo-cover.png" alt="观看 QCode 演示视频：苔光之屿、Q 与创作伙伴" width="100%">
+</a>
+<p align="center"><strong><a href="https://www.xiaohongshu.com/explore/6aaa7374000000002601ba97?xsec_token=ABZnBGKcFdIU_duBj-QUdqXeTQPbn-81Ek_6xvyRuJaZU=&amp;xsec_source=pc_user">&#9654; 观看演示视频</a></strong></p>
 
 > [!IMPORTANT]
-> agent-isles 仍处于早期开发阶段。目前提供本地 Web MVP、Windows x64 启动器/安装包预览；macOS Intel / Apple Silicon 便携构建已实现，公开下载待发布。安装与构建说明见 [桌面启动器](apps/desktop/README.md)。
+> QCode 仍处于早期开发阶段。目前提供本地 Web MVP、Windows x64 启动器/安装包预览；macOS Intel / Apple Silicon 便携构建已实现，公开下载待发布。安装与构建说明见 [桌面启动器](apps/desktop/README.md)。
 
-**Windows 便携预览版**：[下载 v0.1.0-preview.1](https://github.com/Qiuner/agent-isles/releases/tag/v0.1.0-preview.1)。下载 ZIP，完整解压到较短路径后运行 `agent-isles.exe`；首次使用需配置模型。用户数据保存在 `%LOCALAPPDATA%\agent-isles\data`，退出服务使用系统托盘菜单。版本未签名、无自动更新，更新时退出旧版后将新版解压到新目录，不覆盖运行中的文件。
+**Windows 便携预览版**：[下载 v0.1.0-preview.2](https://github.com/Qiuner/QCode/releases/tag/v0.1.0-preview.2)。解压 ZIP 后运行 `QCode.exe`。数据保存在 `%LOCALAPPDATA%\QCode\data`；仅在新目录不存在时首次启动会迁移旧数据。预览版未签名、无自动更新。[上一版本](https://github.com/Qiuner/QCode/releases/tag/v0.1.0-preview.1)仍可下载。
 
-## agent-isles 是什么
+## QCode 是什么
 
-agent-isles 是一个可探索的 AI Coding 学习与创作环境。它把原本藏在聊天框、终端和工具列表里的 Agent 能力，变成群岛世界中的伙伴、地点和行动。你不需要先弄懂模型、会话、工具调用和项目结构，就可以从一句自己的想法出发，和 AI 一起把它做成真正能运行的作品。
+QCode 是一个可探索的 AI Coding 学习与创作环境。它把原本藏在聊天框、终端和工具列表里的 Agent 能力，变成群岛世界中的伙伴、地点和行动。你不需要先弄懂模型、会话、工具调用和项目结构，就可以从一句自己的想法出发，和 AI 一起把它做成真正能运行的作品。
 
 你可以选择“跟着学”，在完成第一个作品的过程中认识需求、项目、执行、审批和验收；也可以选择“自由创作”，直接绑定已有项目，按自己的节奏探索和修改。教学不是脱离实践的课程，而是附着在真实创作上的引导：AI 可以动手，但作品仍由你提出、体验、判断并继续完善。
 
@@ -46,7 +54,7 @@ agent-isles 是一个可探索的 AI Coding 学习与创作环境。它把原本
 
 ## 当前体验
 
-Windows 预览版通过安装包安装后，点击 agent-isles 图标即可启动服务并进入小岛，运行时和资源已内置。源码开发仍可使用 `打开小岛.cmd` 打开正在运行的开发服务；该脚本不作为安装版入口。
+Windows 预览版通过安装包安装后，点击 QCode 图标即可启动服务并进入小岛，运行时和资源已内置。源码开发仍可使用 `打开小岛.cmd` 打开正在运行的开发服务；该脚本不作为安装版入口。
 
 ## 主要功能
 
@@ -90,7 +98,7 @@ Windows 预览版通过安装包安装后，点击 agent-isles 图标即可启�
 
 ### 当前小岛与 Q
 
-![中央平台上的 Q 与双机械臂](docs/images/agent-isles-q-current.png)
+![中央平台上的 Q 与双机械臂](docs/images/qcode-q-current.png)
 
 Q 连接真实项目的原生对话与执行过程；项目和历史由苔伯管理，文件由阿澜查阅。网页面板和窄屏截图待重新采集，已移除旧版画面，避免与当前界面混淆。
 
@@ -116,39 +124,39 @@ corepack yarn dev:web --no-open
 
 打开终端输出的本地地址。首次使用时，按页面提示完成模型配置并选择一个本地项目文件夹，然后即可与居民交谈。
 
-开发数据默认保存在仓库内的 `.agent-isles-home/`。如需更换位置，可在启动前设置 `DSH_HOME`。
+开发数据默认保存在仓库内的 `.qcode-home/`。当新目录不存在时，已有 `.agent-isles-home/` 会自动迁移。如需更换位置，可在启动前设置 `DSH_HOME`。
 
 ## 交流与反馈
 
-<p align="center">欢迎加入 agent-isles 用户交流群，分享作品、交流使用心得、获取使用帮助。</p>
+<p align="center">欢迎加入 QCode 用户交流群，分享作品、交流使用心得、获取使用帮助。</p>
 
 <p align="center"><strong>QQ 群：<code>543293474</code></strong> — 使用 QQ 扫码，或复制群号搜索加入。</p>
 
 <p align="center">
-  <img src="docs/images/qq-community.png" alt="agent-isles 用户交流群二维码，QQ群号 543293474" width="240" height="240">
+  <img src="docs/images/qq-community.png" alt="QCode 用户交流群二维码，QQ群号 543293474" width="240" height="240">
 </p>
 
-<p align="center">Bug 和功能建议请提交到 <a href="https://github.com/Qiuner/agent-isles/issues">GitHub Issues</a>，方便跟踪处理进展。</p>
+<p align="center">Bug 和功能建议请提交到 <a href="https://github.com/Qiuner/QCode/issues">GitHub Issues</a>，方便跟踪处理进展。</p>
 
 ## 工作原理
 
 ```text
 创作者 / 学习者
-  -> agent-isles Web：群岛世界、角色、对话与状态
-    -> agent-isles Host/Client 插件：Workspace 与 Resident/Session 映射
+  -> QCode Web：群岛世界、角色、对话与状态
+    -> QCode Host/Client 插件：Workspace 与 Resident/Session 映射
       -> DeepSeek Harness：模型、工具、审批、文件与终端
         -> 本地项目
 ```
 
-Godot 负责呈现世界和居民状态，React 负责 Workspace、居民选择和交互面板，DeepSeek Harness 是会话与执行状态的唯一事实来源。agent-isles 通过公开的 DSH/Cordis 插件接口接入，不修改上游源码，也不再包装一套重复的 Session API。
+Godot 负责呈现世界和居民状态，React 负责 Workspace、居民选择和交互面板，DeepSeek Harness 是会话与执行状态的唯一事实来源。QCode 通过公开的 DSH/Cordis 插件接口接入，不修改上游源码，也不再包装一套重复的 Session API。
 
 ## 仓库结构
 
 | 目录 | 用途 |
 | --- | --- |
-| `apps/web/` | 启动 agent-isles 的 DSH Web profile |
+| `apps/web/` | 启动 QCode 的 DSH Web profile |
 | `apps/desktop/` | Windows / macOS Intel / Apple Silicon 启动器、打包与验证脚本 |
-| `packages/agent-isles-web/` | agent-isles Host/Client Web 插件 |
+| `packages/qcode-web/` | QCode Host/Client Web 插件 |
 | `games/mosslight/` | 使用 Blender 与 Godot 构建的世界 |
 | `deepseek-harness/` | 固定版本的上游 Git submodule |
 | `vendor/dsh-runtime/` | 固定并校验过的 DSH runtime 包 |
@@ -171,7 +179,7 @@ Godot 负责呈现世界和居民状态，React 负责 Workspace、居民选择�
 
 - 不直接修改 `deepseek-harness/`。
 - runtime 升级先更新固定版本，再执行兼容性验证。
-- agent-isles 的产品逻辑保留在自身插件和世界代码中。
+- QCode 的产品逻辑保留在自身插件和世界代码中。
 
 ## 当前限制
 
@@ -185,7 +193,7 @@ Godot 负责呈现世界和居民状态，React 负责 Workspace、居民选择�
 ## 文档
 
 - [系统架构](docs/architecture.md)
-- [网页优先 MVP](docs/agent-isles-mvp-plan.md)
+- [网页优先 MVP](docs/qcode-mvp-plan.md)
 - [Web 定制边界](docs/web-customization.md)
 - [世界与 Web 的职责](docs/world-web-plan.md)
 - [居民角色设计](docs/roles.md)
@@ -205,7 +213,7 @@ Bug 报告、功能建议和 Pull Request 都欢迎。较大的功能或交互�
 
 | 贡献方向 | 开始前阅读 |
 | --- | --- |
-| Web / Host 插件 | [插件开发指南](packages/agent-isles-web/docs/plugin-development.md)、[总体架构](docs/architecture.md) |
+| Web / Host 插件 | [插件开发指南](packages/qcode-web/docs/plugin-development.md)、[总体架构](docs/architecture.md) |
 | 新岛屿、居民与世界交互 | [岛屿接入契约](docs/world-integration-contract.md)、[世界开发说明](games/mosslight/README.md) |
 | 教程流程 | [教程架构](docs/tutorial-architecture.md)、[首课施工记录](docs/first-vibe-coding-tutorial-plan.md) |
 | Windows 启动器与发行 | [桌面说明](apps/desktop/README.md)、[发布检查清单](docs/release-checklist.md) |

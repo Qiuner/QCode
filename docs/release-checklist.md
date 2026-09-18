@@ -1,6 +1,6 @@
 # 发布检查清单
 
-本清单用于 agent-isles 的公开预览版和 Windows 安装包发布。每次发布只记录本次实际证据，不沿用历史验证结果。
+本清单用于 QCode 的公开预览版和 Windows 安装包发布。每次发布只记录本次实际证据，不沿用历史验证结果。
 
 ## 仓库与社区
 
@@ -27,7 +27,7 @@ corepack yarn check:upstream
 corepack yarn check:vendored-runtime
 corepack yarn typecheck
 corepack yarn build:web
-node --test (Get-ChildItem packages/agent-isles-web/tests/*.test.mjs | ForEach-Object FullName)
+node --test (Get-ChildItem packages/qcode-web/tests/*.test.mjs | ForEach-Object FullName)
 node --test apps/web/tests/supervise.test.mjs games/mosslight/tests/developer_panel.test.mjs
 git diff --check
 ```
@@ -66,7 +66,7 @@ corepack yarn build:desktop:darwin
 corepack yarn verify:desktop:darwin
 ```
 
-- [ ] 在对应架构的原生终端分别生成所需的 `agent-isles-darwin-x64.zip` / `agent-isles-darwin-arm64.zip`，并确认各自与 `SHA256SUMS.txt` 匹配。
+- [ ] 在对应架构的原生终端分别生成所需的 `qcode-darwin-x64.zip` / `qcode-darwin-arm64.zip`，并确认各自与 `SHA256SUMS.txt` 匹配。
 - [ ] 在对应的干净 macOS Intel / Apple Silicon 环境完成解压、首次启动、重复启动、菜单栏退出与进程清理验证。
 - [ ] 验证项目选择、模型配置、一次真实任务、人工审批和数据保留。
 - [ ] 未签名时，发布页醒目标注 Gatekeeper / 预览风险；不得暗示已完成公证。

@@ -4,18 +4,20 @@
 
 ## 使用和安装问题
 
-先检查 [README](README.zh-CN.md) 的环境要求、快速开始和当前限制，以及 [Windows 启动器说明](apps/desktop/README.md)。源码运行需要受支持的 Node.js、Corepack、Yarn 和完整的 Git submodule。
+先检查 [README](README.zh-CN.md) 的环境要求、快速开始和当前限制，以及 [Windows / macOS 桌面启动器说明](apps/desktop/README.md)。源码运行需要受支持的 Node.js、Corepack、Yarn 和完整的 Git submodule。
 
 仍无法解决时，请使用 Bug 报告模板，并附上：
 
 - 安装方式、版本或 commit；
-- Windows、Node.js、浏览器和 Godot 版本；
+- 操作系统版本与芯片架构、浏览器，以及源码开发时的 Node.js 和 Godot 版本；
 - 可重复的最小步骤；
 - 已脱敏的错误日志。
 
-项目处于早期开发阶段，不提供服务等级、固定响应时间或一对一使用支持。
+QCode 处于早期开发阶段，不提供服务等级、固定响应时间或一对一使用支持。
 
 ## 功能讨论
+
+日常交流、作品分享和使用心得可加入 **QQ 群 `543293474`**，二维码见 [README 的交流与反馈](README.zh-CN.md#交流与反馈)。群聊不替代可跟踪的 Bug 报告，也不提供固定响应时间保证。
 
 新功能和明显改变交互流程的建议请使用功能建议模板。较大的实现应先讨论范围，再提交 Pull Request。
 

@@ -1,11 +1,13 @@
-# agent-isles 世界网页实施方案`r`n`r`n> 接入边界、对象映射和桥接消息以[岛屿接入契约](world-integration-contract.md)为准；本文只记录当前组合方式与分阶段落地计划。
+# QCode 世界网页实施方案
+
+> 接入边界、对象映射和桥接消息以[岛屿接入契约](world-integration-contract.md)为准；本文只记录当前组合方式与分阶段落地计划。
 
 ## 产品边界
 
-agent-isles 与原版 DeepSeek Harness 共用一个 Host、一个认证入口、一个
+QCode 与原版 DeepSeek Harness 共用一个 Host、一个认证入口、一个
 `DSH_HOME` 和同一套 Workspace / Session 数据：
 
-- `/`：agent-isles 世界。Godot 渲染世界，React/Cordis 显示真实对话。
+- `/`：QCode 世界。Godot 渲染世界，React/Cordis 显示真实对话。
 - `/workbench`：完整的 Harness 工作台，作为高级操作与故障回退入口。
 - `/world/*`：同源提供的 Godot Web 导出资源，不是第二个应用后端。
 
@@ -14,13 +16,13 @@ Godot 不持有会话真相，也不执行工具权限判断。它只接收可�
 
 ## 页面组合
 
-桌面端沿用 Harness `AppFrame`。agent-isles 插件只在 `shell.overlay` 中覆盖左侧世界区域，
+桌面端沿用 Harness `AppFrame`。QCode 插件只在 `shell.overlay` 中覆盖左侧世界区域，
 右侧保留原生 conversation 树，因此 composer、trajectory、approval 和 session scope
 无需复制。移动端第一版显示完整世界，通过顶部入口进入完整工作台；后续再把对话做成底部 sheet。
 
 ## 数据映射
 
-| agent-isles | DeepSeek Harness |
+| QCode | DeepSeek Harness |
 | --- | --- |
 | 小镇 / 岛屿 | Workspace |
 | 居民定义 | Agent preset + permission preset |

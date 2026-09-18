@@ -6,7 +6,7 @@ import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
 test('resource manifest confines files, streams bytes, handles HEAD and disposal', async () => {
-  const temp = await mkdtemp(join(tmpdir(), 'isles-resource-'))
+  const temp = await mkdtemp(join(tmpdir(), 'qcode-resource-'))
   try {
     const world = join(temp, 'world')
     await mkdir(world)
@@ -23,7 +23,7 @@ test('resource manifest confines files, streams bytes, handles HEAD and disposal
     const routes = new Map()
     let dispose
     await apply({ connection: { fetch: { register: route => routes.set(route.path, route) } }, on: (_, fn) => { dispose = fn } })
-    const fetchFile = (file, init) => routes.get('/api/agent-isles/world/' + file).fetch(new Request('dsh-app://app/api/agent-isles/world/' + file, init))
+    const fetchFile = (file, init) => routes.get('/api/qcode/world/' + file).fetch(new Request('dsh-app://app/api/qcode/world/' + file, init))
     const head = await fetchFile('index.wasm', { method: 'HEAD' })
     assert.equal(head.headers.get('content-type'), 'application/wasm')
     assert.equal(head.headers.get('content-length'), String(bytes.length))

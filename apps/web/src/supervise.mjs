@@ -61,7 +61,7 @@ export async function supervise({ command, args, cwd, env, home, signal, onLine 
     if (failures >= delays.length) { record('restart limit reached'); return 1 }
     const delay = delays[failures++]
     record(`restart scheduled delayMs=${delay}`)
-    onLine(`agent-isles：服务意外停止，${delay / 1000} 秒后重试（${failures}/${delays.length}）。`, 'stderr')
+    onLine(`QCode：服务意外停止，${delay / 1000} 秒后重试（${failures}/${delays.length}）。`, 'stderr')
     await new Promise(resolve => {
       const finish = () => { clearTimeout(timer); signal.removeEventListener('abort', finish); resolve() }
       const timer = setTimeout(finish, delay)

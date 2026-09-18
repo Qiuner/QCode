@@ -18,7 +18,7 @@ if [[ -z "$BUILD_DIRECTORY" ]]; then
 fi
 BUILD_DIRECTORY="$(cd "$BUILD_DIRECTORY" && pwd)"
 APP_ROOT="$BUILD_DIRECTORY/app"
-LAUNCHER="$APP_ROOT/Agent Isles.app/Contents/MacOS/agent-isles"
+LAUNCHER="$APP_ROOT/QCode.app/Contents/MacOS/qcode"
 NODE="$APP_ROOT/runtime/node"
 
 if [[ ! -x "$LAUNCHER" ]]; then
@@ -39,8 +39,8 @@ if ! file "$NODE" | grep -q "$FILE_ARCH"; then
 fi
 "$NODE" -e "if (process.arch !== '$NODE_ARCH') throw new Error('expected $NODE_ARCH, got ' + process.arch)"
 
-DATA_HOME="$(mktemp -d /tmp/agent-isles-isolated-data.XXXXXX)"
-export AGENT_ISLES_DATA_HOME="$DATA_HOME"
+DATA_HOME="$(mktemp -d /tmp/qcode-isolated-data.XXXXXX)"
+export QCODE_DATA_HOME="$DATA_HOME"
 echo "Isolated data: $DATA_HOME"
 
 "$LAUNCHER" --smoke-test &
@@ -82,8 +82,8 @@ fi
   "$NODE" -e "for (const name of ['fs-ext','koffi','node-pty']) { require(name); console.log(name + ' loaded') }"
 )
 
-HOLD_HOME="$(mktemp -d /tmp/agent-isles-instance-data.XXXXXX)"
-export AGENT_ISLES_DATA_HOME="$HOLD_HOME"
+HOLD_HOME="$(mktemp -d /tmp/qcode-instance-data.XXXXXX)"
+export QCODE_DATA_HOME="$HOLD_HOME"
 "$LAUNCHER" --smoke-test --smoke-hold &
 FIRST=$!
 DEADLINE=$((SECONDS + 95))
@@ -134,4 +134,20 @@ if lsof -nP -iTCP:"$HELD_PORT" -sTCP:LISTEN >/dev/null 2>&1; then
   exit 1
 fi
 
-echo "PASS: native architecture, smoke ready, exit cleanup, single instance, native modules"
+unset QCODE_DATA_HOME AGENT_ISLES_DATA_HOME
+MIGRATION_ROOT="$(mktemp -d /tmp/qcode-migration.XXXXXX)"
+export QCODE_TEST_APPLICATION_SUPPORT="$MIGRATION_ROOT"
+mkdir -p "$MIGRATION_ROOT/agent-isles/data"
+printf 'legacy data\n' > "$MIGRATION_ROOT/agent-isles/data/migration-marker.txt"
+"$LAUNCHER" --smoke-test
+if [[ ! -f "$MIGRATION_ROOT/QCode/data/migration-marker.txt" || -e "$MIGRATION_ROOT/agent-isles" ]]; then
+  echo "Legacy data migration failed" >&2
+  exit 1
+fi
+mkdir -p "$MIGRATION_ROOT/agent-isles/data"
+if "$LAUNCHER" --smoke-test; then
+  echo "Conflicting legacy and QCode data directories were accepted" >&2
+  exit 1
+fi
+
+echo "PASS: native architecture, smoke ready, exit cleanup, single instance, native modules, legacy data migration/conflict"

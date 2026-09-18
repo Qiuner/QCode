@@ -89,10 +89,10 @@ func run() -> void:
 	advance(10)
 	check(computer.hands[0].transform == sleeping_pose and computer.idle_time == sleeping_clock, "pause freezes idle pose and its clock")
 	game.set_game_paused(false)
-	game.agent_isles_panel_open = true
+	game.qcode_panel_open = true
 	advance(10)
 	check(computer.idle_time == sleeping_clock, "host panel pauses all idle timers")
-	game.agent_isles_panel_open = false
+	game.qcode_panel_open = false
 	game.garden.opened = true
 	advance(10)
 	check(computer.idle_time == sleeping_clock, "inventory pauses all idle timers")
@@ -148,10 +148,10 @@ func run() -> void:
 	advance(5)
 	check(computer.magic_time == magic_clock and computer.hands[0].transform == magic_hand and computer.magic_hat.transform == magic_hat, "pause freezes the whole magic act")
 	game.set_game_paused(false)
-	game.agent_isles_panel_open = true
+	game.qcode_panel_open = true
 	advance(3)
 	check(computer.magic_time == magic_clock and not computer.magic_review_after, "opening the work panel freezes the act and cancels redundant results handoff")
-	game.agent_isles_panel_open = false
+	game.qcode_panel_open = false
 	computer.magic_review_after = true
 	game.garden.opened = true
 	advance(3)

@@ -6,15 +6,15 @@
 
 居民面板先显示需要确认的工具请求和本轮进展，再显示输入框。运行中发送补充会排队；关闭面板不取消任务。当前请求、回复与本轮工具返回结果可直接查看，之前的对话默认折叠。“本轮已结束”不代表代码正确或测试通过，需查看居民的验证说明与执行结果。
 
-未发送文本以 `agent-isles.resident-drafts.v1` 保存在当前浏览器，按项目和居民隔离；首次读取会回退到更名前的存储键，之后只写新键。仅在发送成功且草稿未被改写时清除。存储不可用时提示用户复制保存，草稿不提供跨浏览器或多标签页同步保证。
+未发送文本以 `qcode.resident-drafts.v1` 保存在当前浏览器，按项目和居民隔离；首次读取会回退到更名前的 `agent-isles.resident-drafts.v1`，成功迁移后只写新键。仅在发送成功且草稿未被改写时清除。存储不可用时提示用户复制保存，草稿不提供跨浏览器或多标签页同步保证。
 
-项目选择和居民 Session 关联通过本地 Host 的 `/agent-isles/resident-state` 保存到 `DSH_HOME/agent-isles-state.json`，串行合并更新并原子替换文件；不复制 DSH 的会话历史。缺少新状态文件时会读取更名前的状态文件，并在下一次更新时写入新文件。旧浏览器映射在打开居民时迁移；浏览器映射缺失时，只恢复当前项目中标题明确且唯一的旧居民会话。已删除或存在歧义的会话不自动替换，提示在高级工作台检查。无法关联居民的历史会话提供高级工作台入口。最近摘要通过 DSH 的公开 follow 接口读取一页后释放，不发送模型请求。Teacher / File Keeper 的只读约束仍是角色提示，不是独立权限沙箱。
+项目选择和居民 Session 关联通过本地 Host 的 `/qcode/resident-state` 保存到 `DSH_HOME/qcode-state.json`，串行合并更新并原子替换文件；不复制 DSH 的会话历史。缺少新状态文件时会读取更名前的 `agent-isles-state.json`，并在下一次更新时写入新文件；旧路由在迁移期保留别名。旧浏览器映射在打开居民时迁移；浏览器映射缺失时，只恢复当前项目中标题明确且唯一的旧居民会话。已删除或存在歧义的会话不自动替换，提示在高级工作台检查。无法关联居民的历史会话提供高级工作台入口。最近摘要通过 DSH 的公开 follow 接口读取一页后释放，不发送模型请求。Teacher / File Keeper 的只读约束仍是角色提示，不是独立权限沙箱。
 
 ## 验证
 
 - `corepack yarn build:web`
 - `corepack yarn typecheck`
-- `node --test packages/agent-isles-web/tests/resident-model.test.mjs packages/agent-isles-web/tests/model-settings.test.mjs`
+- `node --test packages/qcode-web/tests/resident-model.test.mjs packages/qcode-web/tests/model-settings.test.mjs`
 - `git diff --check`
 
 本次另使用隔离的 DSH_HOME、项目和本机模拟模型做浏览器验收：缺 Key 保留草稿、保存后使用用户 Key、刷新后复用 Session 并继续上下文、关闭面板后完成任务，以及真实 write/read 工具往返。模拟模型只提供确定性回复，不验证真实模型的代码生成质量；世界 iframe 在该验收中用测试页面替代。桌面和 390px 宽手机面板均检查过。

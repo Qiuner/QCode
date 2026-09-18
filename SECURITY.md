@@ -2,7 +2,7 @@
 
 **简体中文** · [English](SECURITY.en.md)
 
-agent-isles 会访问本地项目文件，并可通过 AI 工具执行操作。请不要在公开 Issue、Discussion、PR 或日志中披露漏洞细节、API Key、访问令牌、本地路径和其他敏感信息。
+QCode 会访问本地项目文件，并可通过 AI 工具执行操作。请不要在公开 Issue、Discussion、PR 或日志中披露漏洞细节、API Key、访问令牌、本地路径和其他敏感信息。
 
 ## 支持范围
 
@@ -15,7 +15,7 @@ agent-isles 会访问本地项目文件，并可通过 AI 工具执行操作。�
 
 ## 私密报告漏洞
 
-请在本仓库的 **Security** 页面选择 **Report a vulnerability**，通过 GitHub Private Vulnerability Reporting 提交。正式公开仓库前，维护者必须在仓库设置中启用该功能。
+本仓库已启用 GitHub Private Vulnerability Reporting。请通过 [私密漏洞报告入口](https://github.com/Qiuner/QCode/security/advisories/new) 提交，或在 **Security** 页面选择 **Report a vulnerability**。
 
 报告应尽量包含：
 

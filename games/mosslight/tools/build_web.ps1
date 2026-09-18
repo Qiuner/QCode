@@ -23,6 +23,8 @@ Copy-Item -LiteralPath (Join-Path $project 'web\cover-3840.webp') -Destination $
 Copy-Item -LiteralPath (Join-Path $project 'web\_headers') -Destination $output
 Copy-Item -LiteralPath (Join-Path $project 'assets\fonts\OFL.txt') -Destination (Join-Path $output 'font-license.txt')
 Copy-Item -LiteralPath (Join-Path $project 'assets\xi4u-LICENSE.txt') -Destination $output
+& node (Join-Path $project '..\..\scripts\record-world-export.mjs')
+if ($LASTEXITCODE -ne 0) { throw 'World export state recording failed.' }
 & node (Join-Path $PSScriptRoot 'compress_web.mjs') $output
 if ($LASTEXITCODE -ne 0) { throw 'Web asset compression failed.' }
 Compress-Archive -Path (Join-Path $output '*') -DestinationPath (Join-Path $project 'build\mosslight-web.zip') -Force

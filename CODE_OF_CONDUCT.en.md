@@ -4,7 +4,7 @@
 
 ## Our pledge
 
-We are committed to providing a harassment-free environment for everyone who communicates or contributes to agent-isles, regardless of age, body size, disability, ethnicity, sex characteristics, gender identity and expression, level of experience, education, socioeconomic status, nationality, personal appearance, race, religion, or sexual orientation.
+We are committed to providing a harassment-free environment for everyone who communicates or contributes to QCode, regardless of age, body size, disability, ethnicity, sex characteristics, gender identity and expression, level of experience, education, socioeconomic status, nationality, personal appearance, race, religion, or sexual orientation.
 
 ## Expected behavior
 
@@ -18,7 +18,7 @@ Unacceptable behavior includes harassment, discrimination, threats, stalking, se
 
 ## Scope
 
-This Code applies to the repository, Issues, pull requests, Discussions, release channels, and other public or private spaces where someone represents the agent-isles community.
+This Code applies to the repository, Issues, pull requests, Discussions, release channels, and other public or private spaces where someone represents the QCode community.
 
 ## Reporting and enforcement
 

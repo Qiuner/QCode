@@ -21,7 +21,7 @@
   panel.append(bar, workbench)
   document.body.append(panel)
   function syncWorld(open) {
-    world.contentWindow.postMessage({ source: 'agent-isles-host', version: 1, type: 'world:init', payload: {
+    world.contentWindow.postMessage({ source: 'qcode-host', version: 1, type: 'world:init', payload: {
       locale: 'zh', workspace: null, sessionId: null, panelOpen: open, residents: [],
     } }, location.origin)
   }
@@ -38,7 +38,7 @@
   window.addEventListener('keydown', escape)
   workbench.addEventListener('load', () => workbench.contentWindow.addEventListener('keydown', escape))
   window.addEventListener('message', event => {
-    if (event.source !== world.contentWindow || event.origin !== location.origin || event.data?.source !== 'agent-isles-world'
+    if (event.source !== world.contentWindow || event.origin !== location.origin || event.data?.source !== 'qcode-world'
       || event.data?.version !== 1 || event.data.type !== 'resident:selected' || event.data.payload?.residentId !== 'coder') return
     if (!panel.hidden) return
     document.exitPointerLock?.()

@@ -1,8 +1,8 @@
-# 为 agent-isles 做贡献
+# 为 QCode 做贡献
 
 **简体中文** · [English](CONTRIBUTING.en.md)
 
-感谢你愿意参与 agent-isles。项目仍处于早期开发阶段，提交前请先搜索已有 Issue；较大的功能、交互改版或架构调整建议先开 Issue 对齐范围。
+感谢你愿意参与 QCode。项目仍处于早期开发阶段，提交前请先搜索已有 Issue；较大的功能、交互改版或架构调整建议先开 Issue 对齐范围。
 
 参与社区即表示同意遵守[社区行为准则](CODE_OF_CONDUCT.md)。一般使用问题请查看[支持说明](SUPPORT.md)，安全漏洞请遵循[安全策略](SECURITY.md)私密报告。
 
@@ -38,8 +38,8 @@ corepack yarn --version
 外部贡献者先 Fork 仓库，再克隆自己的 Fork；下面是直接克隆官方仓库的示例。已有克隆可执行 `git submodule update --init --recursive` 补齐固定上游。不要使用 `--remote` 更新到上游最新版本。
 
 ```powershell
-git clone --recurse-submodules https://github.com/Qiuner/agent-isles.git
-cd agent-isles
+git clone --recurse-submodules https://github.com/Qiuner/QCode.git
+cd QCode
 corepack enable
 corepack yarn install --immutable
 corepack yarn check:upstream
@@ -57,7 +57,7 @@ corepack yarn dev:web --no-open
 
 每一步成功后再继续。`dev:web` 会构建 Web 插件并启动服务，不会自动导出世界。打开终端输出的本地地址，Ctrl+C 停止前台服务。修改 Web 后重新构建并重启，修改世界后重新导出；不要假定所有代码都有热更新。
 
-开发数据默认写入仓库内的 `.agent-isles-home/`，不要提交该目录或带认证令牌的启动链接。真实 AI 任务需要自行配置模型；界面、文档及多数自动测试不需要模型 Key。任务可能修改文件，请选择专门的测试项目，并先检查会话权限设置。
+开发数据默认写入仓库内的 `.qcode-home/`，不要提交该目录或带认证令牌的启动链接。真实 AI 任务需要自行配置模型；界面、文档及多数自动测试不需要模型 Key。任务可能修改文件，请选择专门的测试项目，并先检查会话权限设置。
 
 若 `corepack` 不存在，先按 Node.js / Corepack 官方说明安装 Corepack。若 `install --immutable` 在 `fs-ext` / `node-gyp` 阶段失败，查看输出中的构建日志，确认 Python 和 C++ 工具链可用；不能把跳过构建脚本当作依赖安装成功。Godot 导出报缺少模板时，检查模板与引擎是否都为 4.7.2。
 
@@ -66,24 +66,24 @@ corepack yarn dev:web --no-open
 - 可复现的错误请使用 Bug 报告，并附环境、步骤和脱敏日志。
 - 新能力或明显改变用户流程的方案请先使用功能建议讨论。
 - 小型文档、拼写和测试修复可以直接提交 PR。
-- 安全问题不要公开到 Issue；请先查看仓库 Security 页面是否提供私密报告渠道。维护者在正式公开仓库前应启用该渠道并发布安全策略。
+- 安全问题不要公开到 Issue；请使用仓库 Security 页面的私密报告渠道，具体流程见安全策略。
 
 使用支持、安全报告和社区行为要求分别见 [SUPPORT.md](SUPPORT.md)、[SECURITY.md](SECURITY.md) 与 [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)。
 
 ## 代码边界
 
-- 产品 Web 代码位于 `packages/agent-isles-web/`，启动 profile 位于 `apps/web/`。
+- 产品 Web 代码位于 `packages/qcode-web/`，启动 profile 位于 `apps/web/`。
 - Windows 启动器和本地预览版位于 `apps/desktop/`。
 - Godot 与 Blender 世界位于 `games/mosslight/`。
 - 不直接修改 `deepseek-harness/` submodule。
 - 不手工编辑 `vendor/dsh-runtime/` 中的 tarball 或 manifest。
-- 不提交 `.agent-isles-home/`、构建产物、临时截图、编辑器缓存或个人配置。
+- 不提交 `.qcode-home/`、构建产物、临时截图、编辑器缓存或个人配置。
 
 ## 实现与验证
 
 按改动领域选择入口：
 
-- Web / Host 插件：[插件开发指南](packages/agent-isles-web/docs/plugin-development.md)。
+- Web / Host 插件：[插件开发指南](packages/qcode-web/docs/plugin-development.md)。
 - 新岛屿与世界交互：[岛屿接入契约](docs/world-integration-contract.md)、[世界开发说明](games/mosslight/README.md)。
 - Windows 启动器与分发：[桌面说明](apps/desktop/README.md)。
 - 文档：[文档门户](docs/README.md)、[文档维护指南](docs/documentation-guide.md)。
@@ -106,7 +106,7 @@ git diff --check
 Web 行为改动还应运行相关测试；运行全部 Web 测试使用：
 
 ```powershell
-node --test (Get-ChildItem packages/agent-isles-web/tests/*.test.mjs | ForEach-Object FullName)
+node --test (Get-ChildItem packages/qcode-web/tests/*.test.mjs | ForEach-Object FullName)
 ```
 
 Godot 改动按世界说明运行对应 `tests/*.gd`，单纯导出成功不等于交互验收通过。仅文档改动检查链接、内容与 `git diff --check` 即可。功能、验收结果或限制变化时同步 `docs/construction-plan.md` 及相关专项文档，区分“已实现待验收”和“已验收”。

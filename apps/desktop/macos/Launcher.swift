@@ -1,4 +1,4 @@
-// agent-isles macOS 启动器：对标 Windows Launcher.cs —— 单实例、菜单栏、进程树清理、就绪后打开系统浏览器。
+// QCode macOS 启动器：对标 Windows Launcher.cs —— 单实例、菜单栏、进程树清理、就绪后打开系统浏览器。
 import AppKit
 import Foundation
 
@@ -32,11 +32,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     holdSmoke = args.contains("--smoke-hold")
     installSignalHandlers()
 
-    let dataHome = ProcessInfo.processInfo.environment["AGENT_ISLES_DATA_HOME"]
-      ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        .appendingPathComponent("agent-isles/data", isDirectory: true).path
-    home = URL(fileURLWithPath: dataHome, isDirectory: true)
-    try? FileManager.default.createDirectory(at: home, withIntermediateDirectories: true)
+    do {
+      home = try resolveDataHome()
+      try FileManager.default.createDirectory(at: home, withIntermediateDirectories: true)
+    } catch {
+      let alert = NSAlert()
+      alert.messageText = "QCode 无法启动"
+      alert.informativeText = error.localizedDescription
+      if !smoke { alert.runModal() }
+      NSApp.terminate(nil)
+      return
+    }
 
     if !acquireSingleInstance() {
       signalReopen()
@@ -57,6 +63,36 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     pollTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
       self?.tick()
     }
+  }
+
+  private func resolveDataHome() throws -> URL {
+    let env = ProcessInfo.processInfo.environment
+    let currentOverride = env["QCODE_DATA_HOME"]
+    let legacyOverride = env["AGENT_ISLES_DATA_HOME"]
+    if let currentOverride, let legacyOverride,
+       URL(fileURLWithPath: currentOverride).standardizedFileURL != URL(fileURLWithPath: legacyOverride).standardizedFileURL {
+      throw NSError(domain: "qcode", code: 1, userInfo: [
+        NSLocalizedDescriptionKey: "QCODE_DATA_HOME 与旧的 AGENT_ISLES_DATA_HOME 指向不同目录，请只保留一个设置。",
+      ])
+    }
+    if let override = currentOverride ?? legacyOverride {
+      return URL(fileURLWithPath: override, isDirectory: true).standardizedFileURL
+    }
+
+    let applicationSupport = smoke && env["QCODE_TEST_APPLICATION_SUPPORT"] != nil
+      ? URL(fileURLWithPath: env["QCODE_TEST_APPLICATION_SUPPORT"]!, isDirectory: true)
+      : FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+    let currentRoot = applicationSupport.appendingPathComponent("QCode", isDirectory: true)
+    let legacyRoot = applicationSupport.appendingPathComponent("agent-isles", isDirectory: true)
+    let currentExists = FileManager.default.fileExists(atPath: currentRoot.path)
+    let legacyExists = FileManager.default.fileExists(atPath: legacyRoot.path)
+    if currentExists && legacyExists {
+      throw NSError(domain: "qcode", code: 1, userInfo: [
+        NSLocalizedDescriptionKey: "检测到 QCode 与 agent-isles 两份数据目录。为避免覆盖，请先合并或移走其中一份后重试。",
+      ])
+    }
+    if !currentExists && legacyExists { try FileManager.default.moveItem(at: legacyRoot, to: currentRoot) }
+    return currentRoot.appendingPathComponent("data", isDirectory: true)
   }
 
   private func installSignalHandlers() {
@@ -134,12 +170,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
   private func buildMenuBar() {
     let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     item.button?.title = "AI"
-    item.button?.toolTip = "agent-isles"
+    item.button?.toolTip = "QCode"
     let menu = NSMenu()
     menu.addItem(NSMenuItem(title: "打开小岛", action: #selector(openIsland), keyEquivalent: "o"))
     menu.addItem(NSMenuItem(title: "打开日志目录", action: #selector(openLogs), keyEquivalent: "l"))
     menu.addItem(NSMenuItem.separator())
-    menu.addItem(NSMenuItem(title: "退出 agent-isles", action: #selector(quitApp), keyEquivalent: "q"))
+    menu.addItem(NSMenuItem(title: "退出 QCode", action: #selector(quitApp), keyEquivalent: "q"))
     item.menu = menu
     statusItem = item
   }
@@ -151,7 +187,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
       backing: .buffered,
       defer: false
     )
-    window.title = "agent-isles"
+    window.title = "QCode"
     window.center()
     window.isReleasedWhenClosed = false
     window.delegate = self
@@ -169,12 +205,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     let node = root.appendingPathComponent("runtime/node")
     let boot = root.appendingPathComponent("apps/desktop/boot.mjs")
     guard FileManager.default.isExecutableFile(atPath: node.path) else {
-      throw NSError(domain: "agent-isles", code: 1, userInfo: [
+      throw NSError(domain: "qcode", code: 1, userInfo: [
         NSLocalizedDescriptionKey: "缺少 runtime/node，请使用 Mac 便携包或重新构建。",
       ])
     }
     guard FileManager.default.fileExists(atPath: boot.path) else {
-      throw NSError(domain: "agent-isles", code: 1, userInfo: [
+      throw NSError(domain: "qcode", code: 1, userInfo: [
         NSLocalizedDescriptionKey: "缺少 apps/desktop/boot.mjs。",
       ])
     }
@@ -185,7 +221,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     process.currentDirectoryURL = root
     var env = ProcessInfo.processInfo.environment
     env["DSH_HOME"] = home.path
-    env["AGENT_ISLES_DESKTOP"] = "1"
+    env["QCODE_DESKTOP"] = "1"
     env["PATH"] = root.appendingPathComponent("runtime").path + ":" + (env["PATH"] ?? "")
     process.environment = env
 

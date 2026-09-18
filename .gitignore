@@ -3,8 +3,11 @@ node_modules/
 dist/
 .agent*-home/
 .agent*-test-home/
+.qcode-home/
+.qcode-test-home/
 .dsh-home-source-run/
 agent*-runtime-test/
+qcode-runtime-test/
 lib/
 *.tsbuildinfo
 .birdview/

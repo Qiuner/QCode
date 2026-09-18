@@ -1,4 +1,4 @@
-/** AgentIsles's own garden architecture, in tile-local Godot Y-up coordinates. */
+/** QCode's own garden architecture, in tile-local Godot Y-up coordinates. */
 export function buildGarden(T) {
   const root = new T.Group()
   const materials = new Map()

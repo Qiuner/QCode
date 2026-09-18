@@ -2,13 +2,16 @@
 import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { assertWorldExportCurrent } from '../../scripts/world-export-state.mjs'
 
 export const root = fileURLToPath(new URL('../../', import.meta.url))
 
 export function requireBuiltArtifacts() {
-  for (const file of ['packages/agent-isles-web/lib/client.js', 'games/mosslight/build/web/index.pck']) {
+  for (const file of ['packages/qcode-web/lib/client.js', 'games/mosslight/build/web/index.pck']) {
     if (!existsSync(path.join(root, file))) throw new Error(`缺少 ${file}，请先构建 Web 和世界`)
   }
+  const project = path.join(root, 'games/mosslight')
+  assertWorldExportCurrent(project, path.join(project, 'build/web'))
 }
 
 /** @returns {{ excludedFiles: number }} */
@@ -32,21 +35,20 @@ export function materializeAppTree(app) {
   }
   // Preserve the installed dynamic plugin dependency tree. Workspace junctions are materialized separately.
   for (const item of readdirSync(path.join(root, 'node_modules'), { withFileTypes: true })) {
-    if (item.name === '.bin' || item.name === '@agent-isles' || item.name === '.yarn-state.yml') continue
+    if (item.name === '.bin' || item.name === '@qcode' || item.name === '.yarn-state.yml') continue
     copy(`node_modules/${item.name}`)
   }
   for (const file of ['package.json', 'cordis.patch.yml', 'lib']) {
-    copy(`packages/agent-isles-web/${file}`, `node_modules/@agent-isles/web-plugin/${file}`)
+    copy(`packages/qcode-web/${file}`, `node_modules/@qcode/web-plugin/${file}`)
   }
-  copy('packages/agent-isles-web/cordis.patch.yml')
-  copy('apps/web/src/launch.mjs')
-  copy('apps/web/src/supervise.mjs')
+  copy('packages/qcode-web/cordis.patch.yml')
+  copy('apps/web/src')
   copy('apps/desktop/boot.mjs')
   copy('games/mosslight/build/web')
   const web = JSON.parse(readFileSync(path.join(root, 'apps/web/package.json'), 'utf8'))
   writeFileSync(
     path.join(app, 'package.json'),
-    JSON.stringify({ name: 'agent-isles-installed', private: true, type: 'module', dependencies: web.dependencies }, null, 2),
+    JSON.stringify({ name: 'qcode-installed', private: true, type: 'module', dependencies: web.dependencies }, null, 2),
   )
   return { excludedFiles }
 }

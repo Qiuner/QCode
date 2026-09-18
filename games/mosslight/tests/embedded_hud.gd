@@ -25,11 +25,13 @@ func run() -> void:
 	await physics_frame
 	game._interact()
 	check(game.resident_dialogue.opened and game.resident_dialogue.speaker.text == "苔伯", "embedded resident opens shared dialogue before Host handoff")
-	var message := {"source": "agent-isles-host", "version": 1, "type": "world:init", "payload": {"panelOpen": true, "residents": [], "workspace": null}}
+	game._on_qcode_message([JSON.stringify({"source": "agent-isles-host", "version": 1, "type": "world:init", "payload": {"panelOpen": false, "residents": [], "workspace": null}})])
+	check(game.qcode_connected, "legacy host source remains compatible")
+	var message := {"source": "qcode-host", "version": 1, "type": "world:init", "payload": {"panelOpen": true, "residents": [], "workspace": null}}
 	game.mouse_was_captured = true
 	Input.action_press("walk_up")
-	game._on_agent_isles_message([JSON.stringify(message)])
-	check(game.agent_isles_panel_open and not game.resident_dialogue.opened and not Input.is_action_pressed("walk_up"), "host panel replaces shared dialogue and releases held movement")
+	game._on_qcode_message([JSON.stringify(message)])
+	check(game.qcode_panel_open and not game.resident_dialogue.opened and not Input.is_action_pressed("walk_up"), "host panel replaces shared dialogue and releases held movement")
 	check(not game.mouse_was_captured and not game.prompt.visible, "host panel hides E prompt without triggering pause")
 	game._notification(Node.NOTIFICATION_APPLICATION_FOCUS_OUT)
 	check(not game.game_paused and not game.pause_panel.visible, "focusing host conversation does not open game pause menu")
@@ -39,8 +41,8 @@ func run() -> void:
 	game._interact()
 	check(game.player.position == position and not game.resident_dialogue.opened, "host panel blocks movement and duplicate interaction")
 	message.payload.panelOpen = false
-	game._on_agent_isles_message([JSON.stringify(message)])
-	check(not game.agent_isles_panel_open and game.prompt.visible and not Input.is_action_pressed("walk_up"), "closing panel restores world controls without held keys")
+	game._on_qcode_message([JSON.stringify(message)])
+	check(not game.qcode_panel_open and game.prompt.visible and not Input.is_action_pressed("walk_up"), "closing panel restores world controls without held keys")
 	game._interact()
 	check(game.resident_dialogue.opened and game.resident_dialogue.next_resident_id == "teacher", "functional resident dialogue keeps its Host handoff")
 	game.resident_dialogue.close()
@@ -48,14 +50,14 @@ func run() -> void:
 	await physics_frame
 	game._interact()
 	check(game.resident_dialogue.opened and game.resident_dialogue.next_resident_id.is_empty(), "gardener uses shared local dialogue in embedded world")
-	game._on_agent_isles_message([JSON.stringify(message)])
+	game._on_qcode_message([JSON.stringify(message)])
 	check(game.resident_dialogue.opened, "background host updates preserve gardener dialogue")
 	game.player.position = game.sanctuary_computer.LANDING
 	await physics_frame
 	game._interact()
 	message.payload.panelOpen = true
 	message.payload.residents = [{"id": "coder", "status": "working"}]
-	game._on_agent_isles_message([JSON.stringify(message)])
+	game._on_qcode_message([JSON.stringify(message)])
 	check(game.sanctuary_computer.status_label.text.contains("执行中"), "coder status is shown on Q")
 	check(not game.resident_dialogue.opened, "Q host panel clears shared dialogue")
 	print("MOSSLIGHT_EMBEDDED_HUD_TESTS_COMPLETE failures=%d" % failures)
