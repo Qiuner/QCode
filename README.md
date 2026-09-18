@@ -23,6 +23,7 @@
 <p align="center">
   <a href="https://qiuner.github.io/agent-isles/">Website</a> ·
   <a href="https://github.com/Qiuner/agent-isles/releases">Downloads</a> ·
+  <a href="https://www.xiaohongshu.com/explore/6aaa7374000000002601ba97?xsec_token=ABZnBGKcFdIU_duBj-QUdqXeTQPbn-81Ek_6xvyRuJaZU=&amp;xsec_source=pc_user">Demo video</a> ·
   <a href="#community-and-feedback">Community</a> ·
   <a href="#what-is-agent-isles">Introduction</a> ·
   <a href="#screenshots">Screenshots</a> ·
@@ -33,7 +34,10 @@
   <a href="SUPPORT.en.md">Support</a>
 </p>
 
-<img src="docs/images/agent-isles-world-current.png" alt="The current Mosslight Isle world and its central Q computer" width="100%">
+<a href="https://www.xiaohongshu.com/explore/6aaa7374000000002601ba97?xsec_token=ABZnBGKcFdIU_duBj-QUdqXeTQPbn-81Ek_6xvyRuJaZU=&amp;xsec_source=pc_user">
+  <img src="docs/images/agent-isles-demo-cover.png" alt="Watch the agent-isles demo video: Mosslight Isle, Q, and the creator companion" width="100%">
+</a>
+<p align="center"><strong><a href="https://www.xiaohongshu.com/explore/6aaa7374000000002601ba97?xsec_token=ABZnBGKcFdIU_duBj-QUdqXeTQPbn-81Ek_6xvyRuJaZU=&amp;xsec_source=pc_user">&#9654; Watch the demo video</a></strong></p>
 
 > [!IMPORTANT]
 > agent-isles is in early development. It currently provides a local Web MVP and a Windows x64 launcher/package preview; portable macOS Intel / Apple Silicon builds are implemented but not yet published. See the [desktop launcher guide](apps/desktop/README.en.md) for installation and build details.

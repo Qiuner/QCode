@@ -23,6 +23,7 @@
 <p align="center">
   <a href="https://qiuner.github.io/agent-isles/">官网</a> ·
   <a href="https://github.com/Qiuner/agent-isles/releases">下载</a> ·
+  <a href="https://www.xiaohongshu.com/explore/6aaa7374000000002601ba97?xsec_token=ABZnBGKcFdIU_duBj-QUdqXeTQPbn-81Ek_6xvyRuJaZU=&amp;xsec_source=pc_user">演示视频</a> ·
   <a href="#交流与反馈">交流群</a> ·
   <a href="#agent-isles-是什么">产品介绍</a> ·
   <a href="#产品画面">产品画面</a> ·
@@ -32,7 +33,10 @@
   <a href="CONTRIBUTING.md">参与贡献</a> ·
   <a href="SUPPORT.md">获取帮助</a>
 </p>
-<img src="docs/images/agent-isles-world-current.png" alt="当前版本苔光之屿与中央 Q 计算机的世界实景" width="100%">
+<a href="https://www.xiaohongshu.com/explore/6aaa7374000000002601ba97?xsec_token=ABZnBGKcFdIU_duBj-QUdqXeTQPbn-81Ek_6xvyRuJaZU=&amp;xsec_source=pc_user">
+  <img src="docs/images/agent-isles-demo-cover.png" alt="观看 agent-isles 演示视频：苔光之屿、Q 与创作伙伴" width="100%">
+</a>
+<p align="center"><strong><a href="https://www.xiaohongshu.com/explore/6aaa7374000000002601ba97?xsec_token=ABZnBGKcFdIU_duBj-QUdqXeTQPbn-81Ek_6xvyRuJaZU=&amp;xsec_source=pc_user">&#9654; 观看演示视频</a></strong></p>
 
 > [!IMPORTANT]
 > agent-isles 仍处于早期开发阶段。目前提供本地 Web MVP、Windows x64 启动器/安装包预览；macOS Intel / Apple Silicon 便携构建已实现，公开下载待发布。安装与构建说明见 [桌面启动器](apps/desktop/README.md)。
