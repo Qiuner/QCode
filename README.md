@@ -18,6 +18,7 @@
   <img src="https://img.shields.io/badge/Node.js-22.19%2B-339933?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js 22.19 or newer">
   <img src="https://img.shields.io/badge/DSH-0.1.3--alpha.1-5D9C87?style=flat-square" alt="DeepSeek Harness 0.1.3-alpha.1">
   <img src="https://img.shields.io/badge/license-MIT-2F6F62?style=flat-square" alt="License: MIT">
+  <a href="https://linux.do/"><img src="https://img.shields.io/badge/Join-linux.do-orange?style=flat-square" alt="Join linux.do"></a>
 </p>
 
 <p align="center">
