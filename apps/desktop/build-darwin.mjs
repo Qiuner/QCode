@@ -22,9 +22,9 @@ chmodSync(path.join(app, 'runtime/node'), 0o755)
 writeFileSync(
   path.join(app, '发行说明.txt'),
   [
-    `agent-isles ${target.displayName} 本地预览版`,
-    '双击「Agent Isles.app」进入。菜单栏图标可重新打开或退出。',
-    '数据存放在 ~/Library/Application Support/agent-isles/data，删除应用时保留。',
+    `QCode ${target.displayName} 本地预览版`,
+    '双击「QCode.app」进入。菜单栏图标可重新打开或退出。',
+    '数据存放在 ~/Library/Application Support/QCode/data，首次启动会迁移旧 agent-isles 数据，删除应用时保留。',
     '已内置 Node 和固定 DSH 运行时。模型需自行配置；项目所需 Git、Python 等开发工具需另行安装。',
     '预览版未签名：若 Gatekeeper 拦截，请在系统设置中允许，或右键打开。',
     '第三方依赖许可证随 node_modules、runtime 和世界资源提供。',
@@ -32,7 +32,7 @@ writeFileSync(
   ].join('\n'),
 )
 
-const bundle = path.join(app, 'Agent Isles.app')
+const bundle = path.join(app, 'QCode.app')
 const macosDir = path.join(bundle, 'Contents', 'MacOS')
 const resourcesDir = path.join(bundle, 'Contents', 'Resources')
 mkdirSync(macosDir, { recursive: true })
@@ -42,12 +42,13 @@ const infoPlist = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <key>CFBundleName</key><string>agent-isles</string>
-  <key>CFBundleDisplayName</key><string>Agent Isles</string>
+  <key>CFBundleName</key><string>QCode</string>
+  <key>CFBundleDisplayName</key><string>QCode</string>
+  <!-- Keep the historical identifier so existing macOS preferences and app identity remain stable. -->
   <key>CFBundleIdentifier</key><string>com.qiuner.agent-isles</string>
   <key>CFBundleVersion</key><string>0.0.0-preview</string>
   <key>CFBundleShortVersionString</key><string>0.0.0-preview</string>
-  <key>CFBundleExecutable</key><string>agent-isles</string>
+  <key>CFBundleExecutable</key><string>qcode</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>LSMinimumSystemVersion</key><string>${target.minimumSystemVersion}</string>
   <key>LSUIElement</key><true/>
@@ -60,7 +61,7 @@ writeFileSync(path.join(bundle, 'Contents', 'Info.plist'), infoPlist)
 const iconSource = path.join(root, 'assets/brand/favicon.ico')
 if (existsSync(iconSource)) cpSync(iconSource, path.join(resourcesDir, 'favicon.ico'))
 
-const binary = path.join(macosDir, 'agent-isles')
+const binary = path.join(macosDir, 'qcode')
 const compile = spawnSync(
   'swiftc',
   [
@@ -77,7 +78,7 @@ const compile = spawnSync(
 if (compile.status !== 0) throw new Error('Swift 启动器编译失败')
 chmodSync(binary, 0o755)
 
-const zip = path.join(out, `agent-isles-darwin-${target.archiveArch}.zip`)
+const zip = path.join(out, `qcode-darwin-${target.archiveArch}.zip`)
 const ditto = spawnSync('ditto', ['-c', '-k', '--sequesterRsrc', '--keepParent', app, zip], { stdio: 'inherit' })
 if (ditto.status !== 0) {
   // ditto --keepParent expects a named folder; zip the app directory contents via ditto on parent

@@ -29,27 +29,46 @@ internal static class Launcher {
     static DateTime started;
     static StreamWriter log;
 
+    static string ResolveDataHome() {
+        string current = Environment.GetEnvironmentVariable("QCODE_DATA_HOME");
+        string legacy = Environment.GetEnvironmentVariable("AGENT_ISLES_DATA_HOME");
+        if (!String.IsNullOrWhiteSpace(current) && !String.IsNullOrWhiteSpace(legacy) && !String.Equals(Path.GetFullPath(current), Path.GetFullPath(legacy), StringComparison.OrdinalIgnoreCase))
+            throw new Exception("QCODE_DATA_HOME 与旧的 AGENT_ISLES_DATA_HOME 指向不同目录，请只保留一个设置。");
+        if (!String.IsNullOrWhiteSpace(current)) return Path.GetFullPath(current);
+        if (!String.IsNullOrWhiteSpace(legacy)) return Path.GetFullPath(legacy);
+
+        string local = smoke ? Environment.GetEnvironmentVariable("QCODE_TEST_LOCAL_APP_DATA") : null;
+        if (String.IsNullOrWhiteSpace(local)) local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        string currentRoot = Path.Combine(local, "QCode");
+        string legacyRoot = Path.Combine(local, "agent-isles");
+        if (Directory.Exists(currentRoot) && Directory.Exists(legacyRoot))
+            throw new Exception("检测到 QCode 与 agent-isles 两份数据目录。为避免覆盖，请先合并或移走其中一份后重试。");
+        if (!Directory.Exists(currentRoot) && Directory.Exists(legacyRoot)) Directory.Move(legacyRoot, currentRoot);
+        return Path.Combine(currentRoot, "data");
+    }
+
     [STAThread] static int Main(string[] args) {
         smoke = Array.IndexOf(args, "--smoke-test") >= 0;
         holdSmoke = Array.IndexOf(args, "--smoke-hold") >= 0;
-        home = Environment.GetEnvironmentVariable("AGENT_ISLES_DATA_HOME") ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "agent-isles", "data");
+        try { home = ResolveDataHome(); }
+        catch (Exception error) { if (!smoke) MessageBox.Show(error.Message, "QCode 无法启动"); return 1; }
         Directory.CreateDirectory(home);
-        string identity = "Local\\agent-isles-" + WindowsIdentity.GetCurrent().User.Value + (smoke ? "-smoke" : "");
+        string identity = "Local\\qcode-" + WindowsIdentity.GetCurrent().User.Value + (smoke ? "-smoke" : "");
         bool first;
         using (var mutex = new Mutex(true, identity, out first))
         using (var reopen = new EventWaitHandle(false, EventResetMode.AutoReset, identity + "-open")) {
             if (!first) { reopen.Set(); return 0; }
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            window = new Form { Text = "agent-isles", Width = 440, Height = 190, StartPosition = FormStartPosition.CenterScreen, MaximizeBox = false };
+            window = new Form { Text = "QCode", Width = 440, Height = 190, StartPosition = FormStartPosition.CenterScreen, MaximizeBox = false };
             window.Icon = System.Drawing.Icon.ExtractAssociatedIcon(Application.ExecutablePath);
             status = new Label { Text = "正在准备小岛…", Dock = DockStyle.Fill, Padding = new Padding(24), AutoSize = false };
             window.Controls.Add(status);
             var menu = new ContextMenuStrip();
             menu.Items.Add("打开小岛", null, (s, e) => Open());
             menu.Items.Add("打开日志目录", null, (s, e) => Process.Start(home));
-            menu.Items.Add("退出 agent-isles", null, (s, e) => Quit());
-            tray = new NotifyIcon { Icon = window.Icon, Text = "agent-isles", ContextMenuStrip = menu, Visible = !smoke };
+            menu.Items.Add("退出 QCode", null, (s, e) => Quit());
+            tray = new NotifyIcon { Icon = window.Icon, Text = "QCode", ContextMenuStrip = menu, Visible = !smoke };
             tray.DoubleClick += (s, e) => Open();
             window.FormClosing += (s, e) => { if (!quitting && url != null) { e.Cancel = true; window.Hide(); } };
             window.FormClosed += (s, e) => Quit();
@@ -67,7 +86,7 @@ internal static class Launcher {
                 string root = AppDomain.CurrentDomain.BaseDirectory;
                 var info = new ProcessStartInfo(Path.Combine(root, "runtime", "node.exe"), "apps/desktop/boot.mjs --no-open --host 127.0.0.1 --port 0") { WorkingDirectory = root, UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true, RedirectStandardInput = true };
                 info.EnvironmentVariables["DSH_HOME"] = home;
-                info.EnvironmentVariables["AGENT_ISLES_DESKTOP"] = "1";
+                info.EnvironmentVariables["QCODE_DESKTOP"] = "1";
                 info.EnvironmentVariables["PATH"] = Path.Combine(root, "runtime") + ";" + Environment.GetEnvironmentVariable("PATH");
                 service = new Process { StartInfo = info };
                 service.OutputDataReceived += (s, e) => Receive(e.Data);
