@@ -516,6 +516,7 @@
   },
   "scripts": {
     "check:doc-i18n": "node scripts/check-doc-i18n-sync.mjs --working-tree",
+    "check:world-export": "node scripts/check-world-export.mjs",
     "check:upstream": "node scripts/check-upstream.mjs",
     "check:vendored-runtime": "node scripts/sync-vendored-runtime.mjs --check",
     "sync:vendored-runtime": "node scripts/sync-vendored-runtime.mjs --write",
@@ -531,7 +532,7 @@
     "build:world": "node scripts/export-world.mjs",
     "build:desktop:darwin": "node apps/desktop/build-darwin.mjs",
     "verify:desktop:darwin": "bash apps/desktop/verify-darwin.sh",
-    "dev:web": "yarn build:web && yarn workspace @agent-isles/web start",
+    "dev:web": "yarn check:world-export && yarn build:web && yarn workspace @agent-isles/web start",
     "typecheck": "yarn workspace @agent-isles/web-plugin typecheck"
   },
   "devDependencies": {

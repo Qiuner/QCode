@@ -2,6 +2,7 @@
 import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { assertWorldExportCurrent } from '../../scripts/world-export-state.mjs'
 
 export const root = fileURLToPath(new URL('../../', import.meta.url))
 
@@ -9,6 +10,8 @@ export function requireBuiltArtifacts() {
   for (const file of ['packages/agent-isles-web/lib/client.js', 'games/mosslight/build/web/index.pck']) {
     if (!existsSync(path.join(root, file))) throw new Error(`缺少 ${file}，请先构建 Web 和世界`)
   }
+  const project = path.join(root, 'games/mosslight')
+  assertWorldExportCurrent(project, path.join(project, 'build/web'))
 }
 
 /** @returns {{ excludedFiles: number }} */
