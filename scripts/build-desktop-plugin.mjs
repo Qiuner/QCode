@@ -9,7 +9,7 @@ export async function buildDesktopPlugin(root, upstream, modules, output) {
   const target = join(modules, '@qcode/web-plugin')
   await mkdir(target, { recursive: true })
   await cp(join(source, 'src'), join(target, 'src'), { recursive: true })
-  await symlink(join(upstream, 'node_modules/.pnpm/node_modules'), join(target, 'node_modules'), 'junction')
+  await symlink(join(upstream, 'node_modules/.pnpm/node_modules'), join(target, 'node_modules'), process.platform === 'win32' ? 'junction' : 'dir')
   const manifest = JSON.parse(await readFile(join(source, 'package.json'), 'utf8'))
   manifest.main = 'lib/types/desktop.js'
   manifest.exports['.'].default = './lib/types/desktop.js'
@@ -17,8 +17,10 @@ export async function buildDesktopPlugin(root, upstream, modules, output) {
   delete manifest.dependencies
   delete manifest.devDependencies
   await writeFile(join(target, 'package.json'), JSON.stringify(manifest))
+  // The isolated graph resolves @types/react through the linked node_modules; on macOS that trips TS2883 in
+  // declaration emit. The runtime only consumes tsc's JS, so skip declarations here; the repo build still owns types.
   await writeFile(join(target, 'tsconfig.json'), JSON.stringify({
-    extends: join(root, 'tsconfig.base.json'), compilerOptions: { jsx: 'react-jsx', rootDir: 'src', outDir: 'lib/types', declaration: true }, include: ['src'],
+    extends: join(root, 'tsconfig.base.json'), compilerOptions: { jsx: 'react-jsx', rootDir: 'src', outDir: 'lib/types', declaration: false }, include: ['src'],
   }))
   execFileSync(process.execPath, [join(root, 'node_modules/typescript/bin/tsc'), '-p', join(target, 'tsconfig.json')], { stdio: 'inherit' })
   await writeFile(join(target, 'tsdown.config.mjs'), stripTypeScriptTypes(await readFile(join(source, 'tsdown.config.ts'), 'utf8')))
