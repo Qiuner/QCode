@@ -20,12 +20,12 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 24
 
@@ -47,12 +47,12 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: true
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 24
 
@@ -83,7 +83,7 @@ jobs:
 
       - name: Run Web supervisor and world shell tests
         shell: pwsh
-        run: node --test apps/desktop/darwin-target.test.mjs apps/web/tests/home.test.mjs apps/web/tests/supervise.test.mjs games/mosslight/tests/developer_panel.test.mjs scripts/world-export-state.test.mjs
+        run: node --test apps/desktop/darwin-target.test.mjs apps/desktop/darwin-icon.test.mjs apps/web/tests/home.test.mjs apps/web/tests/supervise.test.mjs games/mosslight/tests/developer_panel.test.mjs scripts/world-export-state.test.mjs
 
   world:
     name: Godot world checks
@@ -91,7 +91,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install Godot 4.7.2
         shell: pwsh
