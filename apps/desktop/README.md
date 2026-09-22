@@ -45,7 +45,7 @@ powershell -NoProfile -File apps/desktop/verify.ps1 -BuildDirectory (Get-Content
 
 ### macOS Intel / Apple Silicon
 
-在目标架构的 Mac 上原生执行，不要从 Rosetta 终端构建。需已安装 Godot 4.7.2 与 Web 导出模板，或设置 `GODOT_BIN`：
+在目标架构的 Mac 上原生执行，不要从 Rosetta 终端构建。构建与验证脚本会按硬件标志（`hw.optional.arm64`）核对 Node 自身架构，Apple Silicon 上的 Rosetta 翻译执行会在产出任何构建产物前被拒绝并提示切换到原生终端与原生 Node，不会静默更改输出架构；确需 Intel x64 包时仍须在真正的 Intel Mac 上构建。需已安装 Godot 4.7.2 与 Web 导出模板，或设置 `GODOT_BIN`：
 
 ```bash
 corepack yarn build:web
@@ -54,7 +54,7 @@ corepack yarn build:desktop:darwin
 corepack yarn verify:desktop:darwin
 ```
 
-Swift 菜单栏启动器源码在 `apps/desktop/macos/Launcher.swift`，用系统 `swiftc` 编译（Command Line Tools 即可），最低系统版本固定为 macOS 13.5，与允许用于打包的 Node 24 官方二进制兼容边界一致。打包逻辑与 Windows 共用 `apps/desktop/pack-app.mjs`，复制当前架构的 Node 与原生依赖；Intel 和 Apple Silicon 必须分别在对应架构环境安装依赖、构建和验证。产物位于 `dist/desktop-darwin-*/`，含对应的 `qcode-darwin-x64.zip` 或 `qcode-darwin-arm64.zip` 与 `SHA256SUMS.txt`。验证覆盖二进制架构、冒烟就绪、退出清进程、单实例、原生模块加载与数据迁移。
+Swift 菜单栏启动器源码在 `apps/desktop/macos/Launcher.swift`，用系统 `swiftc` 编译（Command Line Tools 即可），最低系统版本固定为 macOS 13.5，与允许用于打包的 Node 24 官方二进制兼容边界一致。应用图标由 `apps/desktop/darwin-icon.mjs` 在打包时用系统 `sips` 与 `iconutil` 从 `assets/brand/android-chrome-512x512.png` 现场生成 16–512px 含 Retina 档的 `AppIcon.icns` 并写入 bundle，源图缺失或生成失败会中止构建，不产出无品牌发布物。打包逻辑与 Windows 共用 `apps/desktop/pack-app.mjs`，复制当前架构的 Node 与原生依赖；Intel 和 Apple Silicon 必须分别在对应架构环境安装依赖、构建和验证。产物位于 `dist/desktop-darwin-*/`，含对应的 `qcode-darwin-x64.zip` 或 `qcode-darwin-arm64.zip` 与 `SHA256SUMS.txt`。验证覆盖二进制架构、冒烟就绪、退出清进程、单实例、原生模块加载与数据迁移。
 
 在线版本需要另行设计账号认证和权限隔离；本地临时凭证不作为在线登录方案。
 
