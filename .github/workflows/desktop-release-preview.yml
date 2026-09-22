@@ -78,13 +78,13 @@ jobs:
         shell: bash
         run: |
           archive="$RUNNER_TEMP/godot.zip"
-          curl -fsSL -o "$archive" 'https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_universal.zip'
-          echo 'c58a24e31d720be9d62f60cb5627c4e695fb72f21b0cfe1bc9ccaa9a3b3ba63e  godot.zip' | shasum -a 256 -c -
+          curl -fsSL -o "$archive" 'https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_macos.universal.zip'
+          echo "38aa16e5bba2083941fc5b3e54be0089bd4cc35e32415f5b9fd9a8a6a7b9818255d44532ea8ef94b5aef56c4b407c2d634fa4f657e4ebe681ebbf59b7bac69ca  $archive" | shasum -a 512 -c -
           unzip -q "$archive" -d "$RUNNER_TEMP/godot-4.7.2"
           echo "GODOT_BIN=$RUNNER_TEMP/godot-4.7.2/Godot.app/Contents/MacOS/Godot" >> "$GITHUB_ENV"
           tpz="$RUNNER_TEMP/godot-templates.tpz"
           curl -fsSL -o "$tpz" 'https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_export_templates.tpz'
-          echo 'ca4d71c4d7b81dfc15d1a98baa07534aa95b03fdda78a0075b06672e1648d2e5f40980c9adc28d23e1b92e732ee7bf3461997aa804af74ec2fcd7a93ccb84079  $tpz' | shasum -a 512 -c -
+          echo "ca4d71c4d7b81dfc15d1a98baa07534aa95b03fdda78a0075b06672e1648d2e5f40980c9adc28d23e1b92e732ee7bf3461997aa804af74ec2fcd7a93ccb84079  $tpz" | shasum -a 512 -c -
           templates="$HOME/Library/Application Support/Godot/export_templates/4.7.2.stable"
           mkdir -p "$templates"
           unzip -q -j "$tpz" 'templates/web_debug.zip' 'templates/web_release.zip' 'templates/web_nothreads_debug.zip' 'templates/web_nothreads_release.zip' -d "$templates"
@@ -121,7 +121,7 @@ jobs:
             while (-not (Test-Path $urlFile) -and (Get-Date) -lt $deadline) { Start-Sleep -Milliseconds 500 }
             if (-not (Test-Path $urlFile)) { throw 'Service did not become ready from unpacked zip' }
             $url = [uri](Get-Content $urlFile -Raw)
-            $response = Invoke-WebRequest $url.AbsoluteUri -UseBasicParsing -MaximumRedirection 0 -ErrorAction SilentlyContinue
+            $response = Invoke-WebRequest $url.AbsoluteUri -UseBasicParsing -MaximumRedirection 0 -SkipHttpErrorCheck
             if ($response.StatusCode -notin 200, 303) { throw "Unpacked zip smoke got HTTP $($response.StatusCode)" }
             Stop-Process -Id $proc.Id -Force
             $proc.WaitForExit()
