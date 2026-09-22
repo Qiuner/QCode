@@ -1,6 +1,6 @@
 # 桌面预览发行 CI 施工
 
-状态：实施中。跟踪 [issue #18](https://github.com/Qiuner/QCode/issues/18)。工作流已编写，待 fork 与上游首跑证据后转"已实现待验收"。
+状态：已实现待验收。工作流已落地并在 fork 完成 windows-2022 / macos-15 矩阵首跑（见下文证据）；上游仓库内的首跑需维护者（admin）触发，评审与合并待验收。
 
 ## 阶段与范围
 
@@ -12,10 +12,15 @@
 - 产物：白名单上传 `qcode-*.zip`、`qcode-setup-x64.exe`、`SHA256SUMS.txt`；失败日志仅来自 runner 临时目录（`RUNNER_TEMP`），`QCODE_DATA_HOME` / 隔离数据全部位于临时目录。
 - 汇总 job：输出各矩阵结果，并如实记录 **darwin-x64 未覆盖**（无真实 Intel runner，禁止 Rosetta 代产）。
 
-## 验收证据（待首跑）
+## 验收证据
 
-- 首跑需人工核对：守卫输出的实际 `uname -m` / `process.arch` 与矩阵一致；两平台产物 ZIP + SHA256SUMS 下载校验；冒烟日志。
-- 结果与限制记录在 `docs/construction-plan.md` 对应条目。
+fork 首跑（https://github.com/ruijayfeng/agent-isles/actions/runs/35699586487 ，head `f778d5613e91f347303890f9c11d9a16283f31f1`）：
+
+- 架构守卫：macos-15 输出 `runner.arch=ARM64`、`uname -m: arm64`、`process.arch=arm64`；windows-2022 输出 `runner.arch=X64`、`uname -m: x86_64`、`PROCESSOR_ARCHITECTURE=AMD64`。macOS arm64 标签按首跑结果固定为 `macos-15`。
+- Windows（Microsoft Windows Server 2022）：`verify.ps1` 全过（安装提取、无外部链接、认证页面、正常 / 崩溃清理、单实例、原生模块、旧数据迁移 / 冲突），并从解包 ZIP 启动 `QCode.exe` 跟随 token 认证跳转得到 200，终止后端口释放。
+- macOS：`verify-darwin.sh` 对解包 ZIP 全过（原生架构、冒烟就绪、退出清理、单实例、原生模块、迁移 / 冲突），`shasum -c SHA256SUMS.txt` 通过。
+- 产物：`windows-x64-preview` 287,523,735 字节、`macos-arm64-preview` 139,974,843 字节（ZIP / 安装包 / SHA256SUMS 白名单）。
+- 首跑发现并修复两个真实缺陷：`embedNodeRuntime` 只拷二进制导致官方动态链接 Node 产出坏包（补 `libnode.*.dylib`）；`Launcher.swift` 冒烟模式数据冲突经 `NSApp.terminate` 静默以 0 退出（改 `exit(1)`，否则 verify 冲突断言形同虚设）。
 
 ## 限制
 
