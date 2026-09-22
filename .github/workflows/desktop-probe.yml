@@ -1,0 +1,80 @@
+name: Official desktop probe
+
+on: workflow_dispatch
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    name: Windows product probe (win32-x64)
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Record environment
+        shell: pwsh
+        run: |
+          "commit=$(git rev-parse HEAD)"
+          $os = Get-CimInstance Win32_OperatingSystem
+          "windows=$($os.Caption) $($os.Version)"
+          node -p "'node=' + process.version + ' arch=' + process.arch"
+
+      - name: Install dependencies
+        shell: pwsh
+        run: |
+          corepack enable
+          corepack yarn install --immutable
+
+      - name: Install Godot 4.7.2
+        shell: pwsh
+        run: |
+          $archive = Join-Path $env:RUNNER_TEMP 'godot.zip'
+          $destination = Join-Path $env:RUNNER_TEMP 'godot-4.7.2'
+          Invoke-WebRequest 'https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_win64.exe.zip' -OutFile $archive
+          if ((Get-FileHash $archive -Algorithm SHA256).Hash -ne '731980f9608d61333e5baf54a2ef17210acc7a538446c0cb9969f002aca1e953') {
+            throw 'Godot archive checksum mismatch'
+          }
+          Expand-Archive $archive -DestinationPath $destination
+          $godot = Join-Path $destination 'Godot_v4.7.2-stable_win64_console.exe'
+          if (-not (Test-Path $godot)) { throw 'Godot console executable missing' }
+          Add-Content -Path $env:GITHUB_ENV -Value "GODOT_BIN=$godot"
+
+      - name: Export world
+        shell: pwsh
+        run: |
+          & $env:GODOT_BIN --headless --path games/mosslight --editor --import
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          corepack yarn build:world
+          corepack yarn build:web
+
+      - name: Prepare pinned upstream desktop shell
+        shell: pwsh
+        run: corepack yarn upstream:desktop:prepare --install --electron --build --shell-build --launch
+
+      - name: Probe resources
+        shell: pwsh
+        run: corepack yarn upstream:desktop:probe
+
+      - name: Probe product plugin
+        shell: pwsh
+        run: corepack yarn upstream:desktop:probe --product
+
+      - name: Verify no shell processes remain
+        shell: pwsh
+        run: |
+          $left = @(Get-Process electron -ErrorAction SilentlyContinue)
+          if ($left.Count -gt 0) { $left | Format-Table Id, ProcessName; throw "electron processes left: $($left.Count)" }
+
+      - name: Upload probe evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-official-desktop-probe
+          path: |
+            dist/official-desktop-probe/*/result.json
+            dist/official-desktop-probe/*/preview.png
+            dist/official-desktop-probe/*/shell.log
+          if-no-files-found: warn
