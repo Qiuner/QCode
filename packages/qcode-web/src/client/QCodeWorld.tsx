@@ -245,7 +245,6 @@ export function QCodeWorld(props: Props) {
 
   async function enterLearning(run?: TutorialRun) {
     if (busy || tutorial.busy || !props.tutorials) return
-    if (modelState.ready !== true) { setShowModels(true); setError(modelState.ready === null ? t('model.loading') : t('model.connectTutorial')); return }
     requestProjectFullscreen()
     setBusy(true); setError('')
     try {
@@ -264,10 +263,11 @@ export function QCodeWorld(props: Props) {
   }
 
   async function enterCreation() {
-    if (busy) return
+    if (busy || tutorial.busy) return
     requestProjectFullscreen()
     setBusy(true); setError('')
     try {
+      if (tutorial.run && !tutorial.run.paused && tutorial.run.step !== 'complete') await tutorial.command('pause')
       moveKeeper('cancel'); setFollowingKeeper(false)
       setGuideView('welcome')
       closeConversation()
@@ -416,7 +416,8 @@ export function QCodeWorld(props: Props) {
   const tutorialWaiting = !!(tutorialSession && pending.has(tutorialSession))
   const tutorialEntries = tutorialSession ? props.getBinding(tutorialSession)?.eventSource.getSnapshot().entries : undefined
   const tutorialStory = workNarrative({ run: activeTutorial, running: tutorialRunning, pending: tutorialWaiting, failed: tutorialEntries ? residentEventStatus(tutorialEntries) === 'failed' : false, finished: tutorialEntries ? residentEventStatus(tutorialEntries) === 'completed' : false }, t)
-  const tutorialPanel = null
+  const tutorialPanel = tutorial.run && !tutorial.run.paused && props.tutorials && props.submitTutorial && ['coder', 'file_keeper'].includes(selected ?? '')
+    ? <TutorialPanel t={t} nativeSessionId={workOpen ? bindingId : undefined} running={tutorialRunning} waiting={tutorialWaiting} previewTarget={workOpen ? previewTarget : null} composerTarget={workOpen ? composerTarget : null} key={tutorial.run.id} tutorial={tutorial} actions={props.tutorials} project={workspace} pick={() => props.pickDirectory()} bindProject={async id => { useProject(id); await props.refreshProjects?.(id); await props.saveProject(id); setSelected('coder') }} submit={props.submitTutorial} move={moveKeeper} modelSettings={reason => { if (reason instanceof ModelConfigurationRequired) setShowModels(true) }} leave={() => { skipAutoProject.current = true; setProjectId(null); try { localStorage.removeItem(PROJECT_KEY) } catch {} closeConversation() }} /> : null
 
   return <>{workbench && <button className="town-return-island" onClick={() => switchSurface(false)}>← {t('world.return')}</button>}<div className="town-shell" style={workbench ? { display: 'none' } : undefined} onClickCapture={event => {
     const anchor = (event.target as Element).closest('a[href="/workbench"]')
@@ -506,7 +507,11 @@ export function QCodeWorld(props: Props) {
           {loadingProjects && !recoveryFailed ? <p role="status">{t('journal.restore')}</p> : recoveryFailed ? <div role="alert"><p>{recoveryFailed}</p><button onClick={() => { setRestoreAttempt(value => value + 1) }}>{t('project.retryRestore')}</button><button onClick={() => window.location.reload()}>{t('common.reconnect')}</button></div> : <>
           {!workspace && projectId && <p role="alert">{t('project.previousMissing')}</p>}
           {guideView === 'records' && <div className="town-handbook">
-            <section><img src={RESIDENT_PORTRAITS.coder} alt="" /><div><h3>{t('journal.freeCreation')}</h3><p>{t('journal.freeCreationHint')}</p><button disabled={busy} onClick={() => void enterCreation()}>{t('journal.startCreation')}</button></div></section>
+            <section><img src={RESIDENT_PORTRAITS.coder} alt="" /><div><h3>{t('journal.learnTitle')}</h3><p>{t('journal.learnHint')}</p>
+              {tutorial.runs.some(run => run.step !== 'complete') ? tutorial.runs.filter(run => run.step !== 'complete').map(run => <button key={run.id} disabled={busy || tutorial.busy} onClick={() => void enterLearning(run)}>{t('journal.learnResume', { name: run.projectName })}</button>) : <button disabled={!props.tutorials || busy || tutorial.busy} onClick={() => void enterLearning()}>{t('journal.learnStart')}</button>}
+            </div></section>
+            <section><img src={RESIDENT_PORTRAITS.coder} alt="" /><div><h3>{t('journal.freeCreation')}</h3><p>{t('journal.freeCreationHint')}</p><button disabled={busy || tutorial.busy} onClick={() => void enterCreation()}>{t('journal.startCreation')}</button></div></section>
+            <p className="town-handbook-note">{t('journal.handbookNote')}</p>
           </div>}
           {guideView === 'welcome' && <><p className="town-dialogue-line">{workspace ? t('guide.welcomeProject', { name: workspace.title }) : t('guide.welcome')}</p>
           <div className="town-dialogue-choices">
