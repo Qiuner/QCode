@@ -48,7 +48,10 @@ export function readHardwareArm64(exec = execFileSync) {
     )
   }
   if (output === '1') return true
-  if (output === '0' || output === '') return false
+  if (output === '0') return false
+  if (output === '') {
+    throw new Error('macOS 执行环境检测失败：sysctl hw.optional.arm64 输出为空，无法判定硬件架构，请修复检测环境，勿据此继续构建')
+  }
   throw new Error(`macOS 执行环境检测失败：sysctl hw.optional.arm64 返回意外值「${output}」，请修复系统环境后重试`)
 }
 

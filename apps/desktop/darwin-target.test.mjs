@@ -71,6 +71,8 @@ test('sysctl failure is reported as a check failure, never as Intel', () => {
   const missing = Object.assign(new Error('spawnSync sysctl ENOENT'), { status: null, stderr: '' })
   assert.throws(() => readHardwareArm64(() => { throw missing }), /执行环境检测失败/)
   assert.throws(() => readHardwareArm64(() => 'maybe'), /意外值/)
+  assert.throws(() => readHardwareArm64(() => ''), /输出为空/)
+  assert.throws(() => readHardwareArm64(() => '   \n'), /输出为空/)
 })
 
 test('detectDarwinHostTarget rejects translated runs instead of silently switching architecture', () => {
