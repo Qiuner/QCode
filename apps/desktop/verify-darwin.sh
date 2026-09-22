@@ -6,11 +6,17 @@ if [[ "$(uname -s)" != "Darwin" ]]; then
   echo "需要在 macOS 上运行" >&2
   exit 1
 fi
-case "$(uname -m)" in
-  arm64) NODE_ARCH="arm64"; FILE_ARCH="arm64" ;;
-  x86_64) NODE_ARCH="x64"; FILE_ARCH="x86_64" ;;
-  *) echo "macOS 便携包仅支持 x86_64 和 arm64" >&2; exit 1 ;;
-esac
+# 架构判定与 build-darwin.mjs 共用 darwin-target.mjs 的同一规则，含 Rosetta 翻译环境拒绝。
+if ! command -v node >/dev/null 2>&1; then
+  echo "找不到 node，无法判定原生架构" >&2
+  exit 1
+fi
+if ! DARWIN_TARGET_ENV="$(node "$(dirname "$0")/darwin-target.mjs" --print-shell-env)"; then
+  echo "验证终止：当前不是目标架构的原生执行环境（原因见上方检测结果）" >&2
+  exit 1
+fi
+eval "$DARWIN_TARGET_ENV"
+echo "Native target: NODE_ARCH=$NODE_ARCH FILE_ARCH=$FILE_ARCH"
 
 BUILD_DIRECTORY="${1:-}"
 if [[ -z "$BUILD_DIRECTORY" ]]; then

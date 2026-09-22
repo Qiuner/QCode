@@ -45,7 +45,7 @@ powershell -NoProfile -File apps/desktop/verify.ps1 -BuildDirectory (Get-Content
 
 ### macOS Intel / Apple Silicon
 
-在目标架构的 Mac 上原生执行，不要从 Rosetta 终端构建。需已安装 Godot 4.7.2 与 Web 导出模板，或设置 `GODOT_BIN`：
+在目标架构的 Mac 上原生执行，不要从 Rosetta 终端构建。构建与验证脚本会按硬件标志（`hw.optional.arm64`）核对 Node 自身架构，Apple Silicon 上的 Rosetta 翻译执行会在产出任何构建产物前被拒绝并提示切换到原生终端与原生 Node，不会静默更改输出架构；确需 Intel x64 包时仍须在真正的 Intel Mac 上构建。需已安装 Godot 4.7.2 与 Web 导出模板，或设置 `GODOT_BIN`：
 
 ```bash
 corepack yarn build:web
