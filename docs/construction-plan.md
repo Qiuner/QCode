@@ -4,6 +4,8 @@
 
 ## 产品目标
 
+桌面预览发行 CI（2026-09-22，实施中）：新增 `desktop-release-preview.yml`，仅手动触发、不自动发布；`windows-2022` / `macos-15` 矩阵在 job 开始断言 `uname -m` 与 `process.arch` 与目标一致，复用各平台现有打包与验证脚本，并从解包后的 ZIP 直接启动做原生冒烟（token 化 URL、退出清端口），上传 ZIP、安装包与 SHA256SUMS；darwin-x64 在汇总中如实标记未覆盖，不以 Rosetta 代产。自动冒烟不替代 #19 真实模型与干净机器验收。阶段、约束与首跑证据要求见 [桌面预览发行 CI 施工](desktop-release-preview-plan.md)。
+
 macOS 原生架构门禁（2026-09-20，已实现待验收）：`build:desktop:darwin` 与 `verify-darwin.sh` 在产出构建目录或启动验证进程前，按硬件级 `hw.optional.arm64` 与 Node 自身架构判定执行环境，拒绝 Apple Silicon 上的 Rosetta 翻译执行并给出手工切换指引，不静默更改输出架构；架构判定收敛到 `apps/desktop/darwin-target.mjs` 单一来源，验证脚本经其 `--print-shell-env` 复用同一规则。11 项目标解析测试（含注入式 sysctl 分支）通过；Apple Silicon 实机覆盖原生通过、翻译 x86_64 Node 拒绝（官方 darwin-x64 Node 实测）与 Rosetta shell 内原生 arm64 Node 正常放行三条路径；Intel Mac 真机与完整重新打包未覆盖。详见 [桌面启动器说明](../apps/desktop/README.md)。
 
 QCode 重命名（2026-09-18，已实现待验收）：产品与公开仓库已改名为 QCode；Mosslight / 苔光之屿继续作为世界名称。workspace、Web 插件目录与包名、TypeScript / Godot 自有符号、DOM 命名空间、Web/Godot Bridge、桌面应用、产品文档和发布链接已改用 QCode；新路由和消息使用 `/qcode/*`、`qcode-host`、`qcode-world`，迁移期兼容旧路由、请求头、消息来源和 Bridge 名称。浏览器存储、开发目录、Host 状态文件及桌面用户数据均采用无覆盖迁移，教程存储 domain 保持旧稳定身份以读取既有进度，世界导出状态改用 `.qcode-world-export.json`；`check:qcode-naming` 已接入 CI，开发目录迁移测试也已加入 CI。immutable 安装、类型检查、Web 构建、61 项插件测试、23 项本轮启动/迁移/文档及辅助测试、Godot 4.7.2 的 7 个 CI 场景、世界导出及哈希校验通过；隔离临时数据目录在 3081 端口启动后，认证入口、首页、QCode 图标与世界 HTML/WASM/PCK 的 HTTP 冒烟通过。Windows QCode 安装包与便携包完成安装提取、认证页面、世界资源、退出清理、单实例、原生模块、旧数据迁移与双目录冲突验收。介绍页通过 1440px 桌面截图检查，真实 390px 浏览器视口无横向溢出，动态标题正确。GitHub API 确认公开仓库为 `Qiuner/QCode`、remote 和 Pages 地址已更新且主分支保护保持不变，新 Pages 路径返回 200。macOS 脚本已同步但未在原生环境执行；真实浏览器 WebGL 与模型请求未在本轮验收，远端 CI 与线上页面的新内容仍待验收。本地 checkout 路径暂不改名，以免使活跃任务工作区失效。详见 [QCode 重命名施工方案](qcode-renaming-plan.md)。
