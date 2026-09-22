@@ -14,3 +14,5 @@ export const RESIDENT_PORTRAITS = {
   teacher: resourcePath('/qcode/brand/teacher-portrait.png'),
   file_keeper: resourcePath('/qcode/brand/file-keeper-portrait.png'),
 } as const
+
+export const PLAYER_PORTRAIT = resourcePath('/qcode/brand/player-portrait.png')

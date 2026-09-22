@@ -10,6 +10,8 @@ export async function testResidentDialogue(page, url) {
     await choice('选择文件夹').waitFor()
   }
   await choice('选择文件夹').waitFor()
+  assert.equal(await page.locator('.town-cinematic-dialogue').count(), 1, 'Project onboarding keeps the cinematic dialogue presentation')
+  assert.equal(await page.locator('.town-cinematic-cast img').count(), 2, 'Player and resident portraits remain in the project dialogue')
   assert.equal(await page.locator('#town-folder').count(), 0)
   assert.equal(await page.getByText('模型设置', { exact: true }).count(), 0)
   await page.evaluate(() => { window.dialogueTest.pick = 'cancel' })

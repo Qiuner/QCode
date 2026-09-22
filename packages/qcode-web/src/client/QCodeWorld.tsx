@@ -11,7 +11,7 @@ import { WorldBridgeSession, type ResidentId, type WorldLocale } from './world-b
 import { localizedResidents, projectResidentEvents, readResidentDrafts, residentEventStatus } from './resident-model.js'
 import { ModelSettings } from './ModelSettings.js'
 import { localizedModelError, ModelConfigurationRequired, type ModelSettingsActions } from './model-settings.js'
-import { RESIDENT_PORTRAITS } from './resident-portraits.js'
+import { PLAYER_PORTRAIT, RESIDENT_PORTRAITS } from './resident-portraits.js'
 import { TutorialPanel, useTutorial } from './Tutorial.js'
 import { NativeChat } from './NativeChat.js'
 import { NativeSidebar } from './NativeSidebar.js'
@@ -473,13 +473,14 @@ export function QCodeWorld(props: Props) {
         : <progress aria-label={t('regions.loading')} />}
     </section>}
 
-    {showModels ? <ModelSettings actions={props.models} close={() => setShowModels(false)} t={t} /> : selected === 'teacher' && historyOpen && !workbench ? <NativeSidebar sessionId={sessionState.current} toggleSidebar={props.toggleSidebar} close={closeConversation} t={t} /> : selected === 'file_keeper' && fileView && workspace ? <ProjectFiles key={workspace.workspaceId} projectId={workspace.workspaceId} title={workspace.title} initialView={fileView} close={() => setFileView(null)} t={t} /> : resident && <aside ref={conversation} tabIndex={-1} className={`town-panel town-conversation${selected === 'file_keeper' ? ' town-keeper-dialogue' : ''}${workOpen ? ' town-studio' : ''}${selected === 'coordinator' && guideView === 'records' ? ' town-work-panel' : ''}`} aria-label={guideView === 'records' ? t('journal.title') : resident.name} onKeyDown={event => {
+    {showModels ? <ModelSettings actions={props.models} close={() => setShowModels(false)} t={t} /> : selected === 'teacher' && historyOpen && !workbench ? <NativeSidebar sessionId={sessionState.current} toggleSidebar={props.toggleSidebar} close={closeConversation} t={t} /> : selected === 'file_keeper' && fileView && workspace ? <ProjectFiles key={workspace.workspaceId} projectId={workspace.workspaceId} title={workspace.title} initialView={fileView} close={() => setFileView(null)} t={t} /> : resident && <aside ref={conversation} tabIndex={-1} className={`town-panel town-conversation${selected === 'file_keeper' ? ' town-keeper-dialogue' : ''}${workOpen ? ' town-studio' : ''}${selected === 'coordinator' && guideView === 'records' ? ' town-work-panel' : ''}${selected === 'coordinator' && guideView !== 'records' ? ' town-cinematic-dialogue' : ''}`} aria-label={guideView === 'records' ? t('journal.title') : resident.name} onKeyDown={event => {
       if (event.key === 'Escape') {
         const menu = conversation.current?.querySelector<HTMLElement>('.town-chat-menu:popover-open')
         if (menu) { event.preventDefault(); event.stopPropagation(); menu.hidePopover(); return }
         event.preventDefault(); closeConversation()
       }
     }}>
+      {selected === 'coordinator' && guideView !== 'records' && <div className="town-cinematic-cast" aria-hidden="true"><img src={PLAYER_PORTRAIT} alt="" /><img src={RESIDENT_PORTRAITS.coordinator} alt="" /></div>}
       <header>{guideView !== 'records' && <img className="town-portrait" src={RESIDENT_PORTRAITS[resident.id]} alt="" />}<div className="town-resident-heading"><small>{guideView === 'records' ? workspace?.title ?? t('project.work') : selected === 'coordinator' ? t('project.manage') : selected === 'coder' ? t('resident.makeTogether') : selected === 'teacher' ? t('resident.history') : t('resident.files')}</small><h2>{guideView === 'records' ? t('journal.title') : resident.name.split(' · ')[0]}</h2></div>{workOpen && <div className="town-studio-toolbar"><span>{workspace?.title}</span><button type="button" {...{ popovertarget: 'town-work-options' }} onClick={event => {
         const box = event.currentTarget.getBoundingClientRect()
         const menu = document.getElementById('town-work-options')
