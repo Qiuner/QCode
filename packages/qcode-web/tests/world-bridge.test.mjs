@@ -2,7 +2,56 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { readFileSync } from 'node:fs'
 import { runInNewContext } from 'node:vm'
-import { QCODE_HOST_SOURCE, QCODE_WORLD_SOURCE, worldFrameUrl, isWorldToHostMessage } from '../lib/types/client/world-bridge.js'
+import { QCODE_HOST_SOURCE, QCODE_WORLD_SOURCE, WorldBridgeSession, worldFrameUrl, isWorldToHostMessage } from '../lib/types/client/world-bridge.js'
+
+test('bridge session owns frame pairing, lifecycle state and host commands', () => {
+  const sent = []
+  const frame = { postMessage: (message, origin) => sent.push({ message, origin }) }
+  let listener
+  let removed
+  const target = {
+    addEventListener: (_type, value) => { listener = value },
+    removeEventListener: (_type, value) => { removed = value },
+  }
+  const session = new WorldBridgeSession('http://localhost:3081/?token=private', { stage: 'waiting', detail: 'waiting' })
+  const snapshots = []
+  const unsubscribe = session.subscribe(() => snapshots.push(session.getSnapshot()))
+  const received = []
+  const stop = session.listen(target, message => received.push(message))
+
+  session.bindFrame(frame)
+  session.frameLoaded()
+  assert.deepEqual(session.getSnapshot(), { ready: true, playable: false, regions: { stage: 'waiting', detail: 'waiting' } })
+  session.initialize({ locale: 'zh', workspace: null, sessionId: null, panelOpen: false, residents: [] })
+  session.setLocale('en')
+  session.showGuide()
+  session.retryNeighbors('reconnecting')
+  session.moveKeeper('lesson-1', 'arrive', false)
+  assert.deepEqual(sent.map(item => item.message.type), ['world:init', 'world:locale', 'world:show-guide', 'world:retry-neighbors', 'tutorial:keeper'])
+  assert.ok(sent.every(item => item.origin === 'http://localhost:3081'))
+  assert.ok(sent.every(item => item.message.source === QCODE_HOST_SOURCE && item.message.version === 1))
+  assert.deepEqual(session.getSnapshot().regions, { stage: 'downloading', detail: 'reconnecting' })
+
+  listener({ origin: 'https://untrusted.example', source: frame, data: { source: QCODE_WORLD_SOURCE, version: 1, type: 'world:playable' } })
+  listener({ origin: 'http://localhost:3081', source: {}, data: { source: QCODE_WORLD_SOURCE, version: 1, type: 'world:playable' } })
+  assert.equal(session.getSnapshot().playable, false)
+  assert.deepEqual(received, [])
+  listener({ origin: 'http://localhost:3081', source: frame, data: { source: QCODE_WORLD_SOURCE, version: 1, type: 'world:playable' } })
+  assert.equal(session.getSnapshot().playable, true)
+  assert.equal(received.at(-1).type, 'world:playable')
+  listener({ origin: 'http://localhost:3081', source: frame, data: { source: QCODE_WORLD_SOURCE, version: 1, type: 'world:regions', payload: { stage: 'ready', detail: 'ready' } } })
+  assert.deepEqual(session.getSnapshot().regions, { stage: 'ready', detail: 'ready' })
+  listener({ origin: 'http://localhost:3081', source: frame, data: { source: QCODE_WORLD_SOURCE, version: 1, type: 'world:ready' } })
+  assert.equal(session.getSnapshot().playable, false)
+
+  stop()
+  assert.equal(removed, listener)
+  session.bindFrame(null)
+  assert.equal(session.getSnapshot().ready, false)
+  assert.equal(session.getSnapshot().playable, false)
+  unsubscribe()
+  assert.ok(snapshots.length >= 4)
+})
 
 test('tutorial presentation receipts require a bounded encounter identity and known status', () => {
   const message = { source: QCODE_WORLD_SOURCE, version: 1, type: 'tutorial:keeper', payload: { encounterId: 'course-1', status: 'arrived' } }

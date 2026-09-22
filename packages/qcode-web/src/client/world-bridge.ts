@@ -23,6 +23,12 @@ export interface ResidentView {
   status: ResidentStatus
 }
 
+export interface WorldBridgeSnapshot {
+  ready: boolean
+  playable: boolean
+  regions: RegionLoadState
+}
+
 export type HostToWorldMessage =
   | { source: typeof QCODE_HOST_SOURCE; version: typeof WORLD_BRIDGE_VERSION; type: 'tutorial:keeper'; payload: { encounterId: string; action: 'arrive' | 'home' | 'cancel'; reducedMotion: boolean } }
   | {
@@ -72,6 +78,15 @@ export type WorldToHostMessage =
       payload: { residentId: ResidentId }
     }
 
+type OutboundMessage = HostToWorldMessage extends infer Message
+  ? Message extends HostToWorldMessage ? Omit<Message, 'source' | 'version'> : never
+  : never
+type WorldFrame = { postMessage(message: HostToWorldMessage, targetOrigin: string): void }
+type WorldMessageTarget = {
+  addEventListener(type: 'message', listener: (event: MessageEvent) => void): void
+  removeEventListener(type: 'message', listener: (event: MessageEvent) => void): void
+}
+
 export function isWorldToHostMessage(value: unknown): value is WorldToHostMessage {
   if (typeof value !== 'object' || value === null) return false
   const message = value as Partial<WorldToHostMessage>
@@ -86,4 +101,81 @@ export function isWorldToHostMessage(value: unknown): value is WorldToHostMessag
   const residentId = message.payload?.residentId
   return residentId === 'coder' || residentId === 'file_keeper'
     || residentId === 'teacher' || residentId === 'coordinator'
+}
+
+export class WorldBridgeSession {
+  readonly url: URL
+  private frame: WorldFrame | null = null
+  private listeners = new Set<() => void>()
+  private snapshot: WorldBridgeSnapshot
+
+  constructor(hostHref: string, initialRegions: RegionLoadState) {
+    this.url = worldFrameUrl(hostHref)
+    this.snapshot = { ready: false, playable: false, regions: initialRegions }
+  }
+
+  readonly getSnapshot = (): WorldBridgeSnapshot => this.snapshot
+
+  readonly subscribe = (listener: () => void): (() => void) => {
+    this.listeners.add(listener)
+    return () => this.listeners.delete(listener)
+  }
+
+  bindFrame(frame: WorldFrame | null): void {
+    this.frame = frame
+    if (!frame) this.update({ ready: false, playable: false })
+  }
+
+  frameLoaded(): void {
+    this.update({ ready: true, playable: false })
+  }
+
+  listen(target: WorldMessageTarget, receive: (message: WorldToHostMessage) => void): () => void {
+    const listener = (event: MessageEvent) => {
+      if (event.origin !== this.url.origin || event.source !== this.frame || !isWorldToHostMessage(event.data)) return
+      const message = event.data
+      if (message.type === 'world:ready') this.update({ ready: true, playable: false })
+      else if (message.type === 'world:playable') this.update({ playable: true })
+      else if (message.type === 'world:regions') this.update({ regions: message.payload })
+      receive(message)
+    }
+    target.addEventListener('message', listener)
+    return () => target.removeEventListener('message', listener)
+  }
+
+  initialize(payload: Extract<HostToWorldMessage, { type: 'world:init' }>['payload']): void {
+    if (this.snapshot.ready) this.send({ type: 'world:init', payload })
+  }
+
+  setLocale(locale: WorldLocale): void {
+    if (this.snapshot.ready) this.send({ type: 'world:locale', payload: { locale } })
+  }
+
+  showGuide(): void {
+    this.send({ type: 'world:show-guide' })
+  }
+
+  retryNeighbors(detail: string): void {
+    this.update({ regions: { stage: 'downloading', detail } })
+    this.send({ type: 'world:retry-neighbors' })
+  }
+
+  moveKeeper(encounterId: string, action: 'arrive' | 'home' | 'cancel', reducedMotion: boolean): void {
+    this.send({ type: 'tutorial:keeper', payload: { encounterId, action, reducedMotion } })
+  }
+
+  resetKeeper(): void {
+    this.moveKeeper('reset', 'cancel', true)
+  }
+
+  private send(message: OutboundMessage): void {
+    this.frame?.postMessage({ source: QCODE_HOST_SOURCE, version: WORLD_BRIDGE_VERSION, ...message } as HostToWorldMessage, this.url.origin)
+  }
+
+  private update(next: Partial<WorldBridgeSnapshot>): void {
+    const snapshot = { ...this.snapshot, ...next }
+    if (snapshot.ready === this.snapshot.ready && snapshot.playable === this.snapshot.playable && snapshot.regions === this.snapshot.regions) return
+    this.snapshot = snapshot
+    this.listeners.forEach(listener => listener())
+  }
 }

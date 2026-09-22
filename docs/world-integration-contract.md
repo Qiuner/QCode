@@ -25,11 +25,13 @@ Godot 只负责渲染、输入和状态演出，不持有会话真相，不执�
 
 协议版本从 `1` 开始。双方只接受同源、来自指定 iframe / 父页面的消息。
 
-Host → 世界：`world:init`、`workspace:changed`、`resident:status`。
+Host → 世界：`world:init`、`world:locale`、`world:show-guide`、`world:retry-neighbors`、`tutorial:keeper`、`workspace:changed`、`resident:status`。
 
-世界 → Host：`world:ready`、`resident:selected`。
+世界 → Host：`world:ready`、`world:playable`、`world:regions`、`resident:selected`、`tutorial:keeper`。
 
-消息只允许携带 `workspaceId`、工作区标题、`sessionId`、居民 ID 和展示状态；不得携带主机绝对路径、令牌、提示词或权限细节。新增消息必须递增协议版本并说明兼容策略。
+React Host 侧的桥接 Session 负责 iframe 配对、来源与版本校验、`world:ready` / `world:init` 握手、状态快照和命令编码；Web shell 与 Godot 构成世界侧 Adapter，负责验证父页面并在 JavaScriptBridge 与结构化消息之间转换。调用方不得自行拼装跨 iframe 消息。
+
+消息只允许携带 Workspace / Session 引用、居民 ID 与展示状态、语言、邻区加载状态，以及教程演出所需的有界动作和回执；不得携带主机绝对路径、令牌、提示词或权限细节。新增消息必须递增协议版本并说明兼容策略。
 
 ## 4. 接入验收
 
