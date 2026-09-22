@@ -4,10 +4,11 @@ import { spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import path from 'node:path'
 import { embedNodeRuntime, materializeAppTree, requireBuiltArtifacts, root } from './pack-app.mjs'
-import { resolveDarwinTarget } from './darwin-target.mjs'
+import { detectDarwinHostTarget } from './darwin-target.mjs'
 
 if (process.platform !== 'darwin') throw new Error('需要在 macOS 上构建 darwin 便携包')
-const target = resolveDarwinTarget(process.arch)
+// 在产生任何构建产物前拒绝 Rosetta 翻译环境，架构判定与 verify-darwin.sh 共用同一规则。
+const target = detectDarwinHostTarget()
 
 requireBuiltArtifacts()
 
