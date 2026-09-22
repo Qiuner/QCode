@@ -1,5 +1,5 @@
 // 构建当前 Mac 架构的便携包：内置 Node、Web 插件、Godot 世界与菜单栏启动器。
-import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { chmodSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import path from 'node:path'
@@ -17,6 +17,14 @@ if (!existsSync(path.join(root, DARWIN_ICON_SOURCE))) {
 requireBuiltArtifacts()
 
 const out = path.join(root, 'dist', `desktop-darwin-${Date.now()}`)
+// 工具失败（sips / iconutil / swiftc / ditto 等）时不遗留本次构建输出；成功前进程非零退出即清理。
+let buildCompleted = false
+process.on('exit', code => {
+  if (!buildCompleted && code !== 0) {
+    rmSync(out, { recursive: true, force: true })
+    console.error(`本次构建输出目录已清理：${out}`)
+  }
+})
 const app = path.join(out, 'app')
 mkdirSync(app, { recursive: true })
 
@@ -100,5 +108,6 @@ writeFileSync(
   `${createHash('sha256').update(readFileSync(zip)).digest('hex')}  ${path.basename(zip)}\n`,
 )
 writeFileSync(path.join(root, 'dist/desktop-darwin-latest.txt'), out)
+buildCompleted = true
 console.log(`发行文件已排除 ${excludedFiles} 个声明及调试映射文件`)
 console.log(`便携包：${zip}`)
