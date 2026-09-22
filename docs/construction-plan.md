@@ -18,6 +18,8 @@ QCode 重命名（2026-09-18，已实现待验收）：产品与公开仓库已�
 
 官方桌面原生聊天显示（2026-09-17，已实现待验收）：兼容 `conversation` / `main.conversation` 新旧 slot；带项目 Q 面板的原生输入框及控件显示、关闭重开、resize 与世界保持实测通过。真实消息流和审批仍未验收，详见 [官方桌面接入施工](official-desktop-plan.md)。
 
+官方桌面 macOS 适配（2026-09-20，实施中）：探针与隔离构建支持 macOS Apple Silicon——Electron 可执行文件按 `Electron.app` bundle 解析、依赖链接按平台分支、隔离构建关闭声明输出以避开链接图上的 TS2883。prepare 安装/Electron/全量构建/启动与资源、产品两档探针在 M5 Pro 通过，退出无残留；Intel 未覆盖，Windows 未复验产品探针。详见 [官方桌面接入施工](official-desktop-plan.md)，#19 的 Mac 验收以此为基础。
+
 官方桌面产品插件（2026-09-17，已实现待验收）：`upstream:desktop:probe --product --preview` 使用现有 Web 产品插件和独立新版依赖图，恢复原版角色对话与项目引导；共享 Fetch 接入原有领域处理器。Windows 产品页面、主岛/邻岛、角色选择及 17 项针对性回归通过；真实项目、模型、审批、通知与教程全程尚待验收。详见 [官方桌面接入施工](official-desktop-plan.md)，生产 runtime 未切换。
 
 官方桌面接入（2026-09-17，实施中）：目标固定为 `dsh-v0.1.6-alpha.1`；Windows 最小资源插件已通过官方 Electron 壳与 Host 字节管道，主岛、邻岛、同源桥接、HEAD/404 和处理器取消/卸载测试通过。`upstream:desktop:probe --preview` 提供独立预览页并保留窗口，补齐 Q 的 E 交互打开官方工作台及返回入口。完整产品插件、居民会话绑定、领域接口、其余键鼠与模型闭环仍待验收；生产 runtime 仍为 0.1.3-alpha.1。源码证据、环境修复与剩余工作见 [官方桌面接入施工](official-desktop-plan.md)。

@@ -6,7 +6,7 @@ import { join, resolve } from 'node:path'
 import assert from 'node:assert/strict'
 import { buildDesktopPlugin } from './build-desktop-plugin.mjs'
 
-assert.equal(process.platform, 'win32', 'This probe currently validates Windows only')
+assert(['win32', 'darwin'].includes(process.platform), 'This probe validates Windows and macOS portable shells only')
 const root = resolve(import.meta.dirname, '..')
 const preview = process.argv.includes('--preview')
 const product = process.argv.includes('--product')
@@ -55,7 +55,10 @@ await writeFile(join(app, 'package.json'), JSON.stringify(appManifest))
 await link(join(upstream, 'apps/desktop/lib'), join(app, 'lib'))
 await link(join(upstream, 'apps/desktop/renderer'), join(app, 'renderer'))
 await link(join(upstream, 'apps/desktop/node_modules'), join(app, 'node_modules'))
-const electron = join(upstream, 'apps/desktop/node_modules/electron/dist', process.platform === 'win32' ? 'electron.exe' : 'electron')
+const electronBinary = process.platform === 'win32' ? 'electron.exe'
+  : process.platform === 'darwin' ? join('Electron.app', 'Contents', 'MacOS', 'Electron')
+  : 'electron'
+const electron = join(upstream, 'apps/desktop/node_modules/electron/dist', electronBinary)
 const log = openSync(join(output, 'shell.log'), 'a')
 const child = spawn(electron, ['--remote-debugging-port=0', '--disable-background-timer-throttling', '--disable-renderer-backgrounding', `--user-data-dir=${join(output, 'user-data')}`, app], {
   detached: preview, windowsHide: !preview, stdio: ['ignore', log, log], env: { ...process.env, DSH_HOME: join(output, 'home'), DSH_DESKTOP_NODE_BINARY: process.execPath, DSH_DESKTOP_HOST_INSPECT_PORT: '19330', DSH_DESKTOP_OPEN_DEVTOOLS: '0' },

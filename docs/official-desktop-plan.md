@@ -82,7 +82,7 @@
 - 实际通过：WASM HEAD 为 200 / application/wasm 且无响应体；未知资源与未登记路径为 404；真实主岛 world:playable、邻岛 ready、world:ready/init 消息桥。资源插件单测覆盖完整字节读取、HEAD、缺失文件、符号链接越界、请求取消及卸载中止读取。
 - 最终管道复验 `dist/official-desktop-probe/1789606750000/result.json`：PCK 读到首块后取消得到 AbortError，后续 HTML 请求为 200，随后世界加载通过。资源检查 604 ms，取消与后续请求 46 ms，世界达到主岛 playable 且邻岛 ready 用时 57,158 ms；这是本机单次样本，不是性能基准。测试退出码 0，官方 Host 已随壳关闭。
 
-复现前置：运行 `upstream:desktop:prepare --install --electron --build --shell-build`，有完整世界导出，并先执行过官方 `--launch` 以建立开发依赖模板。可选 SDK 下载不完整时先按前述环境修复；probe 不自动下载或修补依赖。测试当前仅支持 Windows。`node --test scripts/fixtures/desktop-world-plugin/index.test.mjs` 运行处理器回归测试。
+复现前置：运行 `upstream:desktop:prepare --install --electron --build --shell-build`，有完整世界导出，并先执行过官方 `--launch` 以建立开发依赖模板。可选 SDK 下载不完整时先按前述环境修复；probe 不自动下载或修补依赖。测试支持 Windows 与 macOS Apple Silicon；macOS Intel 未覆盖，见「macOS 便携壳适配」一节。`node --test scripts/fixtures/desktop-world-plugin/index.test.mjs` 运行处理器回归测试。
 
 人工预览运行 `corepack yarn upstream:desktop:probe --preview`。预览页有独立背景与加载提示，可在原地址刷新；主岛就绪后隐藏提示，测试将窗口切到前台。此前用户看到官方工作台时，检查发现临时 iframe 仍存在并收到 playable，但文档处于 hidden、邻岛停在 waiting；截图触发的实际绘制已能看到小岛，不能用 playable 单独证明窗口画面正确。
 
@@ -107,5 +107,15 @@ Q 交互补齐：预览页原先未处理 `resident:selected`，导致按 E 无�
 - 验证：`corepack yarn build:web` 通过；直接执行本地 TypeScript 的插件 noEmit 检查通过；桌面原生依赖图编译通过；desktop-transport、resident-recovery、project-files、tutorial、world-bridge 共 17 项测试通过。`corepack yarn workspace @qcode/web-plugin typecheck` 本机单独运行报找不到 tsc，未标为通过；等价本地编译器命令已验证。
 
 剩余：实际项目创建/恢复、带会话 Q 聊天、模型调用、工具审批、后台通知、教程全程、其它 NPC 与安装包还需端到端验收。界面复用不代表功能全量已验收。测试使用焦点模拟保证后台验收推进，不代表后台渲染性能已修复。生产 pin/vendor 未切换。
+
+## macOS 便携壳适配 · 2026-09-20（#21）
+
+实施中，Apple Silicon 单架构通过，Intel 未覆盖。环境：MacBook Pro（Apple M5 Pro）、macOS 26.5.1、arm64、Node v26.8.1、corepack pnpm 11.7.0（上游固定）、上游 `dsh-v0.1.6-alpha.1`（`0a15e36e7f82`）。
+
+- 平台差异与最小修改：探针原硬断言 win32；macOS 的 Electron 可执行文件位于 `dist/Electron.app/Contents/MacOS/Electron`，不是 POSIX 裸 `dist/electron`；`build-desktop-plugin.mjs` 的依赖链接原硬编码 Windows 专用 `junction` 类型，现按平台分支（win32 保持 junction，其余 dir）。探针目录链接原本已有非 win32 分支，无需修改。
+- 隔离构建的 TypeScript 差异：在链接出的 `node_modules` 图上，macOS 的 realpath 解析使 `@types/react` 经 `@qcode/web-plugin/node_modules` 命名，声明输出触发 TS2883；Windows junction 图未复现。隔离探针构建关闭 declaration 输出（运行时只消费 tsc 的 JS），类型仍由仓库正常构建负责，不为此给十余个组件补显式标注。
+- prepare 全链在 Mac 一次通过：`--install`（16.6s，冻结锁文件退出 0）、`--electron`（Electron 44.0.0 universal）、`--build`（native/Host/Client/Web，240 个 client 工件）、`--shell-build`、`--launch`（`dsh-app` 协议注册与全部子进程正常，12 秒建立开发模板，验证后关闭本次实例）。安装日志中 `darwin-x64` 的 Unsupported platform WARN 为 pnpm 在 arm64 上跳过非目标变体，`darwin-arm64` 原生包实际存在。
+- 探针结果：资源模式与 `--product` 均通过（`dist/official-desktop-probe/1789904861395`、`1789904973907/result.json`、`preview.png`）：HEAD 200/application/wasm/0 字节体、未知与越界 404、取消后继续请求 200、主岛 playable 与邻岛 ready（世界 5.1s）、产品插件进入官方模块图且角色选择打开工作台、文档保持。默认退出后 0 残留进程（含 Host 子进程）；`--preview` 窗口保留、终止主进程后全部退出。夹具回归 1/1 通过。
+- 未覆盖：Intel macOS 未在任何环节执行；Windows 行为按平台分支保留，但 `declaration:false` 对 Windows 隔离构建同样生效，未在 Windows 复验产品探针，交由 CI 与维护者确认。真实模型任务属 #19，本阶段未触碰签名、公证与生产 runtime。
 
 原生聊天显示修复：官方新版聊天 slot 为 `main.conversation`，旧版为 `conversation`。原有 `NativeChat` 只定位旧 slot，导致已创建的原生输入框被小岛底层隐藏规则遮住。现同时匹配两种 slot，保持原生 React 树及会话不重建。当前官方桌面已有项目的 Q 面板实测：输入框、模型/权限/附件控件可见；关闭重开及 resize 后输入框仍在右侧区域，命中测试通过，世界文档保持。证据 `dist/native-chat-fixed.png`、`dist/native-chat-verification.json`。运行中旧 bundle 已应用等价样式热修复，后续源码构建包含正式改动。Web 构建及本地 TypeScript noEmit 通过；未发送真实模型请求。产品 probe 增加已有原生聊天座位时的输入框可见与边界断言，未以新建空 profile 替代带会话验收。
