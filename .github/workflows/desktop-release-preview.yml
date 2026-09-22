@@ -121,8 +121,8 @@ jobs:
             while (-not (Test-Path $urlFile) -and (Get-Date) -lt $deadline) { Start-Sleep -Milliseconds 500 }
             if (-not (Test-Path $urlFile)) { throw 'Service did not become ready from unpacked zip' }
             $url = [uri](Get-Content $urlFile -Raw)
-            $response = Invoke-WebRequest $url.AbsoluteUri -UseBasicParsing -MaximumRedirection 0 -SkipHttpErrorCheck
-            if ($response.StatusCode -notin 200, 303) { throw "Unpacked zip smoke got HTTP $($response.StatusCode)" }
+            $response = Invoke-WebRequest $url.AbsoluteUri -UseBasicParsing
+            if ($response.StatusCode -ne 200) { throw "Unpacked zip smoke got HTTP $($response.StatusCode)" }
             Stop-Process -Id $proc.Id -Force
             $proc.WaitForExit()
             Start-Sleep -Seconds 2
@@ -144,7 +144,7 @@ jobs:
           work="$RUNNER_TEMP/zip-smoke"
           mkdir -p "$work"
           ditto -x -k "$build/qcode-darwin-arm64.zip" "$work"
-          corepack yarn verify:desktop:darwin "$work/app"
+          corepack yarn verify:desktop:darwin "$work"
           (cd "$build" && shasum -a 256 -c SHA256SUMS.txt)
 
       - name: Checksums
