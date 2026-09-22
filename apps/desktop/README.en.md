@@ -45,7 +45,7 @@ The verification script silently installs to an isolated path containing spaces 
 
 ### macOS Intel / Apple Silicon
 
-Run natively on a Mac matching the target architecture; do not build from a Rosetta terminal. Install Godot 4.7.2 and its matching Web export templates, or configure `GODOT_BIN`:
+Run natively on a Mac matching the target architecture; do not build from a Rosetta terminal. Before producing any build output, the build and verification scripts check the Node process architecture against the hardware-level `hw.optional.arm64` flag: x86_64 processes translated by Rosetta on Apple Silicon are rejected with instructions to switch to a native terminal and Node, and the output architecture is never silently changed. Intel x64 packages still require a real Intel Mac. Install Godot 4.7.2 and its matching Web export templates, or configure `GODOT_BIN`:
 
 ```bash
 corepack yarn build:web
