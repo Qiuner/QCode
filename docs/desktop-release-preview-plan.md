@@ -7,7 +7,7 @@
 - `.github/workflows/desktop-release-preview.yml`：仅 `workflow_dispatch` 手动触发，不自动发布、不创建 GitHub Release、不推送任何渠道。
 - 矩阵：`windows-2022` → `windows-x64`；`macos-15` → `macos-arm64`。`fail-fast: false`，两平台独立判定，任何一方的通过都不替代另一方。
 - 架构守卫：job 开始即以 `uname -m`、`node -p process.arch`（Windows 另加 `PROCESSOR_ARCHITECTURE` 与 `RUNNER_ARCH`）断言与目标矩阵一致，不一致立即失败；不凭 runner 标签推断 CPU。macOS 标签的实际架构以首跑守卫结果为准，通过后在本文件与 workflow 注释中固定。
-- 构建：immutable 安装 → Godot 4.7.2（win64 / universal 固定 SHA-256）→ `build:world` + `build:web` → 各平台现有打包脚本（`apps/desktop/build.mjs` / `build:desktop:darwin`）。
+- 构建：immutable 安装 → Godot 4.7.2（win64 / universal 固定 SHA-256）+ 官方校验和的 Web 导出模板（tpz 仅解出四个 web 变体，runner 默认不带模板）→ `build:world` + `build:web` → 各平台现有打包脚本（`apps/desktop/build.mjs` / `build:desktop:darwin`）。
 - 冒烟：Windows 运行现有 `verify.ps1`（安装提取、外部链接检查、隔离数据、单实例、退出清端口），并额外从解包后的 `qcode-windows-x64.zip` 直接启动 `QCode.exe`，轮询 token 化 `browser-url.txt` 请求完整 URL（200/303），终止后断言端口释放；macOS 解包 zip 后把 `app/` 交给 `verify-darwin.sh`（含 Rosetta 拒绝门禁），并 `shasum -c SHA256SUMS.txt`。
 - 产物：白名单上传 `qcode-*.zip`、`qcode-setup-x64.exe`、`SHA256SUMS.txt`；失败日志仅来自 runner 临时目录（`RUNNER_TEMP`），`QCODE_DATA_HOME` / 隔离数据全部位于临时目录。
 - 汇总 job：输出各矩阵结果，并如实记录 **darwin-x64 未覆盖**（无真实 Intel runner，禁止 Rosetta 代产）。
