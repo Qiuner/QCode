@@ -31,11 +31,14 @@ export function createModelTestHandler(ctx: ModelTestServices) {
     }
     if (req.method !== 'POST') { reply(405); return }
     // Only the local app origin may spend the local user's model quota.
-    const loopback = ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(req.socket.remoteAddress ?? '')
-    const origins = ['127.0.0.1', 'localhost', '[::1]'].map(host => `http://${host}:${ctx.webServer?.port}`)
-    if ((!isDesktopRequest(req) && (!loopback || !origins.includes(req.headers.origin ?? '')
-      || req.headers.origin !== `http://${req.headers.host}`))
-      || req.headers['content-type'] !== 'application/json') { reply(403); return }
+    // 桌面载体身份由 WeakSet 承担；webServer 未注入桌面上下文，属性访问会抛，禁止在此分支读取。
+    if (!isDesktopRequest(req)) {
+      const loopback = ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(req.socket.remoteAddress ?? '')
+      const origins = ['127.0.0.1', 'localhost', '[::1]'].map(host => `http://${host}:${ctx.webServer?.port}`)
+      if (!loopback || !origins.includes(req.headers.origin ?? '')
+        || req.headers.origin !== `http://${req.headers.host}`) { reply(403); return }
+    }
+    if (req.headers['content-type'] !== 'application/json') { reply(403); return }
     if (testing) { reply(409, '已有连接测试正在进行'); return }
     testing = true
     req.resume()
