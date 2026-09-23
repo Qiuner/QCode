@@ -1,5 +1,6 @@
 const communityDialog = document.querySelector('#community-dialog')
 const communityLink = document.querySelector('[data-community-open]')
+let copyStatus = null
 
 communityLink.addEventListener('click', event => {
   event.preventDefault()
@@ -12,10 +13,18 @@ communityDialog.addEventListener('click', event => {
 })
 communityDialog.querySelector('[data-community-copy]').addEventListener('click', async () => {
   const status = communityDialog.querySelector('[role="status"]')
+  const dictionary = window.qcodeSiteTranslations?.[document.documentElement.lang === 'en' ? 'en' : 'zh']
   try {
     await navigator.clipboard.writeText('543293474')
-    status.textContent = '群号已复制，打开 QQ 搜索加入。'
+    copyStatus = 'community.copied'
+    status.textContent = dictionary?.[copyStatus] ?? 'Group number copied.'
   } catch {
-    status.textContent = '未能复制，请手动选择群号：543293474。'
+    copyStatus = 'community.copyFailed'
+    status.textContent = dictionary?.[copyStatus] ?? 'Could not copy the group number.'
   }
+})
+
+window.addEventListener('qcode-language-change', event => {
+  const status = communityDialog.querySelector('[role="status"]')
+  if (copyStatus) status.textContent = event.detail.dictionary[copyStatus]
 })
