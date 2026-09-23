@@ -1,5 +1,5 @@
 // 桌面发行：把 Web 插件、世界资源与 node_modules 打进安装根目录（Win/Mac 共用）。
-import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
+import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { assertWorldExportCurrent } from '../../scripts/world-export-state.mjs'
@@ -56,6 +56,16 @@ export function materializeAppTree(app) {
 export async function embedNodeRuntime(app, { binaryName }) {
   mkdirSync(path.join(app, 'runtime'), { recursive: true })
   cpSync(process.execPath, path.join(app, 'runtime', binaryName))
+  // 官方 darwin 发行版 node 动态链接 libnode（rpath 含 @loader_path），
+  // 只拷二进制会得到坏包；构建用 node 静态链接时该目录不存在，自然跳过。
+  if (process.platform === 'darwin') {
+    const libDir = path.join(path.dirname(realpathSync(process.execPath)), '..', 'lib')
+    if (existsSync(libDir)) {
+      for (const lib of readdirSync(libDir).filter(name => /^libnode\.\d+\.dylib$/.test(name))) {
+        cpSync(path.join(libDir, lib), path.join(app, 'runtime', lib))
+      }
+    }
+  }
   const licenseCache = path.join(root, 'dist', `node-${process.version}-LICENSE`)
   if (!existsSync(licenseCache)) {
     mkdirSync(path.join(root, 'dist'), { recursive: true })
