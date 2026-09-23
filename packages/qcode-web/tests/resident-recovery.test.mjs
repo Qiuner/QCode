@@ -7,6 +7,42 @@ import { createServer } from 'node:http'
 import { createResidentStateHandler } from '../lib/types/resident-state.js'
 import { apply } from '../lib/types/client/index.js'
 import { zh } from '../lib/types/client/locales.js'
+import { ResidentBindingCoordinator } from '../lib/types/client/resident-binding.js'
+
+test('resident binding serializes concurrent selection and releases failed operations', async () => {
+  const state = { sessions: {} }
+  let creates = 0
+  let failRefresh = true
+  let releaseCreate
+  const createGate = new Promise(resolve => { releaseCreate = resolve })
+  const storage = { getItem: () => null, setItem() {}, removeItem() {} }
+  const coordinator = new ResidentBindingCoordinator({
+    storage,
+    sessions: {
+      refresh: async () => { if (failRefresh) { failRefresh = false; throw new Error('refresh failed') } },
+      snapshot: () => ({ phase: 'ready', byId: {} }),
+      create: async () => { creates++; await createGate; return 'new-session' },
+      rename: async () => ({ ok: true }),
+    },
+    workspaces: () => [{ workspaceId: 'project', title: 'Project', sessionIds: [] }],
+    state: async update => {
+      if (update?.residentId) state.sessions[update.projectId] = { [update.residentId]: update.sessionId }
+      return structuredClone(state)
+    },
+    error: key => key,
+    randomId: () => 'request-id',
+  })
+
+  await assert.rejects(coordinator.selectResident('coder', 'project'), /refresh failed/)
+  const first = coordinator.selectResident('coder', 'project')
+  const second = coordinator.selectResident('coder', 'project')
+  assert.equal(first, second)
+  await new Promise(resolve => setImmediate(resolve))
+  assert.equal(creates, 1)
+  releaseCreate()
+  assert.deepEqual(await Promise.all([first, second]), ['new-session', 'new-session'])
+  assert.equal(coordinator.sessionForResident('project', 'coder'), undefined, 'DSH catalog remains the source of session existence')
+})
 
 test('recovery survives a new handler and concurrent resident updates without losing associations', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'qcode-recovery-'))

@@ -1,5 +1,5 @@
 import { resourcePath } from './resource-path.js'
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { BookOpen, ChevronDown, ArrowRight, Languages } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import type { PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
@@ -7,11 +7,11 @@ import type { SessionBinding } from '@deepseek-ai/dsh-api-session-controller/cli
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import type {} from '@deepseek-ai/dsh-client-ui-session/client'
 import type {} from '@deepseek-ai/dsh-client-ui-workspace/client'
-import { QCODE_HOST_SOURCE, WORLD_BRIDGE_VERSION, isWorldToHostMessage, worldFrameUrl, type ResidentId, type RegionLoadState, type WorldLocale } from './world-bridge.js'
+import { WorldBridgeSession, type ResidentId, type WorldLocale } from './world-bridge.js'
 import { localizedResidents, projectResidentEvents, readResidentDrafts, residentEventStatus } from './resident-model.js'
 import { ModelSettings } from './ModelSettings.js'
 import { localizedModelError, ModelConfigurationRequired, type ModelSettingsActions } from './model-settings.js'
-import { RESIDENT_PORTRAITS } from './resident-portraits.js'
+import { PLAYER_PORTRAIT, RESIDENT_PORTRAITS } from './resident-portraits.js'
 import { TutorialPanel, useTutorial } from './Tutorial.js'
 import { NativeChat } from './NativeChat.js'
 import { NativeSidebar } from './NativeSidebar.js'
@@ -110,10 +110,14 @@ export function QCodeWorld(props: Props) {
   const [composerTarget, setComposerTarget] = useState<HTMLDivElement | null>(null)
   const [previewTarget, setPreviewTarget] = useState<HTMLDivElement | null>(null)
   const [expandedWork, setExpandedWork] = useState(false)
-  const iframe = useRef<HTMLIFrameElement>(null)
-  const [worldUrl] = useState(() => worldFrameUrl(location.href))
-  const [ready, setReady] = useState(false)
-  const [playable, setPlayable] = useState(false)
+  const iframe = useRef<HTMLIFrameElement | null>(null)
+  const [worldBridge] = useState(() => new WorldBridgeSession(location.href, { stage: 'waiting', detail: t('world.waiting') }))
+  const worldSnapshot = useSyncExternalStore(worldBridge.subscribe, worldBridge.getSnapshot)
+  const { ready, playable, regions } = worldSnapshot
+  const bindWorldFrame = useCallback((node: HTMLIFrameElement | null) => {
+    iframe.current = node
+    worldBridge.bindFrame(node?.contentWindow ?? null)
+  }, [worldBridge])
   const [showModels, setShowModels] = useState(false)
   const [modelState, setModelState] = useState<{ ready: boolean | null; detail: string }>({ ready: null, detail: t('model.loading') })
   useEffect(() => {
@@ -126,7 +130,6 @@ export function QCodeWorld(props: Props) {
     }).catch(() => { if (active) setModelState({ ready: false, detail: t('model.loadFailed') }) })
     return () => { active = false }
   }, [showModels, locale, t])
-  const [regions, setRegions] = useState<RegionLoadState>({ stage: 'waiting', detail: t('world.waiting') })
   const [selected, setSelected] = useState<ResidentId | null>(null)
   const [fileView, setFileView] = useState<'files' | 'changes' | null>(null)
   const [historyOpen, setHistoryOpen] = useState(false)
@@ -314,26 +317,18 @@ export function QCodeWorld(props: Props) {
   }, [workbench, bindingId])
 
   useEffect(() => {
-    const listener = (event: MessageEvent) => {
-      if (event.origin !== worldUrl.origin || event.source !== iframe.current?.contentWindow || !isWorldToHostMessage(event.data)) return
-      if (event.data.type === 'world:ready') { setReady(true); setPlayable(false) }
-      if (event.data.type === 'world:playable') setPlayable(true)
-      if (event.data.type === 'world:regions') setRegions(event.data.payload)
-      if (event.data.type === 'resident:selected') choose(event.data.payload.residentId)
-    }
-    window.addEventListener('message', listener)
-    return () => window.removeEventListener('message', listener)
-  }, [workspace, selected, loadingProjects, recoveryFailed, followingKeeper, tutorial.run?.id, tutorial.run?.paused])
+    return worldBridge.listen(window, message => {
+      if (message.type === 'resident:selected') choose(message.payload.residentId)
+    })
+  }, [worldBridge, workspace, selected, loadingProjects, recoveryFailed, followingKeeper, tutorial.run?.id, tutorial.run?.paused])
 
   const worldState = JSON.stringify({ locale, workspace: workspace ? { workspaceId: workspace.workspaceId, title: workspace.title } : null, sessionId: bindingId ?? null, panelOpen: workbench || playable && (selected !== null || showModels), residents })
   useEffect(() => {
-    if (!ready) return
-    iframe.current?.contentWindow?.postMessage({ source: QCODE_HOST_SOURCE, version: WORLD_BRIDGE_VERSION, type: 'world:init', payload: JSON.parse(worldState) }, worldUrl.origin)
+    worldBridge.initialize(JSON.parse(worldState))
   }, [ready, worldState])
   useEffect(() => {
-    if (!ready) return
-    iframe.current?.contentWindow?.postMessage({ source: QCODE_HOST_SOURCE, version: WORLD_BRIDGE_VERSION, type: 'world:locale', payload: { locale } }, worldUrl.origin)
-  }, [ready, locale, worldUrl])
+    worldBridge.setLocale(locale)
+  }, [ready, locale, worldBridge])
 
   function useProject(id: string) {
     setFileView(null)
@@ -391,22 +386,22 @@ export function QCodeWorld(props: Props) {
   }
 
   function openWorldGuide() {
-    iframe.current?.contentWindow?.postMessage({ source: QCODE_HOST_SOURCE, version: WORLD_BRIDGE_VERSION, type: 'world:show-guide' }, worldUrl.origin)
+    worldBridge.showGuide()
   }
 
   function moveKeeper(action: 'arrive' | 'home' | 'cancel') {
     if (action === 'cancel') setFollowingKeeper(false)
     if (!tutorial.run) return
-    iframe.current?.contentWindow?.postMessage({ source: QCODE_HOST_SOURCE, version: WORLD_BRIDGE_VERSION, type: 'tutorial:keeper', payload: { encounterId: tutorial.run.id, action, reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches } }, worldUrl.origin)
+    worldBridge.moveKeeper(tutorial.run.id, action, matchMedia('(prefers-reduced-motion: reduce)').matches)
     if (action === 'home') { setFollowingKeeper(true); closeConversation() }
   }
   useEffect(() => () => {
-    iframe.current?.contentWindow?.postMessage({ source: QCODE_HOST_SOURCE, version: WORLD_BRIDGE_VERSION, type: 'tutorial:keeper', payload: { encounterId: 'reset', action: 'cancel', reducedMotion: true } }, worldUrl.origin)
+    worldBridge.resetKeeper()
   }, [tutorial.run?.id, workspace?.workspaceId])
   useEffect(() => {
     if (!tutorial.run || tutorial.run.paused || tutorial.run.step !== 'folder') {
       setFollowingKeeper(false)
-      iframe.current?.contentWindow?.postMessage({ source: QCODE_HOST_SOURCE, version: WORLD_BRIDGE_VERSION, type: 'tutorial:keeper', payload: { encounterId: 'reset', action: 'cancel', reducedMotion: true } }, worldUrl.origin)
+      worldBridge.resetKeeper()
     }
   }, [tutorial.run?.id, tutorial.run?.paused, tutorial.run?.step, workspace?.workspaceId])
   const workOpen = playable && !showModels && !!resident && selected !== 'coordinator' && selected !== 'teacher' && selected !== 'file_keeper'
@@ -426,7 +421,7 @@ export function QCodeWorld(props: Props) {
     switchSurface(true)
   }} data-workspace={workOpen ? expandedWork ? 'expanded' : 'open' : undefined} data-conversation={playable && resident && !showModels ? '' : undefined} data-regions-pending={regions.stage !== 'ready' ? '' : undefined}>
     {props.connectionState && <ConnectionNotice source={props.connectionState} t={t} />}
-    <iframe ref={iframe} src={worldUrl.href} title={t('world.title')} onLoad={() => setReady(true)} />
+    <iframe ref={bindWorldFrame} src={worldBridge.url.href} title={t('world.title')} onLoad={() => worldBridge.frameLoaded()} />
     {!loadingProjects && !recoveryFailed && <ResidentNotifications t={t} hidden={workbench} onCount={setNotificationCount} sessions={workspaces.flatMap(project => project.sessionIds.flatMap(id => {
       const resident = props.residentForSession(project.workspaceId, id)
       const summary = sessionState.byId[id]
@@ -474,19 +469,19 @@ export function QCodeWorld(props: Props) {
       <p role={regions.stage === 'failed' ? 'alert' : 'status'}>{regions.detail}</p>
       {regions.stage === 'failed'
         ? <button type="button" onClick={() => {
-          setRegions({ stage: 'downloading', detail: t('regions.reconnecting') })
-          iframe.current?.contentWindow?.postMessage({ source: QCODE_HOST_SOURCE, version: WORLD_BRIDGE_VERSION, type: 'world:retry-neighbors' }, worldUrl.origin)
+          worldBridge.retryNeighbors(t('regions.reconnecting'))
         }}>{t('regions.reload')}</button>
         : <progress aria-label={t('regions.loading')} />}
     </section>}
 
-    {showModels ? <ModelSettings actions={props.models} close={() => setShowModels(false)} t={t} /> : selected === 'teacher' && historyOpen && !workbench ? <NativeSidebar sessionId={sessionState.current} toggleSidebar={props.toggleSidebar} close={closeConversation} t={t} /> : selected === 'file_keeper' && fileView && workspace ? <ProjectFiles key={workspace.workspaceId} projectId={workspace.workspaceId} title={workspace.title} initialView={fileView} close={() => setFileView(null)} t={t} /> : resident && <aside ref={conversation} tabIndex={-1} className={`town-panel town-conversation${selected === 'file_keeper' ? ' town-keeper-dialogue' : ''}${workOpen ? ' town-studio' : ''}${selected === 'coordinator' && guideView === 'records' ? ' town-work-panel' : ''}`} aria-label={guideView === 'records' ? t('journal.title') : resident.name} onKeyDown={event => {
+    {showModels ? <ModelSettings actions={props.models} close={() => setShowModels(false)} t={t} /> : selected === 'teacher' && historyOpen && !workbench ? <NativeSidebar sessionId={sessionState.current} toggleSidebar={props.toggleSidebar} close={closeConversation} t={t} /> : selected === 'file_keeper' && fileView && workspace ? <ProjectFiles key={workspace.workspaceId} projectId={workspace.workspaceId} title={workspace.title} initialView={fileView} close={() => setFileView(null)} t={t} /> : resident && <aside ref={conversation} tabIndex={-1} className={`town-panel town-conversation${selected === 'file_keeper' ? ' town-keeper-dialogue' : ''}${workOpen ? ' town-studio' : ''}${selected === 'coordinator' && guideView === 'records' ? ' town-work-panel' : ''}${selected === 'coordinator' && guideView !== 'records' ? ' town-cinematic-dialogue' : ''}`} aria-label={guideView === 'records' ? t('journal.title') : resident.name} onKeyDown={event => {
       if (event.key === 'Escape') {
         const menu = conversation.current?.querySelector<HTMLElement>('.town-chat-menu:popover-open')
         if (menu) { event.preventDefault(); event.stopPropagation(); menu.hidePopover(); return }
         event.preventDefault(); closeConversation()
       }
     }}>
+      {selected === 'coordinator' && guideView !== 'records' && <div className="town-cinematic-cast" aria-hidden="true"><img src={PLAYER_PORTRAIT} alt="" /><img src={RESIDENT_PORTRAITS.coordinator} alt="" /></div>}
       <header>{guideView !== 'records' && <img className="town-portrait" src={RESIDENT_PORTRAITS[resident.id]} alt="" />}<div className="town-resident-heading"><small>{guideView === 'records' ? workspace?.title ?? t('project.work') : selected === 'coordinator' ? t('project.manage') : selected === 'coder' ? t('resident.makeTogether') : selected === 'teacher' ? t('resident.history') : t('resident.files')}</small><h2>{guideView === 'records' ? t('journal.title') : resident.name.split(' · ')[0]}</h2></div>{workOpen && <div className="town-studio-toolbar"><span>{workspace?.title}</span><button type="button" {...{ popovertarget: 'town-work-options' }} onClick={event => {
         const box = event.currentTarget.getBoundingClientRect()
         const menu = document.getElementById('town-work-options')

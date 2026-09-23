@@ -26,46 +26,17 @@ import { tutorialActions } from './tutorial-api.js'
 import { tutorialInstruction } from '../tutorial-types.js'
 import type { ISessions } from '@deepseek-ai/dsh-api-session-controller/client'
 import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
+import type { WorkspaceId } from '@deepseek-ai/dsh-workspace'
 import { en, NS, zh } from './locales.js'
-import { readMigratedStorage } from './storage-migration.js'
+import { ResidentBindingCoordinator } from './resident-binding.js'
 
 export const inject = ['connection', 'slots', 'sessions', 'workspaces', 'uiWorkspace', 'uiConversation', 'layout', 'locale', 'remote', 'remote.settings', 'remote.credentials', 'remote.llm', 'remote.session', 'remote.directoryPicker']
-
-const RESIDENT_SESSION_KEY = 'qcode.resident-sessions.v1'
-const LEGACY_RESIDENT_SESSION_KEY = 'agent-isles.resident-sessions.v1'
-const RESIDENT_NAMES: Readonly<Record<ResidentId, string>> = {
-  coder: 'Coder',
-  file_keeper: 'File Keeper',
-  teacher: 'Teacher',
-  coordinator: 'Coordinator',
-}
-
-type ResidentSessions = Partial<Record<string, Partial<Record<ResidentId, string>>>>
-
-function readResidentSessions(): ResidentSessions {
-  try {
-    const value: unknown = JSON.parse(readMigratedStorage(localStorage, RESIDENT_SESSION_KEY, [LEGACY_RESIDENT_SESSION_KEY]) ?? '{}')
-    return typeof value === 'object' && value !== null && !Array.isArray(value)
-      ? value as ResidentSessions
-      : {}
-  } catch (_invalidStoredValue) {
-    return {}
-  }
-}
-
-function writeResidentSession(workspaceId: string, residentId: ResidentId, sessionId: string): void {
-  const mappings = readResidentSessions()
-  mappings[workspaceId] = { ...mappings[workspaceId], [residentId]: sessionId }
-  try { localStorage.setItem(RESIDENT_SESSION_KEY, JSON.stringify(mappings)) } catch { /* Host owns recovery. */ }
-}
 
 /** Replace the generic Web profile branding while retaining its layout and conversation UI. */
 export function apply(ctx: Omit<ClientContext, 'sessions' | 'connection'> & { sessions: ISessions; connection: ConnectionHandle }): void {
   ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'qcode-web: dictionaries')
   const t = ctx.locale.bind(NS)
   const activeLocale = () => ctx.locale.getSnapshot().active.startsWith('zh') ? 'zh' as const : 'en' as const
-  const selecting = new Map<string, Promise<string>>()
-  let saved: ResidentState = { sessions: {} }
   const stateRequest = async (update?: { projectId: string; residentId?: ResidentId; sessionId?: string }): Promise<ResidentState> => {
     const response = await fetch(resourcePath('/qcode/resident-state'), {
       method: update ? 'POST' : 'GET', headers: { 'x-qcode-state': '1', 'content-type': 'application/json' },
@@ -74,58 +45,23 @@ export function apply(ctx: Omit<ClientContext, 'sessions' | 'connection'> & { se
     if (!response.ok) throw new Error(t('error.state'))
     return await response.json() as ResidentState
   }
-  const sessionForResident = (workspaceId: string, residentId: ResidentId): string | undefined => {
-    const workspace = ctx.workspaces.list.getSnapshot().items.find(item => item.workspaceId === workspaceId)
-    const catalog = ctx.sessions.list.getSnapshot().byId
-    const mapped = saved.sessions[workspaceId]?.[residentId] ?? readResidentSessions()[workspaceId]?.[residentId]
-    if (mapped) return workspace?.sessionIds.includes(mapped as SessionId) && catalog[mapped as SessionId] ? mapped : undefined
-    // Migrate only an unambiguous legacy resident title, within its owning workspace.
-    const candidates = workspace?.sessionIds.filter(id => catalog[id]?.title?.startsWith(`${RESIDENT_NAMES[residentId]} · `)) ?? []
-    return candidates.length === 1 ? candidates[0] : undefined
-  }
-  const residentForSession = (workspaceId: string, sessionId: string): ResidentId | undefined => {
-    return (Object.keys(RESIDENT_NAMES) as ResidentId[]).find(id => sessionForResident(workspaceId, id) === sessionId)
-  }
-  const selectResident = (residentId: ResidentId, workspaceId: string): Promise<string> => {
-    if (residentId === 'teacher') return Promise.reject(new Error(t('error.teacherSession')))
-    const key = `${workspaceId}:${residentId}`
-    const active = selecting.get(key)
-    if (active !== undefined) return active
-    const operation = (async (): Promise<string> => {
-      // A restored workspace can arrive before the session catalog. Do not
-      // replace its saved resident mapping while that catalog is still loading.
-      await ctx.sessions.refresh()
-      if (ctx.sessions.list.getSnapshot().phase !== 'ready') throw new Error(t('error.sessionsLoading'))
-      const workspace = ctx.workspaces.list.getSnapshot().items
-        .find(candidate => candidate.workspaceId === workspaceId)
-      if (workspace === undefined) throw new Error(t('error.workspaceGone'))
-      const mapped = sessionForResident(workspaceId, residentId)
-      if (!mapped && (saved.sessions[workspaceId]?.[residentId] || readResidentSessions()[workspaceId]?.[residentId])) {
-        throw new Error(t('error.residentGone'))
-      }
-      if (!mapped && workspace.sessionIds.filter(id => ctx.sessions.list.getSnapshot().byId[id]?.title?.startsWith(`${RESIDENT_NAMES[residentId]} · `)).length > 1) {
-        throw new Error(t('error.legacyResidents'))
-      }
-      const mappedSessionId = mapped as SessionId | undefined
-      if (mappedSessionId !== undefined
-        && workspace.sessionIds.includes(mappedSessionId)
-        && ctx.sessions.list.getSnapshot().byId[mappedSessionId] !== undefined) {
-        saved = await stateRequest({ projectId: workspaceId, residentId, sessionId: mappedSessionId })
-        return mappedSessionId
-      }
-      const sessionId = await ctx.sessions.create({ workspaceId: workspace.workspaceId, sessionId: crypto.randomUUID() as SessionId })
-      const renamed = await ctx.sessions.binding(sessionId)?.session.rename(
-        `${RESIDENT_NAMES[residentId]} · ${workspace.title}`)
-      if (renamed !== undefined && !renamed.ok) {
-        console.warn(`QCode: resident session rename failed: ${renamed.error.message}`)
-      }
-      writeResidentSession(workspaceId, residentId, sessionId)
-      saved.sessions[workspaceId] = { ...saved.sessions[workspaceId], [residentId]: sessionId }
-      saved = await stateRequest({ projectId: workspaceId, residentId, sessionId })
-      return sessionId
-    })().finally(() => { selecting.delete(key) })
-    selecting.set(key, operation)
-    return operation
+  const residentBindings = new ResidentBindingCoordinator({
+    storage: localStorage,
+    sessions: {
+      refresh: () => ctx.sessions.refresh(),
+      snapshot: () => ctx.sessions.list.getSnapshot(),
+      create: (workspaceId, sessionId) => ctx.sessions.create({ workspaceId: workspaceId as WorkspaceId, sessionId }),
+      rename: async (sessionId, title) => await ctx.sessions.binding(sessionId)?.session.rename(title),
+    },
+    workspaces: () => ctx.workspaces.list.getSnapshot().items,
+    state: stateRequest,
+    error: key => t(`error.${key}`),
+    randomId: () => crypto.randomUUID(),
+  })
+  const { sessionForResident, residentForSession, selectResident } = {
+    sessionForResident: residentBindings.sessionForResident.bind(residentBindings),
+    residentForSession: residentBindings.residentForSession.bind(residentBindings),
+    selectResident: residentBindings.selectResident.bind(residentBindings),
   }
   const sendResidentPrompt = async (residentId: ResidentId, workspaceId: string, prompt: string): Promise<void> => {
     const sessionId = await selectResident(residentId, workspaceId)
@@ -219,13 +155,8 @@ export function apply(ctx: Omit<ClientContext, 'sessions' | 'connection'> & { se
           },
         },
         residentForSession, selectResident, sendResidentPrompt,
-        restoreProject: async () => {
-          saved = await stateRequest()
-          await ctx.sessions.refresh()
-          if (ctx.sessions.list.getSnapshot().phase !== 'ready') throw new Error(t('error.sessionsRetry'))
-          return saved.projectId
-        },
-        saveProject: async projectId => { saved = await stateRequest({ projectId }) },
+        restoreProject: () => residentBindings.restoreProject(),
+        saveProject: projectId => residentBindings.saveProject(projectId),
         readRecentSession: async (id, signal) => {
           for await (const frame of ctx.remote.session.follow({ address: { kind: 'session', sessionId: id as SessionId }, maxMessages: 8 }, signal)) {
             if (frame.type === 'snapshot') return projectResidentEvents(frame.records as readonly SessionEventLikeEntry[])
