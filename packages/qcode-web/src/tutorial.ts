@@ -107,7 +107,7 @@ export function createTutorialHandler(ctx: Context, runs: KvTable<string, Tutori
           workspace = await ctx.workspaceRegistry.create(folder, cmd.projectName)
         }
         if (!workspace) throw new TutorialError('项目已不可用。')
-        if ([...runs.entries()].some(([key, item]) => key !== run!.id && item.workspaceId === workspace!.id && item.step !== 'complete')) throw new TutorialError('这个项目已有未完成教程，请从工作记录继续。')
+        if ([...runs.entries()].some(([key, item]) => key !== run!.id && item.workspaceId === workspace!.id && item.step !== 'complete')) throw new TutorialError('这个项目已有未完成教程，请从创作手册继续。')
         run.workspaceId = workspace.id; run.projectName = workspace.title; run.step = 'build'; break
       }
       case 'pause': run.paused = true; break
@@ -185,7 +185,7 @@ export function createTutorialHandler(ctx: Context, runs: KvTable<string, Tutori
         break
       case 'leave': if (run.step !== 'return') throw new TutorialError('先完成一次自己的改动。'); run.left = true; break
       case 'returned': if (run.step === 'return' && run.left) run.returned = true; break
-      case 'complete': if (run.step !== 'return' || !run.returned) throw new TutorialError('先从工作记录找回项目。'); run.step = 'complete'; break
+      case 'complete': if (run.step !== 'return' || !run.returned) throw new TutorialError('先从创作手册找回项目。'); run.step = 'complete'; break
     }
     run.revision++; run.updatedAt = Date.now(); run.receipt = { id: cmd.requestId, fingerprint }
     const value = tutorialSchema.parse(run)
