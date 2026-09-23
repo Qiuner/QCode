@@ -125,3 +125,16 @@ test('overlapping model probes are rejected until the first finishes', async t =
   release()
   assert.equal((await first).status, 200)
 })
+
+test('model test runs on the desktop carrier without webServer injection', async () => {
+  const { desktopJson } = await import('../lib/types/desktop-transport.js')
+  const services = {
+    get webServer() { throw new Error('cannot get property "webServer" without inject') },
+    agentDefaultModel: { currentSelection: () => ({ provider: 'deepseek-official', model: 'model-a' }) },
+    llm: { async *stream() { yield { type: 'finish', reason: { kind: 'stop' } } } },
+  }
+  const carrier = desktopJson(createModelTestHandler(services))
+  const response = await carrier(new Request('dsh-app://app/api/qcode/model-test', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' }))
+  assert.equal(response.status, 200)
+  assert.equal((await response.json()).ok, true)
+})

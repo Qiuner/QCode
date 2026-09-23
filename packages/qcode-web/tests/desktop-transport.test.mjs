@@ -36,3 +36,18 @@ test('desktop carrier cancels bounded handlers and removes trust after return', 
   assert.equal(closed, true)
   assert.equal(isDesktopRequest(captured), false)
 })
+
+test('desktop carrier drains the request body on every path', async () => {
+  let cancelled = false
+  const source = () => new ReadableStream({
+    start(c) { c.enqueue(new TextEncoder().encode('{}')); c.close() },
+    cancel() { cancelled = true },
+  })
+  const ignored = new Request('dsh-app://app/api/qcode/model-test', { method: 'POST', duplex: 'half', body: source() })
+  await desktopJson(async (_req, res) => { res.writeHead(200); res.end("{}") })(ignored)
+  assert.equal(ignored.bodyUsed, true)
+  const rejected = new Request('dsh-app://app/api/qcode/model-test', { method: 'POST', duplex: 'half', headers: { origin: 'https://evil.test' }, body: source() })
+  assert.equal((await desktopJson(async () => {})(rejected)).status, 403)
+  assert.equal(rejected.bodyUsed, true)
+  assert.equal(cancelled, false)
+})

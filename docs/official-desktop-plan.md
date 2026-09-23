@@ -1,6 +1,6 @@
 # 官方桌面接入施工
 
-状态：实施中。现有产品 Host/Client 插件已在隔离官方桌面运行，原版角色卡片与世界资源通过；真实模型、审批、教程全程与安装包仍待验收。
+状态：实施中。现有产品 Host/Client 插件已在隔离官方桌面运行，原版角色卡片与世界资源通过；真实模型、审批、通知与重启恢复已在 macOS Apple Silicon 完成验收（见 #19 一节），Windows 侧真实模型验收、教程全程与安装包仍待验收。
 
 ## 固定输入
 
@@ -119,3 +119,24 @@ Q 交互补齐：预览页原先未处理 `resident:selected`，导致按 E 无�
 - 未覆盖：Intel macOS 未在任何环节执行；Windows 行为按平台分支保留，但 `declaration:false` 对 Windows 隔离构建同样生效，未在 Windows 复验产品探针，交由 CI 与维护者确认。真实模型任务属 #19，本阶段未触碰签名、公证与生产 runtime。
 
 原生聊天显示修复：官方新版聊天 slot 为 `main.conversation`，旧版为 `conversation`。原有 `NativeChat` 只定位旧 slot，导致已创建的原生输入框被小岛底层隐藏规则遮住。现同时匹配两种 slot，保持原生 React 树及会话不重建。当前官方桌面已有项目的 Q 面板实测：输入框、模型/权限/附件控件可见；关闭重开及 resize 后输入框仍在右侧区域，命中测试通过，世界文档保持。证据 `dist/native-chat-fixed.png`、`dist/native-chat-verification.json`。运行中旧 bundle 已应用等价样式热修复，后续源码构建包含正式改动。Web 构建及本地 TypeScript noEmit 通过；未发送真实模型请求。产品 probe 增加已有原生聊天座位时的输入框可见与边界断言，未以新建空 profile 替代带会话验收。
+
+## #19 macOS 真实模型验收 · 2026-09-23
+
+已验收（macOS Apple Silicon 单机）。环境：MacBook Pro（Apple M5 Pro）、macOS 26.5.1、arm64、Node v26.8.1、上游 `dsh-v0.1.6-alpha.1`（`0a15e36e7f82`）、模型 DeepSeek 官方 API `deepseek-v4-flash`（Key 由使用者在应用内输入，未上传仓库或评论）。运行方式：`corepack yarn upstream:desktop:probe --product --preview` 后按完成标准逐项走查，专用测试项目 `~/Developer/test-projects/issue19-demo`。
+
+- 项目与绑定：原生目录面板选择测试项目后，Q 面板与官方会话「Coder · issue19-demo」均正确绑定项目。
+- 真实文件修改：原生聊天发送任务，模型实际创建并回读 `hello.txt`（内容含任务时间戳），工具调用、文件链接、用量与耗时统计正常显示。
+- 审批双路径：越界写 `~/Desktop` 触发审批；「允许一次」后文件真实落盘；「拒绝」后文件未写、模型明确承认拒绝为最终结果且不绕过、会话可继续。工作区内 shell 与 `/tmp`（平台临时区）按策略自动放行，模型能解释策略。
+- 通知路由：对话框打开时完成走内联「一起检查这次成果」；关闭态完成通知与「Q需要你确认」审批通知均带正确项目名送达，点击通知直达对应会话并可完成审批。系统通知权限 granted，横幅视觉未逐项截图。
+- 重启恢复：完整 kill 后同 `DSH_HOME` 重启，项目自动绑定、会话历史完整、被取消任务未重放（`done.txt` 保持不存在）。
+- 失败反馈：坏 baseURL 得到「模型或 API 地址不可用」，断连得到「模型连接失败，请检查网络、API 地址和模型配置」，均为 502 结构化文案；取消显示 `tool call aborted` 与「这一步还没完成」，无残留 `sleep` 进程。
+
+### 验收中发现并修复的缺陷
+
+1. 载体未排空请求体（本 PR 修复）：`desktopJson` 提前返回或 finally destroy 留下未消费 body 时，取消帧与 Electron main 在途数据帧竞态，触发官方 desktop-host 传输 fatal，整个 Host 被拖死并落入启动失败恢复页。注册即 buffered，改为进校验前整读（Buffer 保持既有 handler 的隐式 toString 语义）。
+2. 模型测试读取未注入服务（本 PR 修复）：桌面入口 inject 无 `webServer`，Cordis 上下文属性访问即抛且可选链无法拦截，「测试连接」必抛 `cannot get property "webServer" without inject`；与缺陷 1 叠加时表现为 Host 崩溃。桌面身份由 WeakSet 承担，loopback 检查仅 Web 分支执行。
+3. 上游协议洞（未改上游，移交维护者）：`desktop-host` `beginRequest` 的 body `cancel()` 分支删除 `requestBodies` 却不登记 `discardedRequestBodies`，任何请求体取消后迟到的数据帧都会升级为 fatal。建议上游在 cancel 分支同样登记 discarded，使迟到帧走既有的忽略路径。
+
+### 未覆盖
+
+- Windows 侧真实模型验收由维护者承担；macOS Intel 未执行；断网 / 连接恢复路径未注入真实网络故障；鼠标锁定与纯人工键鼠走查未做；安装包、签名与公证不在 #19 范围。
