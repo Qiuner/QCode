@@ -22,7 +22,9 @@ QCode 重命名（2026-09-18，已实现待验收）：产品与公开仓库已�
 
 官方桌面 macOS 适配（2026-09-20，实施中）：探针与隔离构建支持 macOS Apple Silicon——Electron 可执行文件按 `Electron.app` bundle 解析、依赖链接按平台分支、隔离构建关闭声明输出以避开链接图上的 TS2883。prepare 安装/Electron/全量构建/启动与资源、产品两档探针在 M5 Pro 通过，退出无残留；Intel 未覆盖，Windows 未复验产品探针。详见 [官方桌面接入施工](official-desktop-plan.md)，#19 的 Mac 验收以此为基础。
 
-官方桌面产品插件（2026-09-17，已实现待验收）：`upstream:desktop:probe --product --preview` 使用现有 Web 产品插件和独立新版依赖图，恢复原版角色对话与项目引导；共享 Fetch 接入原有领域处理器。Windows 产品页面、主岛/邻岛、角色选择及 17 项针对性回归通过；真实项目、模型、审批、通知与教程全程尚待验收。详见 [官方桌面接入施工](official-desktop-plan.md)，生产 runtime 未切换。
+官方桌面产品插件（2026-09-17，已实现待验收）：`upstream:desktop:probe --product --preview` 使用现有 Web 产品插件和独立新版依赖图，恢复原版角色对话与项目引导；共享 Fetch 接入原有领域处理器。Windows 产品页面、主岛/邻岛、角色选择及 17 项针对性回归通过；真实项目、模型、审批与通知已在 macOS 验收（见 #19 条目），教程全程与 Windows 真实模型侧尚待验收。详见 [官方桌面接入施工](official-desktop-plan.md)，生产 runtime 未切换。
+
+官方桌面 #19 macOS 真实模型验收（2026-09-23，已验收 macOS 侧）：M5 Pro / macOS 26.5.1 / arm64 / DeepSeek `deepseek-v4-flash` 走通项目绑定、真实文件修改回读、审批同意与拒绝、打开与关闭态通知路由、重启恢复不重放、失败与取消反馈。验收暴露并修复两个缺陷：桌面载体未排空请求体与模型测试读取未注入的 `webServer`，两者叠加时拖死官方 Host 落入恢复页；上游 `desktop-host` 取消分支不登记 discarded 的协议洞移交维护者。Windows 真实模型侧、断网恢复、Intel 与安装包未覆盖。详见 [官方桌面接入施工](official-desktop-plan.md) #19 一节。
 
 官方桌面接入（2026-09-17，实施中）：目标固定为 `dsh-v0.1.6-alpha.1`；Windows 最小资源插件已通过官方 Electron 壳与 Host 字节管道，主岛、邻岛、同源桥接、HEAD/404 和处理器取消/卸载测试通过。`upstream:desktop:probe --preview` 提供独立预览页并保留窗口，补齐 Q 的 E 交互打开官方工作台及返回入口。完整产品插件、居民会话绑定、领域接口、其余键鼠与模型闭环仍待验收；生产 runtime 仍为 0.1.3-alpha.1。源码证据、环境修复与剩余工作见 [官方桌面接入施工](official-desktop-plan.md)。
 
