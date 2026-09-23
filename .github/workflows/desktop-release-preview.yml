@@ -1,0 +1,182 @@
+name: Desktop preview release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2022
+            target: windows-x64
+          - os: macos-15
+            target: macos-arm64
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Assert native architecture matches target
+        shell: bash
+        run: |
+          echo "runner.arch=${RUNNER_ARCH}"
+          echo "uname -m: $(uname -m)"
+          node -v
+          case "${{ matrix.target }}" in
+            windows-x64)
+              [ "$(node -p process.arch)" = x64 ] || { echo "node arch mismatch" >&2; exit 1; }
+              [ "$PROCESSOR_ARCHITECTURE" = AMD64 ] || { echo "PROCESSOR_ARCHITECTURE mismatch" >&2; exit 1; }
+              ;;
+            macos-arm64)
+              [ "$(uname -m)" = arm64 ] || { echo "uname mismatch" >&2; exit 1; }
+              [ "$(node -p process.arch)" = arm64 ] || { echo "node arch mismatch" >&2; exit 1; }
+              ;;
+          esac
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          corepack enable
+          corepack yarn install --immutable
+
+      - name: Install Godot 4.7.2 (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $archive = Join-Path $env:RUNNER_TEMP 'godot.zip'
+          $destination = Join-Path $env:RUNNER_TEMP 'godot-4.7.2'
+          Invoke-WebRequest 'https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_win64.exe.zip' -OutFile $archive
+          if ((Get-FileHash $archive -Algorithm SHA256).Hash -ne '731980f9608d61333e5baf54a2ef17210acc7a538446c0cb9969f002aca1e953') {
+            throw 'Godot archive checksum mismatch'
+          }
+          Expand-Archive $archive -DestinationPath $destination
+          Add-Content -Path $env:GITHUB_ENV -Value "GODOT_BIN=$(Join-Path $destination 'Godot_v4.7.2-stable_win64_console.exe')"
+          $tpz = Join-Path $env:RUNNER_TEMP 'godot-templates.tpz'
+          Invoke-WebRequest 'https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_export_templates.tpz' -OutFile $tpz
+          if ((Get-FileHash $tpz -Algorithm SHA512).Hash.ToLower() -ne 'ca4d71c4d7b81dfc15d1a98baa07534aa95b03fdda78a0075b06672e1648d2e5f40980c9adc28d23e1b92e732ee7bf3461997aa804af74ec2fcd7a93ccb84079') { throw 'Godot export templates checksum mismatch' }
+          $templates = Join-Path $env:APPDATA 'Godot\export_templates\4.7.2.stable'
+          New-Item -ItemType Directory -Force -Path $templates | Out-Null
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $zip = [IO.Compression.ZipFile]::OpenRead($tpz)
+          try {
+            foreach ($name in @('web_debug.zip', 'web_release.zip', 'web_nothreads_debug.zip', 'web_nothreads_release.zip')) {
+              $entry = $zip.Entries | Where-Object { $_.FullName -eq "templates/$name" }
+              if (-not $entry) { throw "template entry $name missing from tpz" }
+              [IO.Compression.ZipFileExtensions]::ExtractToFile($entry, (Join-Path $templates $name), $true)
+            }
+          } finally { $zip.Dispose() }
+
+      - name: Install Godot 4.7.2 (macOS)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          archive="$RUNNER_TEMP/godot.zip"
+          curl -fsSL -o "$archive" 'https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_macos.universal.zip'
+          echo "38aa16e5bba2083941fc5b3e54be0089bd4cc35e32415f5b9fd9a8a6a7b9818255d44532ea8ef94b5aef56c4b407c2d634fa4f657e4ebe681ebbf59b7bac69ca  $archive" | shasum -a 512 -c -
+          unzip -q "$archive" -d "$RUNNER_TEMP/godot-4.7.2"
+          echo "GODOT_BIN=$RUNNER_TEMP/godot-4.7.2/Godot.app/Contents/MacOS/Godot" >> "$GITHUB_ENV"
+          tpz="$RUNNER_TEMP/godot-templates.tpz"
+          curl -fsSL -o "$tpz" 'https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_export_templates.tpz'
+          echo "ca4d71c4d7b81dfc15d1a98baa07534aa95b03fdda78a0075b06672e1648d2e5f40980c9adc28d23e1b92e732ee7bf3461997aa804af74ec2fcd7a93ccb84079  $tpz" | shasum -a 512 -c -
+          templates="$HOME/Library/Application Support/Godot/export_templates/4.7.2.stable"
+          mkdir -p "$templates"
+          unzip -q -j "$tpz" 'templates/web_debug.zip' 'templates/web_release.zip' 'templates/web_nothreads_debug.zip' 'templates/web_nothreads_release.zip' -d "$templates"
+
+      - name: Build Web plugin and world
+        shell: bash
+        run: |
+          "$GODOT_BIN" --headless --path games/mosslight --editor --import
+          corepack yarn build:world
+          corepack yarn build:web
+          test -f games/mosslight/build/web/index.wasm
+
+      - name: Build portable package (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: node apps/desktop/build.mjs
+
+      - name: Verify installer and run from distribution (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $build = (Get-Content dist/desktop-latest.txt -Raw).Trim()
+          pwsh -NoProfile -File apps/desktop/verify.ps1 -BuildDirectory $build
+          $work = Join-Path $env:RUNNER_TEMP ('zip-smoke-' + [guid]::NewGuid().ToString('N').Substring(0, 8))
+          Expand-Archive -Path (Join-Path $build 'qcode-windows-x64.zip') -DestinationPath $work
+          $exe = Get-ChildItem -LiteralPath $work -Recurse -Filter qcode.exe | Select-Object -First 1
+          if (-not $exe) { throw 'Portable launcher executable missing from zip' }
+          $data = Join-Path $env:RUNNER_TEMP ('zip-smoke-data-' + [guid]::NewGuid().ToString('N').Substring(0, 8))
+          $env:QCODE_DATA_HOME = $data
+          try {
+            $proc = Start-Process -FilePath $exe.FullName -WindowStyle Hidden -PassThru
+            $urlFile = Join-Path $data 'browser-url.txt'
+            $deadline = (Get-Date).AddMinutes(4)
+            while (-not (Test-Path $urlFile) -and (Get-Date) -lt $deadline) { Start-Sleep -Milliseconds 500 }
+            if (-not (Test-Path $urlFile)) { throw 'Service did not become ready from unpacked zip' }
+            $url = [uri](Get-Content $urlFile -Raw)
+            $response = Invoke-WebRequest $url.AbsoluteUri -UseBasicParsing
+            if ($response.StatusCode -ne 200) { throw "Unpacked zip smoke got HTTP $($response.StatusCode)" }
+            Stop-Process -Id $proc.Id -Force
+            $proc.WaitForExit()
+            Start-Sleep -Seconds 2
+            if (Get-NetTCPConnection -LocalPort $url.Port -State Listen -ErrorAction SilentlyContinue) { throw 'Service survived launcher termination' }
+          } finally {
+            Remove-Item Env:QCODE_DATA_HOME -ErrorAction SilentlyContinue
+          }
+
+      - name: Build portable package (macOS)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: corepack yarn build:desktop:darwin
+
+      - name: Verify from unpacked distribution (macOS)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          build="$(cat dist/desktop-darwin-latest.txt)"
+          work="$RUNNER_TEMP/zip-smoke"
+          mkdir -p "$work"
+          ditto -x -k "$build/qcode-darwin-arm64.zip" "$work"
+          corepack yarn verify:desktop:darwin "$work"
+          (cd "$build" && shasum -a 256 -c SHA256SUMS.txt)
+
+      - name: Checksums
+        shell: bash
+        run: |
+          build="$(cat dist/desktop-latest.txt 2>/dev/null || cat dist/desktop-darwin-latest.txt)"
+          echo "distribution dir: $build"
+          ls -la "$build"
+
+      - name: Upload distribution artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.target }}-preview
+          path: |
+            dist/desktop-*/qcode-*.zip
+            dist/desktop-*/qcode-setup-x64.exe
+            dist/desktop-*/SHA256SUMS.txt
+          if-no-files-found: error
+
+  summary:
+    name: Coverage summary
+    needs: build
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Record matrix coverage
+        shell: bash
+        run: |
+          {
+            echo "## Desktop preview release coverage"
+            echo "- windows-x64: ${{ needs.build.result }}"
+            echo "- macos-arm64: ${{ needs.build.result }}"
+            echo "- **darwin-x64: 未覆盖** — GitHub 无真实 Intel macOS runner；按约定不使用 Rosetta 代产。"
+            echo "- 触发方式：workflow_dispatch 手动，不自动发布；冒烟通过不替代 #19 真实模型与干净机器人工验收。"
+          } >> "$GITHUB_STEP_SUMMARY"

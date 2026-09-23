@@ -39,7 +39,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
       let alert = NSAlert()
       alert.messageText = "QCode 无法启动"
       alert.informativeText = error.localizedDescription
-      if !smoke { alert.runModal() }
+      if smoke {
+        // NSApp.terminate 会以 0 退出：冒烟模式必须把失败如实传给调用方，否则冲突检测形同虚设。
+        FileHandle.standardError.write(Data(("QCode 无法启动: " + error.localizedDescription + "\n").utf8))
+        exit(1)
+      }
+      alert.runModal()
       NSApp.terminate(nil)
       return
     }
