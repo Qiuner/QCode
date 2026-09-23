@@ -8,6 +8,8 @@
 
 macOS 原生架构门禁（2026-09-20，已实现待验收）：`build:desktop:darwin` 与 `verify-darwin.sh` 在产出构建目录或启动验证进程前，按硬件级 `hw.optional.arm64` 与 Node 自身架构判定执行环境，拒绝 Apple Silicon 上的 Rosetta 翻译执行并给出手工切换指引，不静默更改输出架构；架构判定收敛到 `apps/desktop/darwin-target.mjs` 单一来源，验证脚本经其 `--print-shell-env` 复用同一规则。11 项目标解析测试（含注入式 sysctl 分支）通过；Apple Silicon 实机覆盖原生通过、翻译 x86_64 Node 拒绝（官方 darwin-x64 Node 实测）与 Rosetta shell 内原生 arm64 Node 正常放行三条路径；Intel Mac 真机与完整重新打包未覆盖。详见 [桌面启动器说明](../apps/desktop/README.md)。
 
+macOS 便携启动器应用图标（2026-09-20，已实现待验收）：`apps/desktop/darwin-icon.mjs` 在打包时用系统 `sips` 与 `iconutil` 从 `assets/brand/android-chrome-512x512.png`（512px、透明）生成 16–512px 含 Retina 的 `AppIcon.icns` 写入 bundle Resources，`Info.plist` 声明 `CFBundleIconFile`；替换原先静默复制 `favicon.ico` 的路径，源图缺失时在产生任何构建产物前立即失败。5 项注入式图标测试通过并加入 CI；Apple M5 Pro / macOS 26.5.1 / arm64 实机重新导出世界并完成完整打包，产出 743,818 字节 ICNS，`iconutil` 反解确认 9 档完整，ZIP 解压往返后清单与图标一致，缺失源图构建即时拒绝。Finder 与应用信息目视截图见 PR 记录；Intel 机器未覆盖（图标流水线与架构无关，未在真机重复执行）。详见 [桌面启动器说明](../apps/desktop/README.md)。
+
 QCode 重命名（2026-09-18，已实现待验收）：产品与公开仓库已改名为 QCode；Mosslight / 苔光之屿继续作为世界名称。workspace、Web 插件目录与包名、TypeScript / Godot 自有符号、DOM 命名空间、Web/Godot Bridge、桌面应用、产品文档和发布链接已改用 QCode；新路由和消息使用 `/qcode/*`、`qcode-host`、`qcode-world`，迁移期兼容旧路由、请求头、消息来源和 Bridge 名称。浏览器存储、开发目录、Host 状态文件及桌面用户数据均采用无覆盖迁移，教程存储 domain 保持旧稳定身份以读取既有进度，世界导出状态改用 `.qcode-world-export.json`；`check:qcode-naming` 已接入 CI，开发目录迁移测试也已加入 CI。immutable 安装、类型检查、Web 构建、61 项插件测试、23 项本轮启动/迁移/文档及辅助测试、Godot 4.7.2 的 7 个 CI 场景、世界导出及哈希校验通过；隔离临时数据目录在 3081 端口启动后，认证入口、首页、QCode 图标与世界 HTML/WASM/PCK 的 HTTP 冒烟通过。Windows QCode 安装包与便携包完成安装提取、认证页面、世界资源、退出清理、单实例、原生模块、旧数据迁移与双目录冲突验收。介绍页通过 1440px 桌面截图检查，真实 390px 浏览器视口无横向溢出，动态标题正确。GitHub API 确认公开仓库为 `Qiuner/QCode`、remote 和 Pages 地址已更新且主分支保护保持不变，新 Pages 路径返回 200。macOS 脚本已同步但未在原生环境执行；真实浏览器 WebGL 与模型请求未在本轮验收，远端 CI 与线上页面的新内容仍待验收。本地 checkout 路径暂不改名，以免使活跃任务工作区失效。详见 [QCode 重命名施工方案](qcode-renaming-plan.md)。
 
 世界导出新鲜度校验（2026-09-18，已实现待验收）：Godot Web 导出记录场景、脚本、运行时资源与 Web 壳输入的总体 SHA-256；`check:world-export`、开发启动及桌面打包在哈希不一致、状态缺失或关键产物缺失时停止并要求重新执行 `build:world`。4 项校验器测试、脚本语法、真实世界重新导出、独立校验命令与桌面打包前置检查通过；未重新生成安装包。
@@ -17,6 +19,8 @@ QCode 重命名（2026-09-18，已实现待验收）：产品与公开仓库已�
 用户交流群入口（2026-09-17，已实现待验收）：中英文 README 增加 QQ 群号与二维码，介绍网站页脚增加交流群弹窗，支持复制群号、手动选择及 GitHub Issues 分流。二维码共用 `docs/images/qq-community.png`，保留原码并裁去外围留白。脚本语法、文档同步检查及本地浏览器弹窗打开、复制成功提示与画面检查通过；QQ 实际扫码与线上部署待验收。本轮范围为 README 和网站，应用内入口尚未实施。
 
 官方桌面原生聊天显示（2026-09-17，已实现待验收）：兼容 `conversation` / `main.conversation` 新旧 slot；带项目 Q 面板的原生输入框及控件显示、关闭重开、resize 与世界保持实测通过。真实消息流和审批仍未验收，详见 [官方桌面接入施工](official-desktop-plan.md)。
+
+官方桌面 macOS 适配（2026-09-20，实施中）：探针与隔离构建支持 macOS Apple Silicon——Electron 可执行文件按 `Electron.app` bundle 解析、依赖链接按平台分支、隔离构建关闭声明输出以避开链接图上的 TS2883。prepare 安装/Electron/全量构建/启动与资源、产品两档探针在 M5 Pro 通过，退出无残留；Intel 未覆盖，Windows 未复验产品探针。详见 [官方桌面接入施工](official-desktop-plan.md)，#19 的 Mac 验收以此为基础。
 
 官方桌面产品插件（2026-09-17，已实现待验收）：`upstream:desktop:probe --product --preview` 使用现有 Web 产品插件和独立新版依赖图，恢复原版角色对话与项目引导；共享 Fetch 接入原有领域处理器。Windows 产品页面、主岛/邻岛、角色选择及 17 项针对性回归通过；真实项目、模型、审批、通知与教程全程尚待验收。详见 [官方桌面接入施工](official-desktop-plan.md)，生产 runtime 未切换。
 
@@ -149,9 +153,9 @@ PR 检查增加 Web 服务托管、世界 shell 和 Godot 4.7.2 无头场景测�
 
 原生完整对话默认展开并占据侧栏主体；状态压缩为一行，首课内容默认折叠，底部输入与审批保留。类型检查、客户端构建通过；隔离世界的 Chromium 验证 1440px/390px 原生区域分别占侧栏约 61%/52%，首课展开及输入可用。未重跑真实地图、模型和审批流程。详细证据见 [居民对话系统](dialogue-system.md)。
 
-### 首次 Vibe Coding 教程（暂时隐藏）
+### 首次 Vibe Coding 教程 · 入口恢复首批（2026-09-22，已实现待验收）
 
-教程后端和记录能力暂时保留，但入口已从 Q 流程中隐藏，当前优先跑通自由创作：选择项目、配置模型、进入原生对话并直接提交开发任务。后续重新开放教程入口时，再单独验收完整课程、真实模型和新手端到端体验。阶段方案见 [首课施工方案第 8 节](first-vibe-coding-tutorial-plan.md#8-本轮施工记录2026-09-11)。
+教程后端与记录能力保留；本批恢复入口：创作手册新增"跟着学"区（开始学习 / 继续学习 · 项目名），入口不再要求模型配置，真正提交模型任务时沿用既有检查，自由创作仍会暂停进行中的教程。基础页面刷新续接已实机走查通过；服务重启、课程各步骤刷新、取消目录选择与异常恢复、真实模型端到端、完整课程与新手体验仍未验收，后续批次推进；曾被隐藏的中间状态见专项文档第 8 节。边界与证据见 [首课施工方案第 9 节](first-vibe-coding-tutorial-plan.md#9-本轮改动--入口恢复首批2026-09-22已实现待验收)。
 
 ### 统一居民对话 · 2026-09-11
 
