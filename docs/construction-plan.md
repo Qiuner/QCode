@@ -4,6 +4,8 @@
 
 ## 产品目标
 
+桌面预览发行 CI（2026-09-22，已实现待验收）：新增 `desktop-release-preview.yml`，仅手动触发、不自动发布；`windows-2022` / `macos-15` 矩阵在 job 开始断言 `uname -m` 与 `process.arch` 与目标一致，复用各平台现有打包与验证脚本，并从解包后的 ZIP 直接启动做原生冒烟（token 化 URL、退出清端口），上传 ZIP、安装包与 SHA256SUMS；darwin-x64 在汇总中如实标记未覆盖，不以 Rosetta 代产。fork 矩阵首跑两平台全绿，并暴露修复了官方动态链接 Node 坏包与冒烟冲突静默退出 0 两个真实缺陷；上游内首跑与评审待验收。自动冒烟不替代 #19 真实模型与干净机器验收。阶段、约束与首跑证据见 [桌面预览发行 CI 施工](desktop-release-preview-plan.md)。
+
 macOS 原生架构门禁（2026-09-20，已实现待验收）：`build:desktop:darwin` 与 `verify-darwin.sh` 在产出构建目录或启动验证进程前，按硬件级 `hw.optional.arm64` 与 Node 自身架构判定执行环境，拒绝 Apple Silicon 上的 Rosetta 翻译执行并给出手工切换指引，不静默更改输出架构；架构判定收敛到 `apps/desktop/darwin-target.mjs` 单一来源，验证脚本经其 `--print-shell-env` 复用同一规则。11 项目标解析测试（含注入式 sysctl 分支）通过；Apple Silicon 实机覆盖原生通过、翻译 x86_64 Node 拒绝（官方 darwin-x64 Node 实测）与 Rosetta shell 内原生 arm64 Node 正常放行三条路径；Intel Mac 真机与完整重新打包未覆盖。详见 [桌面启动器说明](../apps/desktop/README.md)。
 
 macOS 便携启动器应用图标（2026-09-20，已实现待验收）：`apps/desktop/darwin-icon.mjs` 在打包时用系统 `sips` 与 `iconutil` 从 `assets/brand/android-chrome-512x512.png`（512px、透明）生成 16–512px 含 Retina 的 `AppIcon.icns` 写入 bundle Resources，`Info.plist` 声明 `CFBundleIconFile`；替换原先静默复制 `favicon.ico` 的路径，源图缺失时在产生任何构建产物前立即失败。5 项注入式图标测试通过并加入 CI；Apple M5 Pro / macOS 26.5.1 / arm64 实机重新导出世界并完成完整打包，产出 743,818 字节 ICNS，`iconutil` 反解确认 9 档完整，ZIP 解压往返后清单与图标一致，缺失源图构建即时拒绝。Finder 与应用信息目视截图见 PR 记录；Intel 机器未覆盖（图标流水线与架构无关，未在真机重复执行）。详见 [桌面启动器说明](../apps/desktop/README.md)。
